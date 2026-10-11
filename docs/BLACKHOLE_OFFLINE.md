@@ -2,7 +2,9 @@
 
 veil-arenaから、信頼するローカルのveil-blackholeチェックアウトに対して、既存のRust/Python回帰試験と人工入力の再生を実行する。runnerが終了コードと出力を照合し、実行ごとの結果とログを保存する。ブラックホールのソースやfixtureは編集しない。
 
-これはM2の実プロジェクト接続の最初の実装である。[Nixと専用Linux VM](NIX_VM.md)を追加し、Linux x86_64／KVMゲストで成功、不具合検出、新しいVMでの再成功を確認した。[VM内のnetns正常通信](NETNS_VM.md)は別のシナリオで扱う。Linux eBPFの検証は未実装で、MVP全体の完成を意味しない。
+これはM2の実プロジェクト接続の最初の実装である。[Nixと専用Linux VM](NIX_VM.md)を追加し、Linux x86_64／KVMゲストで成功、不具合検出、新しいVMでの再成功を確認した。[VM内のnetns正常通信](NETNS_VM.md)は別のシナリオで扱う。参照eBPFの検証とM0〜M2の受け入れは[マイルストーン](MILESTONES.md)に別途記録している。この接続はBlackholeの解析を検証するもので、製品の通信遮断能力を保証しない。
+
+反復試験と変更前後の集計には[1つの入口からの運用](BLACKHOLE_WORKFLOW.md)を利用できる。
 
 ## 実行方法
 
