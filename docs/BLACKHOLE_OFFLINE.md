@@ -38,8 +38,9 @@ nix develop --command ./target/debug/veil-arena blackhole-offline \
 | 通常再生 | 人工IPv4、IPv6、DNS単体、Darwin BPFの2レコード。終了コード0とquery・エラー件数を照合 |
 | チェックサム | 人工IPv4、IPv6、IPv6拡張ヘッダー。終了コード0、検証有効表示、UDP checksumのvalid件数を照合 |
 | 不正入力の拒否 | 不正UDP長と不正UDP checksum。終了コード2に加え、offline表示と`queries=0 unsupported=0 malformed=1 truncated=0`を要求 |
+| 短縮DNSの分類 | Arenaが用意する11-byte DNSヘッダー。終了コード2と`queries=0 unsupported=0 malformed=1 truncated=0`を要求。Blackhole側への新fixture追加を必須にしない |
 
-計18段階。終了コード2だけでは拒否成功としない。fixture読込みや引数のエラーも同じ終了コードになり得るため、期待する集計出力が必要になる。最初の不一致・環境エラー・期限超過・中断で後続を停止し、未実行は`not_run`として残す。失敗を黙って再試行しない。
+計19段階（v0.1.0は18段階）。終了コード2だけでは拒否成功としない。fixture読込みや引数のエラーも同じ終了コードになり得るため、期待する集計出力が必要になる。最初の不一致・環境エラー・期限超過・中断で後続を停止し、未実行は`not_run`として残す。失敗を黙って再試行しない。
 
 ## 結果と終了コード
 

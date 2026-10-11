@@ -36,6 +36,9 @@ const FIXTURES: &[&str] = &[
     "bad-udp-checksum.hex",
 ];
 
+// Arena-owned synthetic input: eleven bytes, one byte short of the DNS header.
+const SHORT_DNS_HEADER: &[u8] = b"12 34 01 00 00 01 00 00 00 00 00\n";
+
 struct Options {
     project: PathBuf,
     artifacts: PathBuf,
@@ -348,6 +351,14 @@ fn steps(binary: &Path, inputs: &Path, cache: &Path) -> Vec<Step> {
         ("replay-ipv6", "query-v6.hex", "ethernet", false, 1, 0),
         ("replay-dns", "dns-query-a.hex", "dns", false, 1, 0),
         (
+            "reject-dns-short-header",
+            "dns-short-header.hex",
+            "dns",
+            false,
+            0,
+            1,
+        ),
+        (
             "replay-bpf",
             "bpf-two-records.hex",
             "bpf-darwin",
@@ -516,6 +527,16 @@ fn suite(
             json!({"sha256": sha256(&bytes), "bytes": bytes.len()}),
         );
     }
+    // Keep compatibility with existing Blackhole checkouts: this boundary input
+    // belongs to Arena and does not require a new fixture in the tested project.
+    let mut file = create_file(&inputs.join("dns-short-header.hex"))?;
+    file.write_all(SHORT_DNS_HEADER)?;
+    file.sync_all()?;
+    fixtures.insert(
+        "dns-short-header.hex",
+        json!({"sha256": sha256(SHORT_DNS_HEADER), "bytes": SHORT_DNS_HEADER.len(),
+            "source": "arena"}),
+    );
     // Cargo can retain valid fingerprints for two package roots while both
     // write the same target/debug binary. Separate target directories by
     // canonical checkout path, not merely by package name or revision.
