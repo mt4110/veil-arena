@@ -1,0 +1,37 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  linux-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Check with pinned Nix tools
+        run: |
+          docker run --name arena-ci --cpus 2 --memory 6g \
+            --security-opt no-new-privileges \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=/source,readonly" \
+            --entrypoint bash \
+            nixos/nix@sha256:65397cf0c10c60415c5e98ce4c639f1abed1abd256ef88f455028500a204c43b \
+            -euo pipefail -c '
+              mkdir /tmp/arena-source
+              tar -C /source --exclude=.git --exclude=target --exclude=artifacts \
+                --exclude=__pycache__ -cf - . | tar --no-same-owner -C /tmp/arena-source -xf -
+              cd /tmp/arena-source
+              git init -q
+              git add .
+              export NIX_CONFIG="experimental-features = nix-command flakes"
+              nix develop --command cargo fetch --locked
+              nix develop --command cargo fetch --locked --manifest-path tools/vm-controller/Cargo.toml
+              nix develop --command bash scripts/check.sh
+            '

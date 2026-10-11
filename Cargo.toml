@@ -1,0 +1,24 @@
+[package]
+name = "veil-arena"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98.1"
+publish = false
+license = "MIT"
+default-run = "veil-arena"
+description = "Local offline verification runner for Veil projects"
+
+[dependencies]
+ctrlc = { version = "=3.5.2", features = ["termination"] }
+libc = "=0.2.190"
+serde_json = "=1.0.150"
+sha2 = "=0.10.9"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+aya = "=0.13.1"
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+all = "warn"
