@@ -26,7 +26,7 @@ jobs:
             -euo pipefail -c '
               mkdir /tmp/arena-source
               tar -C /source --exclude=.git --exclude=target --exclude=artifacts \
-                --exclude=__pycache__ -cf - . | tar -C /tmp/arena-source -xf -
+                --exclude=__pycache__ -cf - . | tar --no-same-owner -C /tmp/arena-source -xf -
               cd /tmp/arena-source
               git init -q
               git add .
