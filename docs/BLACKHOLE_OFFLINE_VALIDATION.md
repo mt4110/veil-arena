@@ -4,6 +4,29 @@
 
 この記録はオフライン接続時点の範囲と試験数を保持する。後続で追加したapp/router/serverの実通信は、[netnsの検証記録](NETNS_VALIDATION.md)で扱う。
 
+## 2026-10-11：短縮DNSの分類・件数の回帰検証
+
+DNSヘッダーの固定長は12 bytes。今回はその直前の11-byte入力を1ケースに絞った。現行Blackholeはこの入力をすでに`Malformed("DNS message length")`として拒否していたため、デコーダーの挙動は変更していない。既存prefix試験の「エラーになる」という確認に加え、BlackholeのCLI試験で終了2・`queries=0 unsupported=0 malformed=1 truncated=0`と集計行が1つだけであることを確認する。DNS自体の短い入力をBPFのcapture truncationとして数えない。
+
+Arenaにも同じ人工入力の再生を追加し、19段階になった。入力はArenaが用意してhashとコピーをmanifestへ保存するため、Blackhole側に新しいfixtureがない既存checkoutでも実行できる。全体と各段階の終了コード・集計の期待値は維持し、既存の正常・不正入力試験を弱めていない。
+
+| 比較 | 結果 |
+| --- | --- |
+| 変更前Arena＋故障コピー | 18段階成功。11-byte入力だけを誤って`Unsupported`へ分類する故障を見逃した |
+| 変更後Arena＋同じ故障コピー | 既存Rust/Python試験と正常DNS再生は成功。`reject-dns-short-header`が実際の終了0・unsupported=1に対して期待の終了2・malformed=1との不一致を検出し、Arenaは終了1 |
+| 変更後Arena＋実Blackhole | 19段階成功。BlackholeのRust試験53件、Python試験4件が成功 |
+| 実Blackholeでの正常再実行 | 同じ依存・build cacheを使い、新規runで19段階成功 |
+
+macOS ARM64の固定Nix環境（Rust 1.98.1、Cargo実バイナリ1.98.0、Python 3.14.7）で実施。両repoのfmt／ClippyとArenaの対象Rust試験10件も成功。旧・新Arenaで使った故障コピーのソース／実バイナリhashは同一で、正常2runのソース／実バイナリhashも同一。各runの開始・終了でも不変だった。[比較集計と証拠への参照](../artifacts/dns-short-header-20261011/summary.json)を残す。
+
+Linux x86_64でも、既存Docker/Nixビルダー内の通常ユーザー（UID 1000）で追加試験を実行した。正常版19段階成功→11-byte入力を`Unsupported`に誤分類する故障コピーを追加再生段階で検出（Arena終了1）→正常版の新規runで19段階再成功を確認。正常版のBlackhole Rust試験47件・Python試験4件、両repoのfmt／Clippy、Arena Rust試験20件・controller 9件・Python 23件、3 systemのNix定義評価も成功した。OS条件でMacのRust試験53件とは件数が異なる。
+
+転送した155ファイルのhashを照合し、Linux上の正常2runでもソース・実バイナリhashが一致した。初回はCargo registryにBlackholeの依存がなく、試験開始前の準備で停止した。この失敗ログを保持し、固定Cargo.lockに対応するNixのvendorソースを再利用して、ネットワーク取得なしのオフライン試験を完了した。[Linux比較集計](../artifacts/dns-short-header-20261011/linux/summary.json)を残す。検証対象は転送したソースsnapshotであり、元checkoutとの一致はファイルhashで確認する。
+
+最終確認でVM用判定器の旧18段階固定も19段階へ追従させた。新しい19段階の完全報告を受理し、1段階欠けた18段階報告を環境エラーとして拒否する回帰試験を追加。変更前は2件の失敗を再現し、修正後はMac・LinuxともPython全24件が成功した。Linuxでは別の小さなsnapshotで最終Pythonファイルを確認し、先の155ファイルのsnapshotとログは保持した。これも結果形式の単体検証であり、新しいVM実起動の証拠ではない。
+
+VMイメージ・kernel・netnsは変更せず、今回の追加試験ではVM起動、Live取得、DNS送信は行っていない。Linux ARM64およびVM内での今回の追加試験は未実行。既存のLinux VM受け入れ記録は以下に保持し、この新しい試験の実行証拠とは分ける。
+
 ## Linux VMでの成功・不具合検出・再実行
 
 SSH接続先`pi-node`で確認した。ホストはLinux 7.0.0-38-generic／x86_64、ゲストは固定kernel 6.12.112。QEMU KVM、2 vCPU、4096 MiB、外部NICなし。ゲスト内でRust 1.98.1、Cargo 1.98.0、Python 3.14.7を照合した。[全体の比較結果](../artifacts/pi-node-1791624441124999000/verification-summary.json)

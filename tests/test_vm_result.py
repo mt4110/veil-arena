@@ -18,11 +18,17 @@ class EvidenceTests(unittest.TestCase):
         root = pathlib.Path(tempfile.mkdtemp(prefix="arena-vm-evidence-"))
         directory = root / "results/blackhole-offline-test"
         directory.mkdir(parents=True)
-        result = {"status": status, "steps": [{"status": "passed"}] * 18,
+        result = {"status": status, "steps": [{"status": "passed"}] * 19,
                   "source_unchanged": True, "binary_unchanged": True}
         (directory / "result.json").write_text(json.dumps(result))
         (root / "service-result.txt").write_text(service)
         return root, directory / "result.json", result
+
+    def test_offline_pass_requires_all_nineteen_stages(self):
+        root, path, result = self.fixture()
+        result["steps"].pop()
+        path.write_text(json.dumps(result))
+        self.assertEqual(checker.check(root), 3)
 
     def test_complete_pass_and_regression(self):
         root, _, _ = self.fixture()

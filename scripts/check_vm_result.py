@@ -73,7 +73,7 @@ def check(root: pathlib.Path, scenario: str = "blackhole-offline") -> int:
         print(f"Guest suite: {result.get('status')}", file=sys.stderr)
         return 3
     steps = result.get("steps", [])
-    if (not isinstance(steps, list) or len(steps) != 18
+    if (not isinstance(steps, list) or len(steps) != 19
             or any(not isinstance(step, dict) or step.get("status") != "passed" for step in steps)
             or result.get("source_unchanged") is not True
             or result.get("binary_unchanged") is not True):

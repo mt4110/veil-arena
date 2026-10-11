@@ -95,7 +95,7 @@ ARENA_VM_ACCELERATOR=kvm bash scripts/build-offline-vm.sh ../veil-blackhole
 
 VMへ入れるブラックホールのソースは、src/tests/scripts/examplesとCargo manifest/lock・build.rs・toolchainのsnapshot。`.git`、artifact、target、HOME、Docker socketを渡さない。許可したソースディレクトリ内の任意ファイルの秘密情報を自動判定する仕組みはなく、信頼する入力を確認して使う。ゲスト内にsnapshot用のローカルGit commitを作る。ゲストのHEADは元checkoutのHEADではない。Nix source store pathとrunnerのファイルhashで実際に試験したsnapshotを識別する。
 
-Cargo依存は対象のCargo.lockからNixで準備してclosureへ収める。ゲスト内では依存取得をせず、同じRust runnerで18段階を実行する。ゲストの試験判定とホストのQEMU生存期間の制御はRustで、呼出しは固定shell wrapper、回収した結果の形式チェックは標準ライブラリだけのPython補助を使う。pytestは導入しない。ホスト専用のRustコントローラーは`tools/vm-controller`に分離し、変更のたびにゲストのツールイメージを作り直す必要がない構成にした。
+Cargo依存は対象のCargo.lockからNixで準備してclosureへ収める。ゲスト内では依存取得をせず、同じRust runnerで19段階を実行する。ゲストの試験判定とホストのQEMU生存期間の制御はRustで、呼出しは固定shell wrapper、回収した結果の形式チェックは標準ライブラリだけのPython補助を使う。pytestは導入しない。ホスト専用のRustコントローラーは`tools/vm-controller`に分離し、変更のたびにゲストのツールイメージを作り直す必要がない構成にした。
 
 ## VMの境界と結果
 
@@ -107,7 +107,7 @@ netnsの通常運用は[一括試験](NETNS_WORKFLOW.md)に移した。準備で
 - `/out`はホストOSにかかわらず9Pで定義する。固定NixOSモジュールのLinux既定値virtiofsを明示的に上書きし、launcherの9P接続と一致させる。定義にはfsTypeのassertionを入れる。
 - オフライン試験期限300秒、netns単一ケース期限90秒、一括ケース実行期限360秒、サービス期限600秒。QEMU起動後のホストコントローラーは660秒、外側のwatchdogは670秒と停止猶予5秒。各起動前にイメージchecksumを計算する。一括workflowにはlauncherごとに900秒の上限もある。serialログにもファイルサイズ上限を設定する。
 - ホストのRustコントローラーが試験サービスの終了markerを確認し、出力をfsyncしてから所有するQEMUへSIGTERMを送る。停止後にserialと停止理由も同期する。SIGKILLへの強制移行、期限超過、同期失敗、サービス未完了は環境エラー。ホストのファイルを削除する後処理はない。
-- QEMUの終了コード0だけでは合格にしない。ホスト制御の完了とservice終了を照合する。オフラインは18段階とsource/binary不変、netnsは51段階の通信・経路・後片付けをそれぞれ確認する。
+- QEMUの終了コード0だけでは合格にしない。ホスト制御の完了とservice終了を照合する。オフラインは19段階とsource/binary不変、netnsは51段階の通信・経路・後片付けをそれぞれ確認する。
 
 保存対象は`vm-manifest.json`、`boot-inputs.sha256`（store image・kernel・initrd）、`serial.log`、`vm-stop.json`、`qemu-exit-code.txt`、`guest-kernel.txt`、`guest-cmdline.txt`、`source-store-path.txt`、`service-result.txt`、`results/<run-id>/`。起動失敗・panic・期限超過でguest resultを回収できなければ環境エラー。出力は保全する。
 
