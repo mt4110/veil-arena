@@ -21,6 +21,8 @@ M0〜M2の初期MVPを完了と判定する。公開・マージ済みという�
 
 IPv6のwire試験、TCPの限定drop、未定義入力、任意時点の中断、kernel panic・電源断、kernel無応答・QEMU停止不能、Linux ARM64／KVM、他者による再現・性能・製品価値は初版の確認範囲外。以後は実開発で使い、M3の必要性を確認する。これらを全部追加するまで初版を無期限に延ばさない。
 
+M3は[fixture読込み境界の実開発検証](M3_FIXTURE_OPEN_VALIDATION.md)から着手した。既存動作の問題を再現し、Blackhole修正とArenaでの回帰確認をMac／Linuxで実施。[準備・反復・集計の入口](BLACKHOLE_WORKFLOW.md)を追加し、[M3-A〜Cの技術的検証](M3_WORKFLOW_VALIDATION.md)もまとめた。細かな変更ごとにPRを作らず、このまとまりでレビューする。後続の[個別手順との比較と差分レビュー](M3_SELF_USE_VALIDATION.md)で、機械的な比較と2つの証拠検査の補強を完了した。本人の操作・理解時間とマージは未確認。M3全体の製品価値を確認済みと扱わず、機能追加は止めて普段のBlackhole開発で使う。
+
 ## 現在地と前提
 
 netns試験の反復運用は、準備と試験を分離する方式へ変更した。Nix storeの依存と読み取り専用imageを保持し、日常は1 VM内の正常・経路故障・正常・TC比較・3種類のTC故障・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧の13ケース一括試験、受け入れ時は追加の新規VMを使う。[運用手順](NETNS_WORKFLOW.md)と[以前の3ケースの証拠](NETNS_WORKFLOW_VALIDATION.md)を参照する。TC比較の現在の範囲は固定IPv4/UDP・1 ingress hook。別入口の`watchdog-acceptance`は停止VM→正常再実行VMを2組・計4起動とし、同じimageを再利用する。固定fixture以外の異常入力、他のロード障害、指定checkpoint以外の中断などは初版の保証に含めない。ARM64の実起動はLinuxの専用Colima環境とMacのnative QEMU／TCGで確認済み。
