@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0",
+  "status": "accepted_for_pr_review",
+  "validated_on": "2026-10-11 JST",
+  "arm64_acceptance": [
+    {
+      "platform": "Linux ARM64 / TCG (dedicated Colima Linux host)",
+      "vm_boots": 2,
+      "normal_batch_cases": 26,
+      "runs": [
+        {
+          "id": "daily",
+          "boot_id": "4ba00d77-a0a9-4d93-8d08-a94f1934a3f5",
+          "cases": [
+            {
+              "id": "normal-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "route-fault-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "normal-002",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-ingress-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-drop-disabled-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "tc-wrong-hook-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "tc-receiver-stopped-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "bpf-test-run-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "bpf-load-failure-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "batch-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-after-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "batch-timeout-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-restored-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            }
+          ],
+          "owned_qemu_reaped": true,
+          "synced_before_stop": true,
+          "boot_input_hashes": [
+            "b8a226a2c7e5d4d10d2f7174a075da7380cfc4ede7b379d8a7e545a4885ce8af",
+            "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+            "f17801d308c7d987f54ded71b4e18bbbe902918d84e23f32a3c27d19632ee6ec"
+          ]
+        },
+        {
+          "id": "fresh",
+          "boot_id": "13e500a1-2694-4646-b69f-d3492eff1a77",
+          "cases": [
+            {
+              "id": "normal-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "route-fault-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "normal-002",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-ingress-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-drop-disabled-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "tc-wrong-hook-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "tc-receiver-stopped-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "bpf-test-run-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "bpf-load-failure-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "batch-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-after-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "batch-timeout-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-restored-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            }
+          ],
+          "owned_qemu_reaped": true,
+          "synced_before_stop": true,
+          "boot_input_hashes": [
+            "b8a226a2c7e5d4d10d2f7174a075da7380cfc4ede7b379d8a7e545a4885ce8af",
+            "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+            "f17801d308c7d987f54ded71b4e18bbbe902918d84e23f32a3c27d19632ee6ec"
+          ]
+        }
+      ]
+    },
+    {
+      "platform": "macOS ARM64 / TCG (native Nix bundle entry)",
+      "vm_boots": 2,
+      "normal_batch_cases": 26,
+      "runs": [
+        {
+          "id": "daily",
+          "boot_id": "efd993d4-7aef-4795-81f5-72911584dbee",
+          "cases": [
+            {
+              "id": "normal-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "route-fault-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "normal-002",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-ingress-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-drop-disabled-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "tc-wrong-hook-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "tc-receiver-stopped-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "bpf-test-run-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "bpf-load-failure-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "batch-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-after-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "batch-timeout-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-restored-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            }
+          ],
+          "owned_qemu_reaped": true,
+          "synced_before_stop": true,
+          "boot_input_hashes": [
+            "b8a226a2c7e5d4d10d2f7174a075da7380cfc4ede7b379d8a7e545a4885ce8af",
+            "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+            "f17801d308c7d987f54ded71b4e18bbbe902918d84e23f32a3c27d19632ee6ec"
+          ]
+        },
+        {
+          "id": "fresh",
+          "boot_id": "27664d0c-1a90-45a3-806c-a99b18142913",
+          "cases": [
+            {
+              "id": "normal-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "route-fault-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "normal-002",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-ingress-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-drop-disabled-001",
+              "expected_exit_code": 1,
+              "actual_exit_code": 1
+            },
+            {
+              "id": "tc-wrong-hook-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "tc-receiver-stopped-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "bpf-test-run-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "bpf-load-failure-001",
+              "expected_exit_code": 3,
+              "actual_exit_code": 3
+            },
+            {
+              "id": "batch-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-after-cancel-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "batch-timeout-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            },
+            {
+              "id": "tc-restored-001",
+              "expected_exit_code": 0,
+              "actual_exit_code": 0
+            }
+          ],
+          "owned_qemu_reaped": true,
+          "synced_before_stop": true,
+          "boot_input_hashes": [
+            "b8a226a2c7e5d4d10d2f7174a075da7380cfc4ede7b379d8a7e545a4885ce8af",
+            "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+            "f17801d308c7d987f54ded71b4e18bbbe902918d84e23f32a3c27d19632ee6ec"
+          ]
+        }
+      ]
+    }
+  ],
+  "arm64_distinct_boot_ids": true,
+  "arm64_identical_boot_inputs": true,
+  "arm64_evidence_files_hashed": 9136,
+  "arm64_nar_paths_verified": 754,
+  "x86_64_watchdog_acceptance": {
+    "vm_boots": 4,
+    "expected_watchdog_failures": 2,
+    "normal_batch_cases": 26,
+    "evidence_files_previously_sha256_verified": 5486,
+    "rechecked_for_release": true
+  },
+  "blackhole_current_offline": {
+    "revision": "a6813c4bffc45eb8b5ebdd70bb36251f473d8554",
+    "steps": 18,
+    "status": "passed",
+    "mutation_and_restore": "previous Linux VM snapshot acceptance verified; see BLACKHOLE_OFFLINE_VALIDATION.md"
+  },
+  "local_checks": {
+    "macOS_ARM64": {
+      "rust": 10,
+      "controller_parallel": 9,
+      "python": 23,
+      "fmt": "passed",
+      "clippy": "passed",
+      "all_system_definition_evaluation": "passed"
+    },
+    "Linux_x86_64": {
+      "rust": 20,
+      "controller_parallel": 9,
+      "python": 23,
+      "fmt": "passed",
+      "clippy": "passed",
+      "all_system_definition_evaluation": "passed"
+    }
+  },
+  "limits": [
+    "fixed IPv4 wire fixtures and one TC ingress hook",
+    "no IPv6 wire validation or TCP-specific drop validation",
+    "Linux ARM64 KVM and bare metal not validated",
+    "no panic, power-loss, hung-kernel or unkillable-QEMU guarantee",
+    "trusted sources and guest bundles only",
+    "local raw artifacts are not distributed",
+    "source-only release; no prebuilt guest image or dependency binaries"
+  ]
+}
