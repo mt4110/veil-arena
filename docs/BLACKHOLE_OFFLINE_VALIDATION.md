@@ -23,6 +23,8 @@ Linux x86_64でも、既存Docker/Nixビルダー内の通常ユーザー（UID 
 
 転送した155ファイルのhashを照合し、Linux上の正常2runでもソース・実バイナリhashが一致した。初回はCargo registryにBlackholeの依存がなく、試験開始前の準備で停止した。この失敗ログを保持し、固定Cargo.lockに対応するNixのvendorソースを再利用して、ネットワーク取得なしのオフライン試験を完了した。[Linux比較集計](../artifacts/dns-short-header-20261011/linux/summary.json)を残す。検証対象は転送したソースsnapshotであり、元checkoutとの一致はファイルhashで確認する。
 
+最終確認でVM用判定器の旧18段階固定も19段階へ追従させた。新しい19段階の完全報告を受理し、1段階欠けた18段階報告を環境エラーとして拒否する回帰試験を追加。変更前は2件の失敗を再現し、修正後はMac・LinuxともPython全24件が成功した。Linuxでは別の小さなsnapshotで最終Pythonファイルを確認し、先の155ファイルのsnapshotとログは保持した。これも結果形式の単体検証であり、新しいVM実起動の証拠ではない。
+
 VMイメージ・kernel・netnsは変更せず、今回の追加試験ではVM起動、Live取得、DNS送信は行っていない。Linux ARM64およびVM内での今回の追加試験は未実行。既存のLinux VM受け入れ記録は以下に保持し、この新しい試験の実行証拠とは分ける。
 
 ## Linux VMでの成功・不具合検出・再実行
