@@ -137,6 +137,33 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(failed["status"], "environment_error")
         self.assertIsNone(failed["exit_code"])
 
+    def test_python_failure_requires_stderr_evidence(self):
+        for channel, log_name, expected in [
+            ("stderr", "python-tests.stderr.log", "passed"),
+            ("stdout", "python-tests.stderr.log", "failed"),
+            ("stderr", "../outside.log", "environment_error"),
+        ]:
+            with self.subTest(channel=channel, log_name=log_name):
+                root = Path(tempfile.mkdtemp(prefix="arena-python-evidence-"))
+                def fake_command(args, *_):
+                    output = Path(args[args.index("--artifacts") + 1]) / "blackhole-offline-fixture"
+                    output.mkdir()
+                    report = self.report()
+                    report.update(status="failed", duration_ms=1)
+                    report["steps"][8] = {"id": "python-tests", "status": "failed",
+                                          "stdout_log": "python-tests.stdout.log", "stderr_log": log_name}
+                    for step in report["steps"][9:]:
+                        step["status"] = "not_run"
+                    (output / "result.json").write_text(json.dumps(report))
+                    for stream in ("stdout", "stderr"):
+                        (output / f"python-tests.{stream}.log").write_text(
+                            "FAIL: test_regression (fixture.TestCase)" if stream == channel else "")
+                    return {"status": "completed", "exit_code": 1}
+                with patch.object(workflow, "command", side_effect=fake_command):
+                    row = workflow.suite(root / "runner", root, root, {}, 1, root, "before",
+                                         "python-tests", "FAIL: test_regression")
+                self.assertEqual(row["status"], expected)
+
 
 if __name__ == "__main__":
     unittest.main()

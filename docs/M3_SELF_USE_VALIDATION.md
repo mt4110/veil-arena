@@ -24,6 +24,14 @@
 
 Blackholeの変更も確認し、最終パス要素のsymlink拒否・FIFOのwriter待ち回避・FDの種類確認という限定した修正であることを維持した。親ディレクトリやdeviceのopen副作用まで防ぐ説明に広げない。依存版とCargo.lockの変更はない。READMEの説明を段落に分けたが、製品機能は増やしていない。
 
+## PR #3のPython失敗証拠に関するレビュー対応
+
+2026-10-11、PR #3のレビューで、`python-tests`の失敗証拠をstdoutから読む問題が指摘された。unittestが通常stderrへ出す失敗名を認識できず、before確認が失敗して正常試験へ進めなかった。Python試験はstderr、他の対応段階は従来のstdoutを照合するよう修正した。ログのファイル名・通常ファイル・2 MiB上限の検証は維持した。
+
+stderrの証拠を受理、stdoutだけの文字列を拒否、不正なstderrパスを環境エラーとする回帰試験を追加し、修正前は3ケースが失敗、修正後は全Python 37試験が成功した。Mac ARM64の固定Nix環境で整形・Clippy・Rust試験・3 systemのNix定義評価も成功した。
+
+隔離したBlackholeコピーへ意図的に失敗するunittestを追加し、実際の失敗名がstderrだけに出ることを確認した。一括入口はその失敗を検出した後、元のBlackholeチェックアウトで正常19段階を2回完了した。これは集計経路の試験用fixtureであり、新しいBlackhole不具合の発見ではない。依存・ビルドcacheを再利用し、新規VMは起動していない。証拠はGitignoredの`artifacts/pr3-python-stderr-20261011/`（`before.log`、`checks.log`、`batch.log`、各summary／Rust報告／ログ）へ保存した。
+
 ## 比較方法
 
 Mac ARM64の固定Nix shell内で、同じwarm cache・同じ入力・同じRust runnerを使った。個別手順を再構成し、次の4呼び出しを順に実行した。

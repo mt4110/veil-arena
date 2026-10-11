@@ -43,6 +43,8 @@ bash scripts/blackhole-workflow.sh \
 
 beforeは指定段階で失敗し、指定した回帰試験のログが含まれることを要求する。引数エラー・環境エラー・別の試験失敗を代用しない。その後に修正後の2回を確認する。想定外の結果で停止し、後続はsummaryの`not_run`に残す。失敗を黙って再試行しない。
 
+`--before-contains`は`python-tests`ではstderrを、`rust-tests`と`reject-dns-short-header`ではstdoutを照合する。unittestの失敗名・tracebackは通常stderrへ出るため、Python試験ではその失敗名（例：`FAIL: test_regression`）を指定する。対象ログの通常ファイル・2 MiB上限・ファイル名検証はどの段階でも同じ。
+
 `--repeat`は1〜5、`--timeout-seconds`は1〜3600（既定300）。期限は準備と各Rust suiteごと。suiteの外側ではRustの終了猶予に5秒を加える。SIGTERM／Ctrl-Cと期限超過では、補助スクリプトが起動したprocess groupの停止を試みる。Rust自身による子process管理・2 MiBログ上限は既存のまま。prepのログには同じサイズ上限を設けていない。SIGKILL・host停止などで最終summaryがない場合は、eventsと途中のログを完了結果に読み替えない。
 
 ## 集計を読む

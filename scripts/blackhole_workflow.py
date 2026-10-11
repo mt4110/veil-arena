@@ -147,7 +147,9 @@ def suite(binary, project, cache, env, timeout, run, name, failure_stage=None, f
         verdict = assess(report, execution["exit_code"], failure_stage)
         if failure_stage is not None and verdict == "passed":
             failed = next(step for step in report["steps"] if step["status"] == "failed")
-            log_name = failed.get("stdout_log")
+            # unittest writes failure names and tracebacks to stderr by default.
+            log_field = "stderr_log" if failure_stage == "python-tests" else "stdout_log"
+            log_name = failed.get(log_field)
             if not isinstance(log_name, str) or Path(log_name).name != log_name:
                 raise ValueError("invalid failure evidence path")
             evidence = reports[0].parent / log_name
@@ -244,7 +246,7 @@ def main():
     parser.add_argument("--project", type=Path, required=True)
     parser.add_argument("--before", type=Path)
     parser.add_argument("--before-failure", choices=["rust-tests", "python-tests", "reject-dns-short-header"])
-    parser.add_argument("--before-contains", help="exact text required in the failed stage stdout")
+    parser.add_argument("--before-contains", help="exact text required in the failed stage log (stderr for python-tests, stdout otherwise)")
     parser.add_argument("--cache", type=Path, default=ROOT / "target/blackhole-workflow")
     parser.add_argument("--artifacts", type=Path, default=ROOT / "artifacts")
     home = Path(os.environ.get("CARGO_HOME", str(Path.home() / ".cargo")))
