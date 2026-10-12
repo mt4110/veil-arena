@@ -21,7 +21,7 @@ M0〜M2の初期MVPを完了と判定する。公開・マージ済みという�
 
 IPv6のwire試験、TCPの限定drop、未定義入力、任意時点の中断、kernel panic・電源断、kernel無応答・QEMU停止不能、Linux ARM64／KVM、他者による再現・性能・製品価値は初版の確認範囲外。以後は実開発で使い、M3の必要性を確認する。これらを全部追加するまで初版を無期限に延ばさない。
 
-M3は[fixture読込み境界の実開発検証](M3_FIXTURE_OPEN_VALIDATION.md)から着手した。既存動作の問題を再現し、Blackhole修正とArenaでの回帰確認をMac／Linuxで実施。[準備・反復・集計の入口](BLACKHOLE_WORKFLOW.md)を追加し、[M3-A〜Cの技術的検証](M3_WORKFLOW_VALIDATION.md)もまとめた。細かな変更ごとにPRを作らず、このまとまりでレビューした。後続の[個別手順との比較と差分レビュー](M3_SELF_USE_VALIDATION.md)で、機械的な比較と証拠検査の補強を完了した。両プロジェクトのPR #3はマージ済み。続けて[DNS予約Zビットの分類修正](M3_DNS_RESERVED_Z_VALIDATION.md)を既存入口で検証した。本人の操作・理解時間は未確認。M3全体の製品価値を確認済みと扱わず、機能追加は止めて普段のBlackhole開発で使う。
+M3は[fixture読込み境界の実開発検証](M3_FIXTURE_OPEN_VALIDATION.md)から着手した。既存動作の問題を再現し、Blackhole修正とArenaでの回帰確認をMac／Linuxで実施。[準備・反復・集計の入口](BLACKHOLE_WORKFLOW.md)を追加し、[M3-A〜Cの技術的検証](M3_WORKFLOW_VALIDATION.md)もまとめた。細かな変更ごとにPRを作らず、このまとまりでレビューした。後続の[個別手順との比較と差分レビュー](M3_SELF_USE_VALIDATION.md)で、機械的な比較と証拠検査の補強を完了した。両プロジェクトのPR #3はマージ済み。続けて[DNS予約Zビットの分類修正](M3_DNS_RESERVED_Z_VALIDATION.md)を既存入口で検証した。[失敗表示の改善](M3_FAILURE_DISPLAY_VALIDATION.md)後、本人がコンソールだけで失敗段階と実際・期待の違いを理解し、正常再実行も成功したと報告した。[M3の初期自己利用の受け入れ](M3_SELF_USE_ACCEPTANCE.md)は成立。本人の操作・理解時間、工数削減、維持費は未取得で、当初の全測定条件や製品価値を確認済みとは扱わない。機能追加は止めて普段のBlackhole開発で使う。
 
 ## 現在地と前提
 
@@ -84,6 +84,8 @@ MVPではk8s、k3s、複数CNI、Firecracker、全クラウドの模倣、実マ
 M3でLinuxの実課題が見つからなければ、k8sへ進まず、現在のmacOS製品に必要なfixtureや観測検証への接続を再検討する。Linux環境の完成を、それだけでVeil製品の進展と数えない。
 
 M4のk8s拡張は利用場面に応じた分岐とする。他者がVM/netnsの検証だけに価値を感じるなら、その構成で製品化を判断する。CNIやkernelの種類を増やすためだけの拡張はしない。
+
+2026-10-12の現在地は、M3の自己利用の成立と[M4最小試用手順](M4_MINIMAL_TRIAL.md)の準備まで。M4の試用は未実施。最初は別の開発者1人による既存Blackholeオフライン入口の実行・診断・再実行だけを確認する。外部への連絡、配布、k8s実装は行っていない。工数削減・維持費の定量記録と第三者価値の確認は残条件として維持する。他者利用の必要がなければ準備で止め、Blackholeの実開発へ戻る。
 
 ## MVPの受け入れケース
 

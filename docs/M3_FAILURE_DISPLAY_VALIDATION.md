@@ -33,3 +33,17 @@ Mac ARM64、既存固定Nix環境とcacheを使用。整形・Clippy・Rust試�
 追加証拠はGitignoredの`artifacts/m3-display-linux-20261012/`。`mac-final-checks.log`、`linux-check.log`（初回）、`linux-final-check.log`（最終4ケース）、`linux-hashes.log`、`linux-evidence/results/`の各summary・Rust報告・ログを保持した。証拠回収後に所有ビルダーを停止し、`exited`を確認した。cacheと過去の証拠は残している。
 
 Linux ARM64、新規VM、Live取得は今回未実施。本人が改善後の表示だけで診断できるかは未確認。[本人チェック](M3_PERSONAL_CHECK.md)で追加観察する。本記録はPR提出前の結果で、提出後のCI・マージ・公開状態はPRで別途確認する。
+
+## PR #5マージ後のmain確認
+
+2026-10-12、Arena main `9d2c20b9ef6d05c1da42d892a89768d6cd4998ef`、Blackhole main `d5037b326beb9a29f3845ec8561ec1ada95f7cd7`で確認した。Mac ARM64の固定Nix環境と既存cache、保存済み不具合snapshotを再利用した。
+
+- 正常mainの19段階×2回が成功、終了0。
+- 保存済みsnapshotでは、失敗段階`rust-tests`、終了101と期待0、Zビットの試験名、実際と期待値、stdout／stderrログの場所がコンソールに表示された。全体は終了1、後続`healthy-2`は未実行。
+- その後、同じcacheで正常mainを再実行し、19段階×2回が成功、終了0。失敗証拠は保持した。
+
+証拠はGitignoredの`artifacts/m3-post-pr5-20261012/`（`normal.log`、`failure.log`、`recovery.log`と各summary／Rust報告／ログ）。今回Linuxでのマージ後再実行、新規VM、Live取得は実施していない。実行コードは変更せず、本人チェックを「コンソールから失敗診断→正常再実行」へ整理した。この確認時点では改善後の本人観察は未取得で、追加文書のcommit・push・PRも未実施だった。
+
+## 後続の本人確認
+
+同日、本人がコンソールだけで失敗段階と実際・期待の違いを理解でき、正常再実行も成功したと報告した。上記の未取得状態はこの報告前の状態。[M3の受け入れ記録](M3_SELF_USE_ACCEPTANCE.md)に自己申告の範囲と、時間・工数削減等の未取得事項を分けて記録した。
