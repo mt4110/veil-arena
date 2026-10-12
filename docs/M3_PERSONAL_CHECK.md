@@ -20,7 +20,15 @@ python3 -m json.tool /absolute/path/printed/by/workflow/summary.json
 
 ## 2. 保存済みの失敗を診断する
 
-担当者が用意した失敗summaryを開く。`runs`の`report`はsummaryのあるディレクトリを基準にした相対パス。そのRust報告を開き、`steps`から失敗段階を探し、その`stdout_log`／`stderr_log`を報告と同じディレクトリで開く。
+まず、担当者が準備した不具合再現snapshotを使い、コンソールだけで失敗を診断する。`--project`には案内されたsnapshotのパスを指定する。
+
+```sh
+bash scripts/blackhole-workflow.sh --project /absolute/path/to/prepared-snapshot
+```
+
+この既知の失敗では終了1が予定どおりの結果。コマンドが成功しなかったことを理由に、正常mainや期待値を変更しない。同じcacheの試験が完了してから次の操作へ進む。
+
+詳細が必要になったときだけ、表示されたログやsummaryを開く。`runs`の`report`はsummaryのあるディレクトリを基準にした相対パス。そのRust報告の`steps`から失敗段階と`stdout_log`／`stderr_log`をたどれる。
 
 今回の診断対象は、修正前のBlackholeコードへDNS予約Zビットの回帰試験だけを追加したsnapshot。既知の不具合再現であり、本番コードを壊して作る失敗ではない。正常mainに誤った変更を加えない。
 
@@ -30,9 +38,14 @@ python3 -m json.tool /absolute/path/printed/by/workflow/summary.json
 
 - どの段階・どの試験が失敗したか。
 - 実際の結果と期待値はどう違ったか。
-- 後続の試験は実行されたか、停止したか。
+- 詳細を見るならどのログを開くか、後続の試験は実行されたか。
 
-手がかり：今回は`rust-tests`内のZビット回帰試験。正常queryが返る一方、期待値はmalformed。全体は`failed`で、後続runは`not_run`。分からなければ必要だった説明も記録する。
+<details>
+<summary>診断の手がかりが必要な場合</summary>
+
+今回は`rust-tests`内のZビット回帰試験。正常queryが返る一方、期待値はmalformed。全体は`failed`で、後続runは`not_run`。具体的なassertionの詳細はstdoutログ、Cargoの実行エラーはstderrログで確認できる。分からなければ必要だった説明も記録する。
+
+</details>
 
 ## 3. 正常mainを再実行する
 
@@ -58,4 +71,4 @@ snapshot準備：実行した／読んだだけ／未確認
 続けて使いたいか、その理由：
 ```
 
-改善後の表示について本人の記録が届くまでは実利用の価値判定を保留する。詰まったところだけを改善し、新機能や別の不具合探索へ広げない。既存手順の方が扱いやすければ入口を縮める選択も残す。
+2026-10-12、本人からコンソールでの失敗診断と正常再実行の成功報告が届いた。[自己利用の受け入れ記録](M3_SELF_USE_ACCEPTANCE.md)を参照する。本人の操作時間・工数削減・維持費は未取得で、製品価値の判定は別に残す。追加観察で詰まったところだけを改善し、新機能や別の不具合探索へ広げない。既存手順の方が扱いやすければ入口を縮める選択も残す。
