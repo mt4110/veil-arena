@@ -9,6 +9,7 @@ import stat
 import subprocess
 import tempfile
 import time
+import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
 CODES = {"passed": 0, "failed": 1, "environment_error": 3, "timeout": 4, "cancelled": 130}
@@ -129,6 +130,91 @@ def assess(report, exit_code, failure_stage=None):
     return "failed"
 
 
+def diagnostic(report, report_path):
+    """Describe observed failure evidence, without guessing its root cause."""
+    steps = report.get("steps", [])
+    if not isinstance(steps, list):
+        return None
+    step = next((step for step in steps if isinstance(step, dict)
+                 and step.get("status") not in {"passed", "not_run"}), None)
+    if step is None:
+        return None
+    result = {"stage": step.get("id", "unknown"),
+              "reason": step.get("detail") or "段階が正常終了しませんでした",
+              "exit_code": step.get("exit_code"),
+              "expected_exit_code": step.get("expected_exit_code"),
+              "logs": {}, "observations": []}
+    for stream in ("stdout", "stderr"):
+        name = step.get(f"{stream}_log")
+        if not isinstance(name, str) or Path(name).name != name or name in {"", ".", ".."}:
+            continue
+        path = report_path.parent / name
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            with os.fdopen(fd, "rb") as file:
+                info = os.fstat(file.fileno())
+                if not stat.S_ISREG(info.st_mode) or info.st_size > 2 * 1024 * 1024:
+                    continue
+                data = file.read(2 * 1024 * 1024 + 1)
+                if len(data) > 2 * 1024 * 1024:
+                    continue
+            result["logs"][stream] = str(path)
+            for line in data.decode("utf-8", errors="replace").splitlines():
+                text = line.strip()
+                if ((text.startswith("test ") and text.endswith(" ... FAILED"))
+                        or text.startswith(("FAIL:", "ERROR:", "error:", "left:", "right:"))):
+                    if len(result["observations"]) < 4:
+                        result["observations"].append(text[:240])
+        except OSError:
+            continue
+    return result
+
+
+def console_json(value):
+    # Keep Japanese readable, but escape C1, bidi controls and surrogate codepoints too.
+    rendered = json.dumps(value, ensure_ascii=False)
+    return "".join(json.dumps(char, ensure_ascii=True)[1:-1]
+                   if unicodedata.category(char) in {"Cc", "Cf", "Cs"} else char
+                   for char in rendered)
+
+
+def display_row(row, run):
+    labels = {"passed": "成功", "failed": "失敗", "environment_error": "環境エラー",
+              "timeout": "期限超過", "cancelled": "中断"}
+    expected = row.get("expected_failure_stage") and row["status"] == "passed"
+    label = "想定した失敗を確認（試験自体は失敗）" if expected else labels.get(row["status"], row["status"])
+    name = row["name"]
+    if name.startswith("healthy-"):
+        name = f"通常試験{name.removeprefix('healthy-')}回目"
+    elif name == "before":
+        name = "変更前の試験"
+    elif name == "preparation":
+        name = "準備"
+    print(f"[{label}] {name}", flush=True)
+    if row["status"] == "passed":
+        return
+    detail = row.get("diagnostic")
+    if detail:
+        print(f"  段階: {console_json(detail['stage'])}", flush=True)
+        if detail["exit_code"] is not None:
+            print(f"  終了コード: {json.dumps(detail['exit_code'])}（期待: {json.dumps(detail['expected_exit_code'])}）", flush=True)
+        reason = row.get("detail") or detail["reason"]
+        if reason == "exit code or output did not match the recorded expectation; inspect logs":
+            reason = "終了コードまたは出力が期待値と一致しません。下のログ抜粋を確認してください。"
+        print(f"  理由: {console_json(reason)}", flush=True)
+        for observation in detail["observations"]:
+            print(f"  ログ抜粋: {console_json(observation)}", flush=True)
+        for stream, path in detail["logs"].items():
+            print(f"  {stream}ログ: {console_json(path)}", flush=True)
+    else:
+        print(f"  理由: {console_json(row.get('detail') or '段階の詳細を取得できませんでした。実行ログを確認してください。')}", flush=True)
+    if row.get("report"):
+        print(f"  詳細報告: {console_json(str(run / row['report']))}", flush=True)
+    elif not detail or not detail["logs"]:
+        for stream in ("stdout", "stderr"):
+            print(f"  実行{stream}ログ: {console_json(str(run / (row['name'] + '.' + stream + '.log')))}", flush=True)
+
+
 def suite(binary, project, cache, env, timeout, run, name, failure_stage=None, failure_text=None):
     output = run / name
     output.mkdir(mode=0o700)
@@ -162,6 +248,8 @@ def suite(binary, project, cache, env, timeout, run, name, failure_stage=None, f
                    report=str(reports[0].relative_to(run)), runner_status=report["status"],
                    duration_ms=report.get("duration_ms"), source=report.get("source_after"),
                    binary_sha256=report.get("binary_sha256"))
+        if verdict != "passed":
+            row["diagnostic"] = diagnostic(report, reports[0])
         if verdict == "passed" and (not isinstance(row["source"], dict)
                 or not isinstance(row["binary_sha256"], str)):
             raise ValueError("successful assessment requires source and binary identity")
@@ -225,18 +313,26 @@ def batch(options):
                         reference = identity
                     summary["runs"].append(row)
                     event({"event": "suite_finished", **row})
-                    label = "expected failure confirmed" if expected and row["status"] == "passed" else row["status"]
-                    print(f"{name}: {label}", flush=True)
+                    display_row(row, run)
                     if row["status"] != "passed":
                         summary["status"] = row["status"]
                         summary["not_run"] = [scenario[0] for scenario in scenarios[len(summary["runs"]):]]
+                        print(f"  未実行: {', '.join(summary['not_run']) or 'なし'}", flush=True)
                         break
             else:
                 summary["status"] = preparation["status"] if preparation["status"] != "completed" else "environment_error"
+                display_row({"name": "preparation", "status": summary["status"],
+                             "diagnostic": {"stage": "preparation", "exit_code": preparation.get("exit_code"),
+                                            "expected_exit_code": 0,
+                                            "reason": preparation.get("detail") or "Arenaの準備が完了しませんでした",
+                                            "observations": [],
+                                            "logs": {stream: str(run / f"preparation.{stream}.log")
+                                                     for stream in ("stdout", "stderr")}}}, run)
             summary["duration_ms"] = round((time.monotonic() - started) * 1000)
             summary["automated_command_count"] = 1 + len(summary["runs"])
             write_json(run / "summary.json", summary)
             event({"event": "finished", "status": summary["status"]})
+        print(f"全体結果: {summary['status']}", flush=True)
         print(f"summary: {run / 'summary.json'}", flush=True)
         return CODES.get(summary["status"], 3)
 
