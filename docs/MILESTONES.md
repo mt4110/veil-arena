@@ -21,7 +21,7 @@ M0〜M2の初期MVPを完了と判定する。公開・マージ済みという�
 
 IPv6のwire試験、TCPの限定drop、未定義入力、任意時点の中断、kernel panic・電源断、kernel無応答・QEMU停止不能、Linux ARM64／KVM、他者による再現・性能・製品価値は初版の確認範囲外。以後は実開発で使い、M3の必要性を確認する。これらを全部追加するまで初版を無期限に延ばさない。
 
-M3は[fixture読込み境界の実開発検証](M3_FIXTURE_OPEN_VALIDATION.md)から着手した。既存動作の問題を再現し、Blackhole修正とArenaでの回帰確認をMac／Linuxで実施。[準備・反復・集計の入口](BLACKHOLE_WORKFLOW.md)を追加し、[M3-A〜Cの技術的検証](M3_WORKFLOW_VALIDATION.md)もまとめた。細かな変更ごとにPRを作らず、このまとまりでレビューする。後続の[個別手順との比較と差分レビュー](M3_SELF_USE_VALIDATION.md)で、機械的な比較と2つの証拠検査の補強を完了した。本人の操作・理解時間とマージは未確認。M3全体の製品価値を確認済みと扱わず、機能追加は止めて普段のBlackhole開発で使う。
+M3は[fixture読込み境界の実開発検証](M3_FIXTURE_OPEN_VALIDATION.md)から着手した。既存動作の問題を再現し、Blackhole修正とArenaでの回帰確認をMac／Linuxで実施。[準備・反復・集計の入口](BLACKHOLE_WORKFLOW.md)を追加し、[M3-A〜Cの技術的検証](M3_WORKFLOW_VALIDATION.md)もまとめた。細かな変更ごとにPRを作らず、このまとまりでレビューした。後続の[個別手順との比較と差分レビュー](M3_SELF_USE_VALIDATION.md)で、機械的な比較と証拠検査の補強を完了した。両プロジェクトのPR #3はマージ済み。続けて[DNS予約Zビットの分類修正](M3_DNS_RESERVED_Z_VALIDATION.md)を既存入口で検証した。本人の操作・理解時間は未確認。M3全体の製品価値を確認済みと扱わず、機能追加は止めて普段のBlackhole開発で使う。
 
 ## 現在地と前提
 

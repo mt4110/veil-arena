@@ -43,6 +43,54 @@ bash scripts/blackhole-workflow.sh \
 
 beforeは指定段階で失敗し、指定した回帰試験のログが含まれることを要求する。引数エラー・環境エラー・別の試験失敗を代用しない。その後に修正後の2回を確認する。想定外の結果で停止し、後続はsummaryの`not_run`に残す。失敗を黙って再試行しない。
 
+### before snapshotを準備する
+
+通常のGit機能で足りるため、snapshot専用の実装は追加しない。Arenaルートから次を実行する。例はDNS予約Zビットの修正前commitと、追加decoder試験だけを組み合わせる。別の課題ではbase commitと試験ファイルを明示的に選び直す。修正コードや別の変更をpatchへ混ぜない。
+
+```sh
+bash -euo pipefail <<'SH'
+base=b620f99c56eb001ad2a6b5ce1f2f889424dfe12d
+mkdir -p artifacts/before-snapshots
+snapshot=$(mktemp -d "$PWD/artifacts/before-snapshots/dns-z-XXXXXX")
+git -C ../veil-blackhole archive "$base" | tar -xf - -C "$snapshot"
+git -C "$snapshot" init -q
+git -C "$snapshot" add .
+git -C ../veil-blackhole diff "$base" -- tests/decode.rs > "$snapshot/regression.patch"
+test -s "$snapshot/regression.patch"
+git -C "$snapshot" apply --check "$snapshot/regression.patch"
+git -C "$snapshot" apply "$snapshot/regression.patch"
+if git -C "$snapshot" diff --quiet -- tests/decode.rs; then
+  echo 'regression test was not applied' >&2
+  exit 1
+fi
+git -C "$snapshot" add .
+git -C "$snapshot" -c commit.gpgsign=false commit -qm 'Record base with added regression test'
+printf 'before snapshot: %s\n' "$snapshot"
+SH
+```
+
+baseはローカルに存在するcommitを使う。この操作は元のcheckoutやbranchを変更しない。新規ディレクトリへbaseの追跡ファイルだけを展開するので、未追跡ファイル・依存cache・秘密情報を丸ごとコピーしない。既存snapshotへの上書き・削除も行わない。snapshot内のcommitはローカル試験の識別用で、公開用署名commitではない。Gitの本人情報が未設定ならcommitは停止するので、明示的に設定してから準備する。
+
+Git初期化とbaseのindex登録はpatch適用より先に行う。親ディレクトリのリポジトリへ`git apply`が属することを避け、適用後に試験ファイルの差分も確認する。
+
+`regression.patch`を読んで追加試験だけであることを確認する。古いコードに適用できない試験や、新fixtureが必要な課題では、それらを明示して準備する。正常だった古い試験だけで成功しても、不具合再現の証拠にはならない。準備中に停止したディレクトリは残し、新しいsnapshotでやり直す。
+
+### 同じsnapshotとcacheで再実行する
+
+準備時に表示されたパスを`--before`へ渡す。DNS予約Zビットの例：
+
+```sh
+bash scripts/blackhole-workflow.sh \
+  --project ../veil-blackhole \
+  --before /absolute/path/from/preparation \
+  --before-failure rust-tests \
+  --before-contains 'test dns_reserved_z_is_malformed_while_ad_cd_remain_supported ... FAILED'
+```
+
+Linuxのvendor環境では上記へ`--arena-cargo-home`、`--project-cargo-home`、`--cache`を「Cargoキャッシュを分ける」の例どおり指定する。同じsnapshotとcacheパスを再利用すれば、checkout別targetも再利用できる。snapshotを新しいパスに作り直すと、そのcheckout用のbuildは必要になり得る。registry/vendorの再利用と、コンパイルの省略は別である。
+
+失敗したら、表示されたsummaryの`status`・`runs`・`not_run`を読み、該当runの`report`からRust結果とログをたどる。`runner_status=failed`なのに行の`status=passed`なら指定失敗の検出であり、正常試験成功ではない。原因を直す前に再実行せず、直した内容と元の失敗証拠を残す。同じコマンドを再実行すると結果保存先は新規になるため、前の結果を保持できる。cache・snapshot・失敗ログを削除して復旧した扱いにしない。
+
 `--before-contains`は`python-tests`ではstderrを、`rust-tests`と`reject-dns-short-header`ではstdoutを照合する。unittestの失敗名・tracebackは通常stderrへ出るため、Python試験ではその失敗名（例：`FAIL: test_regression`）を指定する。対象ログの通常ファイル・2 MiB上限・ファイル名検証はどの段階でも同じ。
 
 `--repeat`は1〜5、`--timeout-seconds`は1〜3600（既定300）。期限は準備と各Rust suiteごと。suiteの外側ではRustの終了猶予に5秒を加える。SIGTERM／Ctrl-Cと期限超過では、補助スクリプトが起動したprocess groupの停止を試みる。Rust自身による子process管理・2 MiBログ上限は既存のまま。prepのログには同じサイズ上限を設けていない。SIGKILL・host停止などで最終summaryがない場合は、eventsと途中のログを完了結果に読み替えない。
