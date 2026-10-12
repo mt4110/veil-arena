@@ -1,4 +1,6 @@
 import importlib.util
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -13,6 +15,48 @@ spec.loader.exec_module(workflow)
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_failure_display_shows_stage_evidence_and_logs_without_terminal_control(self):
+        root = Path(tempfile.mkdtemp(prefix="arena-display-"))
+        report = {"steps": [{"id": "rust-tests", "status": "failed", "exit_code": 101,
+                             "expected_exit_code": 0, "detail": "exit mismatch",
+                             "stdout_log": "test.stdout.log", "stderr_log": "test.stderr.log"}]}
+        (root / "test.stdout.log").write_text('test regression ... FAILED\n  left: Ok(query)\n right: Err(malformed)\n')
+        (root / "test.stderr.log").write_text('error: terminal \x1b[31m \x9b31m \u202e\n')
+        detail = workflow.diagnostic(report, root / "result.json")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            workflow.display_row({"name": "healthy-1", "status": "failed",
+                                  "diagnostic": detail, "report": "result.json"}, root)
+        text = output.getvalue()
+        self.assertTrue(text.startswith("[失敗] 通常試験1回目"))
+        for evidence in ["rust-tests", "101", "期待: 0", "test regression ... FAILED",
+                         "left: Ok(query)", "right: Err(malformed)", str(root / "test.stdout.log")]:
+            self.assertIn(evidence, text)
+        self.assertNotIn("\x1b", text)
+        self.assertNotIn("\x9b", text)
+        self.assertNotIn("\u202e", text)
+        self.assertIn("理由:", text)
+
+    def test_diagnostic_refuses_unsafe_and_large_logs(self):
+        root = Path(tempfile.mkdtemp(prefix="arena-diagnostic-"))
+        (root / "large.log").write_bytes(b"x" * (2 * 1024 * 1024 + 1))
+        (root / "link.log").symlink_to(root / "large.log")
+        for name in ["../outside.log", "large.log", "link.log"]:
+            with self.subTest(name=name):
+                detail = workflow.diagnostic({"steps": [{"id": "build", "status": "failed",
+                                                          "stdout_log": name}]}, root / "result.json")
+                self.assertEqual(detail["logs"], {})
+                self.assertEqual(detail["observations"], [])
+
+    def test_success_and_expected_failure_have_distinct_labels(self):
+        for expected, label in [(None, "[成功]"), ("rust-tests", "[想定した失敗を確認（試験自体は失敗）]")]:
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                workflow.display_row({"name": "before" if expected else "healthy-1", "status": "passed",
+                                      "expected_failure_stage": expected}, Path("/tmp"))
+            self.assertTrue(output.getvalue().startswith(label))
+            self.assertNotIn("段階:", output.getvalue())
+
     def report(self):
         return {"schema_version": 1, "suite": "blackhole-offline", "status": "passed",
                 "source_unchanged": True, "binary_unchanged": True,

@@ -97,6 +97,10 @@ Linuxのvendor環境では上記へ`--arena-cargo-home`、`--project-cargo-home`
 
 ## 集計を読む
 
+コンソールでは正常を`[成功] 通常試験1回目`、不一致を`[失敗] 通常試験1回目`と表示する。失敗時は段階、終了コードと期待値、理由、最大4行・元ログの各240文字までのログ抜粋、stdout／stderrログと詳細報告の場所を続けて表示する。後続の未実行も明示する。抜粋は通常ファイル・2 MiB上限・ファイル名を確認したログだけから読み、端末の制御文字はJSON表現でescapeする。原因を確定できない場合は詳細を取得できなかったことを表示し、実行ログへ案内する。
+
+beforeの想定失敗を確認できた場合は`[想定した失敗を確認（試験自体は失敗）] 変更前の試験`と表示する。これは正常試験成功と別の評価。JSONの識別子`healthy-1`／`healthy-2`、既存の合否判定・終了コードは維持している。`execution.status=completed`はprocessの終了であり、試験結果は全体・各runの`status`を確認する。
+
 ```text
 artifacts/blackhole-workflow-<unique>/
   manifest.json              入力、期待する失敗、期限、Cargoキャッシュの指定
@@ -119,3 +123,5 @@ beforeの`runner_status=failed`は実際の試験失敗。行の`status=passed`�
 対象は信頼するローカルのArenaとBlackhole。build scriptやテストコードをOS sandboxへ閉じ込める機能ではない。Live取得・送信・OSネットワーク変更は入口の機能に含めない。
 
 実課題の修正結果は[M3のfixture検証](M3_FIXTURE_OPEN_VALIDATION.md)、この入口自体の検証は[M3運用検証](M3_WORKFLOW_VALIDATION.md)、後続の差分レビューと個別手順の比較は[M3実利用検証](M3_SELF_USE_VALIDATION.md)を参照する。
+
+本人が実行・診断・再実行を確認する短い手順は[実利用チェック](M3_PERSONAL_CHECK.md)。その技術側の準備結果は[マージ後mainの手順確認](M3_MAIN_USE_VALIDATION.md)に記録する。本人の観察が届くまで、操作負担の削減を確認済みとは扱わない。
