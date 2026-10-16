@@ -34,6 +34,8 @@ Rust/Ayaで[TC ingressの参照eBPF](docs/TC_INGRESS.md)も接続しました。
 
 [NetEmとeBPFの損失の区別](docs/NETEM_COMPARISON.md)では、routerの送信側にNetEmの全損失を設定し、TC ingressのpass counter・qdisc drop counter・受信を照合します。設定不成立はcount phaseの送信前に環境エラーとし、解除後の正常到達を確認します。[Mac ARM64と外部SSD](docs/MAC_SSD_VM.md)で新規2 VM・各16ケースの受け入れを確認しました。Linux x86_64／KVMで残る期限超過は別に扱います。[検証記録](docs/NETEM_COMPARISON_VALIDATION.md)を参照してください。
 
+外部SSDの正式入口は`arena-netns-volume`です。マウント状態・固定入力との一致・既存出力を検査し、同じVM起動・集計処理を使います。[運用手順](docs/MAC_SSD_VM.md)と[正式入口の検証記録](docs/VOLUME_ENTRY_VALIDATION.md)を参照してください。
+
 [異常・短縮入力の直接実行](docs/BPF_TEST_RUN.md)では、VM内のBPF_PROG_TEST_RUNで70入力の戻り値・kernel拒否・counterを照合します。wire試験とは別に結果を保存します。
 
 [ロード失敗の検証](docs/BPF_LOAD_FAILURE.md)では、verifierが拒否する専用fixtureを環境エラーとして記録し、正常なTC試験への復帰を確認します。

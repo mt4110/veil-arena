@@ -1,0 +1,127 @@
+{
+  "status": "passed",
+  "date": "2026-10-16",
+  "scope": "repository-managed arena-netns-volume; Mac ARM64/native QEMU TCG, APFS SSD",
+  "source": {
+    "base": "0df5ded783b9d1ce3d551254415c1a125f56fbf8",
+    "uncommitted": true,
+    "files": {
+      "environments/vm/offline.nix": "1c18700a7b1db6b868c741698ffa1445b21b623c6b3f6c19862c55969bf5d5ea",
+      "scripts/volume_guest.py": "d281715e884d18d5e0f61fb1bfb57ef6438782c4e303bc738d6200dc523ebaac",
+      "scripts/guest_bundle.py": "4a3f1016a766668caaf2d52128826fb7dcacafed7a4662e8760f4739565c35fb",
+      "scripts/check_vm_result.py": "6fdb53e436c4557197dcde01a04d8eee410e9cf97357957320d40acef741efb1",
+      "tools/vm-controller/src/main.rs": "d0a27a994d27986783cbb0f98b2b73a226cb2181a6b4ea4737d51213605e6b23",
+      "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "b8fcfc6f3eba161bf715d4d0fa3e6c49379719ac29d2e9bab7ff2384c21e7edb"
+    }
+  },
+  "main_ci": {
+    "head": "0df5ded783b9d1ce3d551254415c1a125f56fbf8",
+    "status": "success",
+    "url": "https://github.com/mt4110/veil-arena/actions/runs/38876150864"
+  },
+  "prepared": "/nix/store/bkjimwbnb05vh60zmwqikwzvkr2m3h7a-arena-netns-prepared",
+  "source_copy_prepared_same": true,
+  "default_manifest_and_controller_unchanged": true,
+  "boot_inputs_unchanged": [
+    "a6b404134daaf653738e1e07a0122d88066160040a7b639ba52ae78f1167f3df",
+    "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+    "b8a226a2c7e5d4d10d2f7174a075da7380cfc4ede7b379d8a7e545a4885ce8af"
+  ],
+  "runs": [
+    {
+      "id": "daily",
+      "cases": 16,
+      "boot_id": "fff45e60-3aea-4098-bdb6-2398bd7dd07b",
+      "boot_inputs_sha256": "5291f8260817ec37fb7a3475bb046c8066e0fdd76615d94affded7291a08a367",
+      "vm_controller_duration_ms": 286389,
+      "qemu_reaped": true,
+      "evidence_synced_before_stop": true,
+      "netem_drop_increment": 8,
+      "ebpf_limited_target_drop": 4
+    },
+    {
+      "id": "fresh",
+      "cases": 16,
+      "boot_id": "feeaf427-77a9-42bc-9868-be3a04331bb3",
+      "boot_inputs_sha256": "5291f8260817ec37fb7a3475bb046c8066e0fdd76615d94affded7291a08a367",
+      "vm_controller_duration_ms": 285253,
+      "qemu_reaped": true,
+      "evidence_synced_before_stop": true,
+      "netem_drop_increment": 8,
+      "ebpf_limited_target_drop": 4
+    }
+  ],
+  "rejections": {
+    "status": "passed",
+    "cases": [
+      {
+        "case": "missing-volume",
+        "exit_code": 3,
+        "expected_diagnostic": "not mounted",
+        "vm_started": false,
+        "new_output_created": false
+      },
+      {
+        "case": "unmounted-directory",
+        "exit_code": 3,
+        "expected_diagnostic": "not mounted",
+        "vm_started": false,
+        "new_output_created": false
+      },
+      {
+        "case": "input-mismatch",
+        "exit_code": 3,
+        "expected_diagnostic": "hash/size differs: Image",
+        "vm_started": false,
+        "new_output_created": false
+      },
+      {
+        "case": "existing-output",
+        "exit_code": 3,
+        "expected_diagnostic": "already exists",
+        "vm_started": false,
+        "new_output_created": false
+      },
+      {
+        "case": "dangling-output",
+        "exit_code": 3,
+        "expected_diagnostic": "already exists",
+        "vm_started": false,
+        "new_output_created": false
+      },
+      {
+        "case": "outside-volume",
+        "exit_code": 3,
+        "expected_diagnostic": "outside the selected volume",
+        "vm_started": false,
+        "new_output_created": false
+      }
+    ],
+    "physical_unplug_performed": false,
+    "scope": "actual prepared command; missing or non-mounted directory simulates disconnected SSD"
+  },
+  "static_checks": {
+    "rust": 10,
+    "controller": 4,
+    "workflow": 5,
+    "python": 52,
+    "fmt": "passed",
+    "clippy": "passed",
+    "nix_definition_systems": 3
+  },
+  "evidence_root": "/Volumes/Elecom-1TB/Linux/veil-arena/volume-entry-20261016-185409",
+  "evidence_files": 5692,
+  "evidence_manifest_sha256": "4eb383a0d6dae1f4d1e928f6e76068591d1be9106ad8491f0a8e7c0b1558df58",
+  "prior_evidence_unchanged_files": 8539,
+  "guest_rebuilt": false,
+  "cache_deleted": false,
+  "third_party_trial": "deferred",
+  "k8s": "deferred",
+  "unverified": [
+    "physical SSD removal during execution",
+    "Linux mounted-volume execution",
+    "HVF",
+    "Pi 5 bare metal",
+    "IPv6"
+  ]
+}

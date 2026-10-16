@@ -178,12 +178,32 @@ let
     host_controller = toString controller;
   });
   console = if guestSystem == "aarch64-linux" then "ttyAMA0" else "ttyS0";
+  volumeTools = hostPkgs.runCommand "arena-volume-tools" {} ''
+    mkdir -p $out
+    cp ${../../scripts/guest_bundle.py} $out/guest_bundle.py
+    cp ${../../scripts/volume_guest.py} $out/volume_guest.py
+  '';
   launcher = hostPkgs.writeShellApplication {
     name = "arena-vm-${if batch then "netns-batch" else if netns then "netns" else "offline"}";
     runtimeInputs = [ hostPkgs.coreutils hostPkgs.qemu hostPkgs.python314 ];
     text = ''
       ${lib.optionalString (bundle != null) ''test -f ${bundleCheck}''}
-      if [ "''${1:-}" = "--describe" ] && [ "$#" -eq 1 ]; then cat ${metadata}; exit 0; fi
+      boot_image=${image}
+      boot_kernel=${kernelFile}
+      boot_initrd=${initrdFile}
+      boot_params=${paramsFile}
+      selected_manifest=$(cat ${metadata})
+      if [ -n "''${ARENA_VM_BOOT_BUNDLE:-}" ] || [ -n "''${ARENA_VM_VOLUME_ROOT:-}" ]; then
+        ${if bundle == null then ''echo "external boot inputs require a prepared guest bundle" >&2; exit 3'' else ''
+          selected_manifest=$(python3 ${volumeTools}/volume_guest.py ${metadata} ${bundle} \
+            "''${ARENA_VM_BOOT_BUNDLE:-}" "''${ARENA_VM_VOLUME_ROOT:-}")
+          boot_image=$(realpath -- "$ARENA_VM_BOOT_BUNDLE")
+          boot_kernel="$boot_image/Image"
+          boot_initrd="$boot_image/initrd"
+          boot_params="$boot_image/kernel-params"
+        ''}
+      fi
+      if [ "''${1:-}" = "--describe" ] && [ "$#" -eq 1 ]; then printf '%s\n' "$selected_manifest"; exit 0; fi
       fixture=false
       fixture_param=""
       controller_args=()
@@ -196,6 +216,10 @@ let
       if [ "$#" -ne 1 ]; then echo "usage: arena-vm-offline NEW_OUTPUT_DIRECTORY" >&2; exit 2; fi
       if [ "$(id -u)" -ne ${toString hostUid} ]; then echo "host UID differs from VM definition" >&2; exit 3; fi
       case "$1" in *','*|*$'\n'*) echo "output path contains an unsupported character" >&2; exit 2;; esac
+      ${lib.optionalString (bundle != null) ''if [ -n "''${ARENA_VM_BOOT_BUNDLE:-}" ]; then
+        python3 ${volumeTools}/volume_guest.py ${metadata} ${bundle} \
+          "$ARENA_VM_BOOT_BUNDLE" "$ARENA_VM_VOLUME_ROOT" "$1" > /dev/null
+      fi''}
       umask 077
       # Reject existing paths. Keep output on failures and cancellations.
       if [ -e "$1" ] || [ -L "$1" ]; then echo "output path already exists" >&2; exit 2; fi
@@ -203,10 +227,10 @@ let
       ARENA_VM_OUT=$(realpath -- "$1")
       export ARENA_VM_OUT
       case "$ARENA_VM_OUT" in *','*|*$'\n'*) echo "resolved output path contains an unsupported character" >&2; exit 2;; esac
-      if ! cp ${metadata} "$ARENA_VM_OUT/vm-manifest.json"; then exit 3; fi
-      if ! sha256sum ${image}/store.img \
-        ${kernelFile} \
-        ${initrdFile} \
+      if ! printf '%s\n' "$selected_manifest" > "$ARENA_VM_OUT/vm-manifest.json"; then exit 3; fi
+      if ! sha256sum "$boot_image/store.img" \
+        "$boot_kernel" \
+        "$boot_initrd" \
         > "$ARENA_VM_OUT/boot-inputs.sha256"; then exit 3; fi
       set +e
       (ulimit -f 65536; exec timeout --signal=TERM --kill-after=5 670 \
@@ -215,10 +239,10 @@ let
         -machine ${if guestSystem == "aarch64-linux" then "virt" else "q35"} \
         -cpu ${if accelerator == "kvm" then "host" else "max"} \
         -accel ${accelerator} -m 4096 -smp 2 -nographic -monitor none -no-reboot -nic none \
-        -kernel ${kernelFile} \
-        -initrd ${initrdFile} \
-        -append "$(cat ${paramsFile}) init=${guestToplevel}/init console=${console}${lib.optionalString (netns && omitServerRoute) " arena.omit_server_route=1"}$fixture_param" \
-        -drive file=${image}/store.img,if=virtio,format=raw,readonly=on \
+        -kernel "$boot_kernel" \
+        -initrd "$boot_initrd" \
+        -append "$(cat "$boot_params") init=${guestToplevel}/init console=${console}${lib.optionalString (netns && omitServerRoute) " arena.omit_server_route=1"}$fixture_param" \
+        -drive "file=$boot_image/store.img,if=virtio,format=raw,readonly=on" \
         -virtfs "local,path=$ARENA_VM_OUT,security_model=none,mount_tag=out") &
       watchdog=$!
       trap 'kill -TERM "$watchdog" 2>/dev/null; wait "$watchdog"; exit 3' INT TERM HUP
@@ -240,10 +264,23 @@ let
     name = "arena-netns";
     text = ''exec ${controller}/bin/veil-arena-netns-workflow ${launcher}/bin/arena-vm-netns-batch "$@"'';
   };
+  volumeWorkflow = hostPkgs.writeShellApplication {
+    name = "arena-netns-volume";
+    runtimeInputs = [ hostPkgs.coreutils hostPkgs.python314 ];
+    text = ''
+      if [ "$#" -ne 4 ]; then echo "usage: arena-netns-volume VOLUME_ROOT GUEST_BUNDLE daily|acceptance NEW_OUTPUT_DIRECTORY" >&2; exit 2; fi
+      case "$3" in daily|acceptance) ;; *) echo "use daily or acceptance" >&2; exit 2;; esac
+      if [ "$(id -u)" -ne ${toString hostUid} ]; then echo "host UID differs from VM definition" >&2; exit 3; fi
+      export ARENA_VM_VOLUME_ROOT="$1" ARENA_VM_BOOT_BUNDLE="$2"
+      python3 ${volumeTools}/volume_guest.py ${metadata} ${bundle} "$2" "$1" "$4" > /dev/null
+      exec ${workflow}/bin/arena-netns "$3" "$4"
+    '';
+  };
 in assert cfg.fileSystems."/out".fsType == "9p";
   assert bundle == null || (batch && accelerator == "tcg"
     && bundleMetadata.guestSystem == guestSystem && bundleMetadata.hostUid == hostUid
     && bundleMetadata.versions == versions
     && builtins.match "/nix/store/[0-9a-z]+-nixos-system-[0-9A-Za-z._+-]+" guestToplevel != null);
-  if batch then hostPkgs.symlinkJoin { name = "arena-netns-prepared"; paths = [ launcher workflow ]; }
+  if batch then hostPkgs.symlinkJoin { name = "arena-netns-prepared";
+    paths = [ launcher workflow ] ++ lib.optional (bundle != null) volumeWorkflow; }
   else launcher
