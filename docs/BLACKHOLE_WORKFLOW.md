@@ -29,6 +29,8 @@ bash scripts/blackhole-workflow.sh \
 
 既定cacheはArenaの`target/blackhole-workflow/`、保存先は`artifacts/`。cold buildの時間とwarm runの時間は区別する。既存の別入口のtargetやVM imageは削除・再配置しない。
 
+新しいチェックアウトでは既定cacheも別の場所になる。既存cacheを引き継ぐときは、`--cache`と両Cargo homeを絶対パスで明示する。[正常・既知の失敗・復帰の確認手順](FRESH_CHECKOUT_CHECK.md)に、固定revisionの新規入力とsnapshotの準備をまとめた。
+
 ## 変更前後を確認する
 
 事前に、修正前の動作と新しい回帰試験を含む信頼するGitチェックアウトを用意する。元の古い版に回帰試験がない場合、その成功を「不具合検出」と呼ばない。今回の保存済み再現用snapshotでは次のように実行した。
