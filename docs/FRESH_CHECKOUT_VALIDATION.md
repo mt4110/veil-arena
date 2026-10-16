@@ -41,6 +41,8 @@ Blackholeを再開する際の経緯・役割・未確認事項・次の目標�
 
 今回の結果は同じMacの準備済み依存を使った検証。Linuxでの新しい再実行、cold install、新規端末、VM／eBPF実起動、実DNS、実sudo、第三者の理解、人的工数や収益性は未検証。以前のVM受け入れ・Linux検証の結果を今回の実施結果に混ぜない。M4の第三者試用も未実施であり、主力製品への格上げは未判定。
 
+PR #7マージ後mainを使ったLinuxの確認は、後続の[追加検証記録](LINUX_FRESH_CHECKOUT_VALIDATION.md)に分けて残す。上記はmacOS実施時点の範囲である。
+
 ## ローカル証拠
 
 Git対象外の`artifacts/fresh-checkout-20261016-XOB5sd/`へ次を保存した。公開リポジトリには同梱しない。

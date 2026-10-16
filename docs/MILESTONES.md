@@ -27,6 +27,8 @@ M3は[fixture読込み境界の実開発検証](M3_FIXTURE_OPEN_VALIDATION.md)�
 
 2026-10-16、チャットの主目的をArenaへ戻した。第三者の試用とBlackholeの実機確認は保留。次の範囲は、依存cacheを再利用した新しいチェックアウトで、正常・既知の失敗・正常への復帰を再現し、導入手順の隠れた前提を減らすこと。[手順](FRESH_CHECKOUT_CHECK.md)と[検証記録](FRESH_CHECKOUT_VALIDATION.md)を参照。これはM4の第三者試用完了や新規端末への導入成功ではない。Blackholeの再開は[専用チャットへの引継ぎ](BLACKHOLE_HANDOFF.md)で分ける。
 
+PR #7マージ後、[Linux x86_64の新しいチェックアウト](LINUX_FRESH_CHECKOUT_VALIDATION.md)でも、準備済み依存と同じcacheで正常・指定失敗・正常への復帰を確認した。Linux用のcache指定とNixユーザー環境の前提を手順に追記した。この導入確認はmacOS／今回のLinux構成で一区切りとし、次の機能追加は具体的なネットワーク検証課題を選んでから判断する。第三者試用、cold install、Linux ARM64での本手順の再実行は未確認のまま残す。
+
 netns試験の反復運用は、準備と試験を分離する方式へ変更した。Nix storeの依存と読み取り専用imageを保持し、日常は1 VM内の正常・経路故障・正常・TC比較・3種類のTC故障・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧の13ケース一括試験、受け入れ時は追加の新規VMを使う。[運用手順](NETNS_WORKFLOW.md)と[以前の3ケースの証拠](NETNS_WORKFLOW_VALIDATION.md)を参照する。TC比較の現在の範囲は固定IPv4/UDP・1 ingress hook。別入口の`watchdog-acceptance`は停止VM→正常再実行VMを2組・計4起動とし、同じimageを再利用する。固定fixture以外の異常入力、他のロード障害、指定checkpoint以外の中断などは初版の保証に含めない。ARM64の実起動はLinuxの専用Colima環境とMacのnative QEMU／TCGで確認済み。
 
 TC追加後のdaily・acceptanceもLinux x86_64／KVMで確認した。[参照TCの検証記録](TC_INGRESS_VALIDATION.md)に、通過・計数・限定drop・解除後回復、BPF解放、新規VMでの再成功を保存している。その後のARM64実起動・Blackhole現行コードの再確認を含む初版の判定は、上記の受け入れ集計を参照する。
