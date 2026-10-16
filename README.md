@@ -3,11 +3,12 @@
 Veilプロジェクトの検証を実行し、結果と証拠を保存するRustのCLIです。最初に、veil-blackholeの既存オフライン回帰試験と人工パケット再生を接続しました。
 
 ```sh
-nix develop --command cargo run --offline --locked -- blackhole-offline \
-  --project ../veil-blackhole
+bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 ```
 
 通常ユーザーで実行します。結果は実行ごとの`artifacts/`へ保存します。終了コードは成功0、検証不一致1、引数不正2、環境・保存エラー3、期限超過4、中断130です。
+
+固定Nix環境とCargo依存は準備済みであることが前提です。上の入口は既存cacheを使い、正常試験を既定2回実行して結果を集計します。[反復試験の準備・実行方法](docs/BLACKHOLE_WORKFLOW.md)と、[新しいチェックアウトでの正常・失敗・復帰確認](docs/FRESH_CHECKOUT_CHECK.md)を参照してください。Rust runnerを直接使う手順は以下の実行方法に残しています。
 
 [実行方法と検証範囲](docs/BLACKHOLE_OFFLINE.md)、[検証記録](docs/BLACKHOLE_OFFLINE_VALIDATION.md)、[Nix・Linux VMの構成と手順](docs/NIX_VM.md)を参照してください。Rust 1.98.1・Python 3.14.7を固定し、runnerが実バージョンを照合します。
 
