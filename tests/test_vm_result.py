@@ -140,6 +140,9 @@ class BatchEvidenceTests(unittest.TestCase):
                                    for i, label in enumerate(labels)]
                 result["status"] = "failed"
                 (target / "topology.json").write_text(json.dumps({"omit_server_route": True}))
+            if case_id in {"tc-netem-loss-001", "tc-netem-unconfigured-001"}:
+                result, tc = NetemEvidenceTests().result("netem-loss" if expected == 0 else "netem-unconfigured")
+                (target / "tc-result.json").write_text(json.dumps(tc))
             if case_id in checker.FAULTS:
                 result, tc = TcFaultEvidenceTests().result(checker.FAULTS[case_id])
                 (target / "tc-result.json").write_text(json.dumps(tc))
@@ -153,7 +156,7 @@ class BatchEvidenceTests(unittest.TestCase):
             cases.append({"id": case_id, "status": "passed", "expected_exit_code": expected,
                           "report": f"{case_id}/result.json", "execution": {"exit_code": expected, "signal": None,
                           "output_complete": True, "log_truncated": False, "status": "failed" if expected else "passed"}})
-        summary = {"schema_version": 6, "scenario": "netns-batch", "status": "passed", "exit_code": 0, "vm_boots": 1, "cases": cases}
+        summary = {"schema_version": 7, "scenario": "netns-batch", "status": "passed", "exit_code": 0, "vm_boots": 1, "cases": cases}
         (directory / "result.json").write_text(json.dumps(summary))
         (root / "service-result.txt").write_text("success")
         return root, summary
@@ -209,6 +212,79 @@ class TcEvidenceTests(unittest.TestCase):
         result=self.result();result["attachment"]["hook"]="egress";self.assertEqual(checker.check_tc(result),3)
         for key in ("detached","program_unloaded","maps_unloaded"):
             result=self.result();result["cleanup"][key]=False;self.assertEqual(checker.check_tc(result),3)
+
+
+class NetemEvidenceTests(unittest.TestCase):
+    def result(self, fault="netem-loss"):
+        import copy
+        negative = fault == "netem-unconfigured"
+        qdisc = [{"kind":"netem","root":True,"handle":"7a00:","options":{},"drops":0}]
+        if not negative: qdisc[0]["options"] = {"loss-random":{"loss":1.0}}
+        after = copy.deepcopy(qdisc)
+        after[0]["drops"] = 0 if negative else 8
+        n = {"interface":"rt-server","direction":"egress","position":"after-router-tc-ingress",
+             "fixture_control":{"router_ipv6_disabled":True,"router_mac":"02:00:00:00:00:01","server_mac":"02:00:00:00:00:02",
+                 "router_neighbor":[{"dst":"10.77.2.10","dev":"rt-server","lladdr":"02:00:00:00:00:02","state":["PERMANENT"]}],
+                 "server_neighbor":[{"dst":"10.77.2.1","dev":"server0","lladdr":"02:00:00:00:00:01","state":["PERMANENT"]}]},
+             "expected_loss":1.0,"before":[],"configured":qdisc,"configuration_verified":not negative,
+             "sender_started":not negative,"cleanup":{"before":after,"after":[],"removed":True}}
+        tc = TcEvidenceTests().result()
+        tc.update(fault=fault, status="environment_error" if negative else "passed",
+                  detail="NetEm loss configuration differs" if negative else None, netem=n)
+        if negative: tc["phases"] = tc["phases"][:2]
+        else:
+            count = tc["phases"][2]
+            count["received"].update(target_sequences=[],control_sequences=[])
+            count.update(qdisc_before=qdisc,qdisc_after=after)
+        labels = checker.TC_LABELS[:4] + ["netem-before"] + checker.NETEM_FIXTURE_LABELS + ["netem-install","netem-configured"]
+        if not negative: labels += ["netem-stats-before","tc-count-send","netem-stats-after"]
+        labels += ["netem-cleanup-before","netem-remove","netem-cleanup-after"]
+        if not negative: labels += checker.TC_LABELS[5:]
+        labels = checker.NETWORK_LABELS[:-5] + labels + (checker.NETWORK_LABELS[-2:] if negative else checker.NETWORK_LABELS[-5:])
+        network = NetworkEvidenceTests().result()
+        network.update(status=tc["status"],detail=tc["detail"],tc_reference=True,tc_fault=fault,
+                       steps=[{"id":f"{i+1:03}-{label}","status":"passed",
+                               "exit_code":1 if label.startswith("forwarding-off-") else 0,
+                               "expected_exit_code":1 if label.startswith("forwarding-off-") else 0,
+                               "signal":None,"output_complete":True,"log_truncated":False} for i,label in enumerate(labels)])
+        return network,tc
+
+    def test_attribution_requires_qdisc_counts_and_passed_ingress(self):
+        network,tc = self.result()
+        self.assertEqual(checker.check_netem(network,tc,"netem-loss"),0)
+        for field in ("qdisc_before","qdisc_after"):
+            network,tc = self.result();tc["phases"][2][field][0]["handle"]="ffff:"
+            self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
+        network,tc = self.result();tc["phases"][2]["counter_delta"]=[4,0,4,4,4,0]
+        self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
+        network,tc = self.result();tc["phases"][2]["qdisc_after"][0]["drops"]=7
+        self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
+
+    def test_background_control_and_exact_drop_count_are_required(self):
+        for mutation in ["ipv6", "neighbor", "mac", "extra-drop"]:
+            network,tc = self.result()
+            control = tc["netem"]["fixture_control"]
+            if mutation == "ipv6": control["router_ipv6_disabled"] = False
+            elif mutation == "neighbor": control["server_neighbor"][0]["state"] = ["STALE"]
+            elif mutation == "mac": control["router_neighbor"][0]["lladdr"] = "02:00:00:00:00:03"
+            else: tc["phases"][2]["qdisc_after"][0]["drops"] = 9
+            self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
+
+    def test_wrong_setting_never_counts_as_success_or_allows_send(self):
+        network,tc = self.result("netem-unconfigured")
+        self.assertEqual(checker.check_netem(network,tc,"netem-unconfigured"),0)
+        tc["netem"]["sender_started"]=True
+        self.assertEqual(checker.check_netem(network,tc,"netem-unconfigured"),3)
+        network,tc = self.result();tc["netem"]["configuration_verified"]=False
+        self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
+
+    def test_cleanup_and_restored_delivery_are_required(self):
+        network,tc=self.result();tc["netem"]["cleanup"]["after"]=tc["netem"]["configured"]
+        self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
+        network,tc=self.result();tc["phases"][-1]["received"]["control_sequences"]=[]
+        self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
+        network,tc=self.result();network["cleanup"]["helpers_reaped"]=False
+        self.assertEqual(checker.check_netem(network,tc,"netem-loss"),3)
 
 
 class TcFaultEvidenceTests(unittest.TestCase):

@@ -28,15 +28,17 @@ ARENA_VM_ACCELERATOR=kvm bash scripts/prepare-netns.sh
   "$PWD/artifacts/acceptance-001"
 ```
 
-[一括実行・キャッシュ再利用の運用](docs/NETNS_WORKFLOW.md)では、正常・戻り経路故障・正常・TC比較・drop無効化・誤ったhook・受信helper停止・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧の13ケースを1回のVM起動で実行し、`summary.json`へ集計します。通信ケースのnetnsは新規作成し、後片付けを確認します。Nix store、依存、読み取り専用VMイメージは再利用し、試験中はビルド・依存取得を行いません。既存の単一ケース用launcherも維持しています。
+[一括実行・キャッシュ再利用の運用](docs/NETNS_WORKFLOW.md)では、正常・戻り経路故障・正常・TC比較・drop無効化・誤ったhook・受信helper停止・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧・NetEm全損失比較・設定不成立・正常復帰の16ケースを1回のVM起動で実行し、`summary.json`へ集計します。通信ケースのnetnsは新規作成し、後片付けを確認します。Nix store、依存、読み取り専用VMイメージは再利用し、試験中はビルド・依存取得を行いません。既存の単一ケース用launcherも維持しています。
 
 Rust/Ayaで[TC ingressの参照eBPF](docs/TC_INGRESS.md)も接続しました。固定IPv4/UDP fixtureで、eBPFなし・pass・count・限定drop・detach後を比較し、送信/受信とkernel counterを照合します。参照packetコードは固定Clangで生成するC objectです。[故障検出の記録](docs/TC_FAULT_VALIDATION.md)で、遮断不成立と環境故障を正しい理由で不合格にできるか確認します。
+
+[NetEmとeBPFの損失の区別](docs/NETEM_COMPARISON.md)では、routerの送信側にNetEmの全損失を設定し、TC ingressのpass counter・qdisc drop counter・受信を照合します。設定不成立はcount phaseの送信前に環境エラーとし、解除後の正常到達を確認します。[Mac ARM64と外部SSD](docs/MAC_SSD_VM.md)で新規2 VM・各16ケースの受け入れを確認しました。Linux x86_64／KVMで残る期限超過は別に扱います。[検証記録](docs/NETEM_COMPARISON_VALIDATION.md)を参照してください。
 
 [異常・短縮入力の直接実行](docs/BPF_TEST_RUN.md)では、VM内のBPF_PROG_TEST_RUNで70入力の戻り値・kernel拒否・counterを照合します。wire試験とは別に結果を保存します。
 
 [ロード失敗の検証](docs/BPF_LOAD_FAILURE.md)では、verifierが拒否する専用fixtureを環境エラーとして記録し、正常なTC試験への復帰を確認します。
 
-Linux ARM64／TCGとmacOS ARM64／TCGで、それぞれ新規2 VM・各13ケースの一括試験を確認しました。Macでは、Linuxで準備した同じゲストbundleを固定Nixツールで起動します。[bundleの準備・反復実行](docs/NIX_VM.md#linuxで準備したゲストをmacで再利用する)を参照してください。IPv6のwire試験、固定fixture以外の異常入力、TCPの限定drop、k8s、kernel panic・host電源断は初版の対応範囲に含めません。
+初版の13ケースについては、Linux ARM64／TCGとmacOS ARM64／TCGで、それぞれ新規2 VMの一括試験を確認しました。Macでは、Linuxで準備した同じゲストbundleを固定Nixツールで起動します。[bundleの準備・反復実行](docs/NIX_VM.md#linuxで準備したゲストをmacで再利用する)を参照してください。IPv6のwire試験、固定fixture以外の異常入力、TCPの限定drop、k8s、kernel panic・host電源断は初版の対応範囲に含めません。
 
 VM内の一括試験は、TC attach後の[キャンセル・タイムアウトと正常試験への復帰](docs/BATCH_INTERRUPTION.md)も検証する。指定checkpoint以外の中断やpanic・電源断の保証は含めない。
 

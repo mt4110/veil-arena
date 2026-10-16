@@ -1,5 +1,5 @@
 //! Guest-only TC reference and bounded UDP evidence. No pins or host interfaces.
-use super::{APP, Owned, Run, SERVER, parent_guard, read_report, save, spawn};
+use super::{APP, Owned, Run, SERVER, netem, parent_guard, read_report, save, spawn};
 use aya::maps::{Array, IterableMap, PerCpuArray};
 use aya::programs::tc::TcAttachOptions;
 use aya::programs::{SchedClassifier, TcAttachType, loaded_programs, tc};
@@ -236,7 +236,7 @@ fn request(run: &Run, agent: &mut Owned, out: &Path, phase: &str, when: &str) ->
         "{phase}:{when}"
     )?;
     let path = out.join(format!("tc-{phase}-{when}.json"));
-    run.ready(agent, &path)?;
+    run.ready_within(agent, &path, Duration::from_secs(8))?;
     read_report(&path)
 }
 
@@ -254,6 +254,8 @@ pub fn comparison(
     let mut phases = vec![];
     let mut ready = Value::Null;
     let mut assertion_failed = false;
+    let netem_case = matches!(fault, "netem-loss" | "netem-unconfigured");
+    let mut loss = netem::State::default();
     let attempt = (|| -> io::Result<()> {
         let empty: Value = serde_json::from_slice(&run.command(
             "tc-filters-before",
@@ -265,6 +267,12 @@ pub fn comparison(
             return Err(io::Error::other("unexpected existing TC filters"));
         }
         for phase in PHASES {
+            if phase == "count" && netem_case {
+                loss.setup(run, router, server, out, fault)?;
+            }
+            if phase == "drop" && netem_case {
+                loss.remove(run, router, out)?;
+            }
             if phase == "pass" {
                 agent = Some(spawn(
                     "nsenter",
@@ -281,7 +289,11 @@ pub fn comparison(
                     &out.join("tc-agent.log"),
                     false,
                 )?);
-                run.ready(agent.as_mut().unwrap(), &out.join("tc-ready.json"))?;
+                run.ready_within(
+                    agent.as_mut().unwrap(),
+                    &out.join("tc-ready.json"),
+                    Duration::from_secs(8),
+                )?;
                 ready = read_report(&out.join("tc-ready.json"))?;
                 let filters: Value = serde_json::from_slice(&run.command(
                     "tc-filters-attached",
@@ -335,7 +347,7 @@ pub fn comparison(
             if phase == "detached" {
                 let a = agent.as_mut().unwrap();
                 writeln!(a.child.stdin.as_mut().unwrap(), "stop")?;
-                a.stop()?;
+                a.stop_with_grace(Duration::from_secs(8))?;
                 let filters: Value = serde_json::from_slice(&run.command(
                     "tc-filters-detached",
                     Some(router),
@@ -382,6 +394,12 @@ pub fn comparison(
             if r.child.try_wait()?.is_some() {
                 return Err(io::Error::other("TC receiver stopped before send"));
             }
+            let qdisc_before = if phase == "count" && netem_case {
+                loss.evidence["sender_started"] = json!(true);
+                netem::snapshot(run, router, "netem-stats-before")?
+            } else {
+                Value::Null
+            };
             let sent: Value = serde_json::from_slice(&run.command(
                 &format!("tc-{phase}-send"),
                 Some(app),
@@ -418,8 +436,18 @@ pub fn comparison(
                         .ok_or_else(|| io::Error::other("counter moved backwards"))
                 })
                 .collect::<Result<_, _>>()?;
-            let item = json!({"phase":phase,"sent":sent,"received":received,"before":before,"after":after,"counter_delta":delta});
-            let matches = valid_phase(&item);
+            let qdisc_after = if phase == "count" && netem_case {
+                netem::snapshot(run, router, "netem-stats-after")?
+            } else {
+                Value::Null
+            };
+            let item = json!({"phase":phase,"sent":sent,"received":received,"before":before,"after":after,"counter_delta":delta,
+                "qdisc_before":qdisc_before,"qdisc_after":qdisc_after});
+            let matches = if phase == "count" && netem_case {
+                valid_loss_phase(&item)
+            } else {
+                valid_phase(&item)
+            };
             phases.push(item);
             if !matches {
                 assertion_failed = true;
@@ -430,9 +458,14 @@ pub fn comparison(
         }
         Ok(())
     })();
-    let stopped = agent.as_mut().is_none_or(|a| a.stop().is_ok());
+    let netem_clean =
+        !netem_case || (loss.remove(run, router, out).is_ok() && netem::clean(&loss.evidence));
+    let stopped = agent
+        .as_mut()
+        .is_none_or(|a| a.stop_with_grace(Duration::from_secs(8)).is_ok());
     let cleanup = read_report(&out.join("tc-cleanup.json")).unwrap_or(Value::Null);
-    let clean = stopped
+    let clean = netem_clean
+        && stopped
         && cleanup
             == json!({"detached":true,"program_unloaded":true,"maps_unloaded":true,"pinned":false});
     let interruption = if run.cancelled.load(std::sync::atomic::Ordering::SeqCst) {
@@ -457,7 +490,8 @@ pub fn comparison(
         "environment_error"
     };
     let result = json!({"schema_version":1,"scenario":"tc-ingress","status":status,
-        "detail":attempt.as_ref().err().map(|e|e.to_string()),"fault":fault,"injection":injection,"attachment":ready,"phases":phases,"cleanup":cleanup});
+        "detail":attempt.as_ref().err().map(|e|e.to_string()),"fault":fault,"injection":injection,"attachment":ready,"phases":phases,"cleanup":cleanup,
+        "netem":loss.evidence});
     save(&out.join("tc-result.json"), &result)?;
     if !clean {
         return Err(io::Error::other("TC cleanup evidence incomplete"));
@@ -523,6 +557,73 @@ pub fn matches_fault(result: &Value, fault: &str) -> bool {
 }
 
 fn valid_phase(item: &Value) -> bool {
+    valid_delivery(item, false)
+}
+
+fn valid_loss_phase(item: &Value) -> bool {
+    item["phase"] == "count"
+        && valid_delivery(item, true)
+        && netem::configured(&item["qdisc_before"])
+        && netem::configured(&item["qdisc_after"])
+        && netem::drops(&item["qdisc_before"])
+            .zip(netem::drops(&item["qdisc_after"]))
+            .is_some_and(|(before, after)| after.checked_sub(before) == Some(8))
+}
+
+pub(super) fn matches_netem(r: &Value, fault: &str) -> bool {
+    let n = &r["netem"];
+    if r["schema_version"] != 1
+        || r["scenario"] != "tc-ingress"
+        || r["fault"] != fault
+        || r["attachment"]["hook"] != "ingress"
+        || r["attachment"]["interface"] != "rt-app"
+        || r["cleanup"]
+            != json!({"detached":true,"program_unloaded":true,"maps_unloaded":true,"pinned":false})
+        || !netem::clean(n)
+        || !netem::fixture_ready(&n["fixture_control"])
+        || !netem::absent(&n["before"])
+        || n["interface"] != "rt-server"
+        || n["direction"] != "egress"
+        || n["position"] != "after-router-tc-ingress"
+        || n["expected_loss"] != 1.0
+    {
+        return false;
+    }
+    let Some(phases) = r["phases"].as_array() else {
+        return false;
+    };
+    if fault == "netem-unconfigured" {
+        return r["status"] == "environment_error"
+            && r["detail"] == "NetEm loss configuration differs"
+            && n["configuration_verified"] == false
+            && n["sender_started"] == false
+            && netem::owned(&n["configured"]).is_some()
+            && !netem::configured(&n["configured"])
+            && phases.len() == 2
+            && phases
+                .iter()
+                .zip(PHASES)
+                .all(|(p, name)| p["phase"] == name && valid_phase(p));
+    }
+    fault == "netem-loss"
+        && r["status"] == "passed"
+        && r["detail"].is_null()
+        && n["configuration_verified"] == true
+        && n["sender_started"] == true
+        && netem::configured(&n["configured"])
+        && phases.len() == 5
+        && phases.iter().zip(PHASES).all(|(p, name)| {
+            p["phase"] == name
+                && if name == "count" {
+                    valid_loss_phase(p)
+                } else {
+                    valid_phase(p)
+                }
+        })
+        && netem::drops(&n["cleanup"]["before"]) == netem::drops(&phases[2]["qdisc_after"])
+}
+
+fn valid_delivery(item: &Value, loss: bool) -> bool {
     let phase = item["phase"].as_str().unwrap_or("");
     let (mode, delta) = match phase {
         "plain" | "detached" => (Value::Null, vec![0; 6]),
@@ -531,7 +632,7 @@ fn valid_phase(item: &Value) -> bool {
         "drop" => (json!(2), vec![4, 0, 4, 4, 4, 0]),
         _ => return false,
     };
-    let expected = if phase == "drop" {
+    let expected = if phase == "drop" || loss {
         json!([])
     } else {
         json!([0, 1, 2, 3])
@@ -540,7 +641,8 @@ fn valid_phase(item: &Value) -> bool {
         && item["after"]["mode"] == mode
         && item["counter_delta"] == json!(delta)
         && item["received"]["target_sequences"] == expected
-        && item["received"]["control_sequences"] == json!([0, 1, 2, 3])
+        && item["received"]["control_sequences"]
+            == if loss { json!([]) } else { json!([0, 1, 2, 3]) }
         && item["received"]["payloads_verified"] == true
         && item["sent"]["packets"]
             .as_array()
@@ -563,6 +665,21 @@ pub(super) fn matches_interruption(r: &Value, reason: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn netem_loss_needs_ingress_pass_and_qdisc_drop_evidence() {
+        let q = json!([{"kind":"netem","root":true,"handle":"7a00:","options":{"loss-random":{"loss":1.0}},"drops":0}]);
+        let mut item = json!({"phase":"count","before":{"mode":1},"after":{"mode":1},"counter_delta":[4,4,0,4,4,0],
+            "received":{"target_sequences":[],"control_sequences":[],"payloads_verified":true},"sent":{"packets":vec![0;8]},
+            "qdisc_before":q,"qdisc_after":q});
+        item["qdisc_after"][0]["drops"] = json!(8);
+        assert!(valid_loss_phase(&item));
+        assert!(!valid_phase(&item));
+        item["counter_delta"] = json!([4, 0, 4, 4, 4, 0]);
+        assert!(!valid_loss_phase(&item));
+        item["counter_delta"] = json!([4, 4, 0, 4, 4, 0]);
+        item["qdisc_after"][0]["drops"] = json!(7);
+        assert!(!valid_loss_phase(&item));
+    }
     #[test]
     fn drop_requires_both_exact_delivery_and_kernel_counts() {
         let mut item = json!({"phase":"drop","before":{"mode":2},"after":{"mode":2},"counter_delta":[4,0,4,4,4,0],

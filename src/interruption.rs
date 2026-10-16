@@ -59,13 +59,7 @@ pub fn run(out: &Path, reason: &str) -> io::Result<i32> {
         && tc::matches_interruption(&tc_result, reason)
         && ready["attachment"] == tc_result["attachment"]
         && ready["filters"] == tc_result["injection"]["filters"]
-        && batch["cases"].as_array().is_some_and(|cases| {
-            cases.len() == 10
-                && cases[..3].iter().all(|c| c["status"] == "passed")
-                && cases[3]["id"] == "tc-ingress-001"
-                && cases[3]["status"] == "failed"
-                && cases[4..].iter().all(|c| c["status"] == "not_run")
-        });
+        && valid_interrupted_cases(&batch["cases"]);
     let report = json!({"schema_version":1,"scenario":"batch-interruption","status":if clean {"passed"} else {"environment_error"},
         "reason":reason,"execution":execution.result,"batch_report":"interrupted-batch/result.json","checkpoint":"tc-ingress-001/tc-interruption-ready.json",
         "cleanup_verified":clean,"scope":"attached checkpoint in guest; graceful interrupt only; not panic or power loss"});
@@ -81,4 +75,48 @@ pub fn matches_report(r: &Value, reason: &str) -> bool {
         && r["execution"]["output_complete"] == true
         && r["execution"]["termination_escalated"] == false
         && r["execution"]["exit_code"] == if reason == "cancelled" { 130 } else { 4 }
+}
+
+fn valid_interrupted_cases(value: &Value) -> bool {
+    let expected: Vec<_> = super::BATCH_CASES
+        .iter()
+        .filter(|(id, _)| !id.starts_with("batch-") && *id != "tc-after-cancel-001")
+        .map(|(id, _)| *id)
+        .collect();
+    value.as_array().is_some_and(|cases| {
+        cases.len() == expected.len()
+            && cases
+                .iter()
+                .zip(expected)
+                .enumerate()
+                .all(|(i, (case, id))| {
+                    case["id"] == id
+                        && case["status"]
+                            == if i < 3 {
+                                "passed"
+                            } else if i == 3 {
+                                "failed"
+                            } else {
+                                "not_run"
+                            }
+                })
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn interrupted_batch_requires_the_full_current_tail() {
+        let mut cases: Vec<_> = super::super::BATCH_CASES.iter()
+            .filter(|(id,_)| !id.starts_with("batch-") && *id != "tc-after-cancel-001")
+            .enumerate().map(|(i,(id,_))| json!({"id":id,"status":if i<3 {"passed"} else if i==3 {"failed"} else {"not_run"}})).collect();
+        assert_eq!(cases.len(), 13);
+        assert!(valid_interrupted_cases(&json!(cases)));
+        let last = cases.pop().unwrap();
+        assert!(!valid_interrupted_cases(&json!(cases)));
+        cases.push(last);
+        cases[12]["id"] = json!("unrelated");
+        assert!(!valid_interrupted_cases(&json!(cases)));
+    }
 }
