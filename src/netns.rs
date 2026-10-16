@@ -1117,7 +1117,7 @@ mod publication_tests {
         let child = Command::new("sh")
             .args([
                 "-c",
-                "sleep 3.2; printf ready > \"$1\"; read line; exit 0",
+                include_str!("readiness-publication.sh"),
                 "arena-ready",
             ])
             .arg(&path)
