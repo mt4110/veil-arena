@@ -3,6 +3,8 @@
 mod interruption;
 #[path = "load_failure.rs"]
 mod load_failure;
+#[path = "netem.rs"]
+mod netem;
 #[path = "process.rs"]
 mod process;
 #[path = "tc.rs"]
@@ -28,6 +30,24 @@ use std::time::{Duration, Instant};
 const APP: &str = "10.77.1.10";
 const SERVER: &str = "10.77.2.10";
 const TIMEOUT: Duration = Duration::from_secs(90);
+const BATCH_CASES: [(&str, i32); 16] = [
+    ("normal-001", 0),
+    ("route-fault-001", 1),
+    ("normal-002", 0),
+    ("tc-ingress-001", 0),
+    ("tc-drop-disabled-001", 1),
+    ("tc-wrong-hook-001", 3),
+    ("tc-receiver-stopped-001", 3),
+    ("bpf-test-run-001", 0),
+    ("bpf-load-failure-001", 3),
+    ("batch-cancel-001", 0),
+    ("tc-after-cancel-001", 0),
+    ("batch-timeout-001", 0),
+    ("tc-restored-001", 0),
+    ("tc-netem-loss-001", 0),
+    ("tc-netem-unconfigured-001", 3),
+    ("tc-after-netem-001", 0),
+];
 
 fn save(path: &Path, value: &Value) -> io::Result<()> {
     // Readers poll the final name. Publish only after the complete JSON is synced.
@@ -83,12 +103,16 @@ struct Owned {
 
 impl Owned {
     fn stop(&mut self) -> io::Result<()> {
+        self.stop_with_grace(Duration::from_secs(2))
+    }
+
+    fn stop_with_grace(&mut self, grace: Duration) -> io::Result<()> {
         if self.stopped {
             return Ok(());
         }
         // Closing the hold helper's pipe lets it exit normally.
         self.child.stdin.take();
-        let until = Instant::now() + Duration::from_secs(2);
+        let until = Instant::now() + grace;
         loop {
             if self.child.try_wait()?.is_some() {
                 self.stopped = true;
@@ -225,7 +249,11 @@ impl Run {
     }
 
     fn ready(&self, child: &mut Owned, path: &Path) -> io::Result<()> {
-        let until = self.deadline.min(Instant::now() + Duration::from_secs(3));
+        self.ready_within(child, path, Duration::from_secs(3))
+    }
+
+    fn ready_within(&self, child: &mut Owned, path: &Path, budget: Duration) -> io::Result<()> {
+        let until = self.deadline.min(Instant::now() + budget);
         while Instant::now() < until && !self.cancelled.load(Ordering::SeqCst) {
             if child.child.try_wait()?.is_some() {
                 return Err(io::Error::other("echo helper exited before readiness"));
@@ -712,22 +740,10 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
     };
     let mut cases = vec![];
     let mut exit_code = 0;
-    let deadline = Instant::now() + Duration::from_secs(360);
-    for (id, expected) in [
-        ("normal-001", 0),
-        ("route-fault-001", 1),
-        ("normal-002", 0),
-        ("tc-ingress-001", 0),
-        ("tc-drop-disabled-001", 1),
-        ("tc-wrong-hook-001", 3),
-        ("tc-receiver-stopped-001", 3),
-        ("bpf-test-run-001", 0),
-        ("bpf-load-failure-001", 3),
-        ("batch-cancel-001", 0),
-        ("tc-after-cancel-001", 0),
-        ("batch-timeout-001", 0),
-        ("tc-restored-001", 0),
-    ] {
+    // Sixteen cases include two nested interruption batches. Keep the guest
+    // 600s service and 670s host watchdog above this bounded suite budget.
+    let deadline = Instant::now() + Duration::from_secs(540);
+    for (id, expected) in BATCH_CASES {
         if interruption_mode.is_some() && (id.starts_with("batch-") || id == "tc-after-cancel-001")
         {
             continue;
@@ -767,6 +783,8 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
                 "tc-drop-disabled-001" => "drop-disabled",
                 "tc-wrong-hook-001" => "wrong-hook",
                 "tc-receiver-stopped-001" => "receiver-stopped",
+                "tc-netem-loss-001" => "netem-loss",
+                "tc-netem-unconfigured-001" => "netem-unconfigured",
                 _ => "none",
             }
         };
@@ -840,7 +858,9 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
                     && r["tc_fault"] == fault
                     && r["tc_reference"] == true
                     && read_report(&out.join(id).join("tc-result.json")).is_ok_and(|t| {
-                        if fault == "none" {
+                        if matches!(fault, "netem-loss" | "netem-unconfigured") {
+                            tc::matches_netem(&t, fault)
+                        } else if fault == "none" {
                             t["status"] == "passed"
                         } else {
                             tc::matches_fault(&t, fault)
@@ -895,7 +915,7 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
     }
     save(
         &out.join("result.json"),
-        &json!({"schema_version":6,"scenario":"netns-batch",
+        &json!({"schema_version":7,"scenario":"netns-batch",
         "status":match exit_code {0=>"passed",1=>"failed",130=>"cancelled",4=>"timeout",_=>"environment_error"},"interruption_mode":interruption_mode,
         "cases":cases,"exit_code":exit_code,"vm_boots":1,
         "namespace_policy":"fresh owned namespaces for communication cases; verified cleanup before next case"}),
@@ -1013,6 +1033,8 @@ pub fn main() -> i32 {
                     "wrong-hook",
                     "receiver-stopped",
                     "interrupt-hold",
+                    "netem-loss",
+                    "netem-unconfigured",
                 ]
                 .contains(&fault.as_str()) =>
         {
@@ -1039,6 +1061,8 @@ pub fn main() -> i32 {
                     "wrong-hook",
                     "receiver-stopped",
                     "interrupt-hold",
+                    "netem-loss",
+                    "netem-unconfigured",
                 ]
                 .contains(&fault.as_str()) =>
         {
@@ -1058,6 +1082,71 @@ pub fn main() -> i32 {
 #[cfg(test)]
 mod publication_tests {
     use super::*;
+    #[test]
+    fn tc_cleanup_grace_preserves_delayed_publication() {
+        let child = Command::new("sh")
+            .args(["-c", "read line; sleep 3; printf complete"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let mut owned = Owned {
+            child,
+            stopped: false,
+        };
+        writeln!(owned.child.stdin.as_mut().unwrap(), "stop").unwrap();
+        owned.stop_with_grace(Duration::from_secs(8)).unwrap();
+        assert!(owned.child.try_wait().unwrap().unwrap().success());
+        let mut output = String::new();
+        std::io::Read::read_to_string(owned.child.stdout.as_mut().unwrap(), &mut output).unwrap();
+        assert_eq!(output, "complete");
+    }
+
+    #[test]
+    fn tc_snapshot_wait_accepts_delayed_publication_but_respects_case_deadline() {
+        let directory = std::env::temp_dir().join(format!(
+            "arena-ready-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir(&directory).unwrap();
+        let path = directory.join("ready");
+        let child = Command::new("sh")
+            .args([
+                "-c",
+                "sleep 3.2; printf ready > \"$1\"; read line; exit 0",
+                "arena-ready",
+            ])
+            .arg(&path)
+            .stdin(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let mut owned = Owned {
+            child,
+            stopped: false,
+        };
+        let mut run = Run {
+            out: directory,
+            deadline: Instant::now() + Duration::from_secs(8),
+            cancelled: Arc::new(AtomicBool::new(false)),
+            steps: vec![],
+            check_index: 0,
+        };
+        run.ready_within(&mut owned, &path, Duration::from_secs(8))
+            .unwrap();
+        assert_eq!(fs::read_to_string(&path).unwrap(), "ready");
+        run.deadline = Instant::now();
+        assert!(
+            run.ready_within(&mut owned, &path, Duration::from_secs(8))
+                .is_err()
+        );
+        owned.stop().unwrap();
+        assert!(owned.child.try_wait().unwrap().unwrap().success());
+    }
+
     #[test]
     fn visible_reports_are_complete_and_existing_reports_are_preserved() {
         let directory = std::env::temp_dir().join(format!(

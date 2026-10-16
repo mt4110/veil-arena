@@ -45,7 +45,7 @@ let
       system.stateVersion = "26.05";
       networking.hostName = "veil-arena-offline";
       boot.kernelPackages = pkgs.linuxPackages_6_12;
-      boot.kernelModules = lib.optionals netns [ "veth" "sch_ingress" "cls_bpf" ];
+      boot.kernelModules = lib.optionals netns [ "veth" "sch_ingress" "cls_bpf" "sch_netem" ];
       boot.kernelParams = lib.optionals netns [ "arena.netns=1" ];
       assertions = [{ assertion = pkgs.linuxPackages_6_12.kernel.version == versions.kernel;
         message = "guest kernel version drift"; }];

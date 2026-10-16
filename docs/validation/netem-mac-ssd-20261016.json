@@ -1,0 +1,190 @@
+{
+  "status": "passed",
+  "scope": "Mac ARM64 native QEMU/TCG, external APFS SSD, two fresh VMs; Linux ARM64/TCG seed inside dedicated Colima",
+  "source_base": "e011c7f17b22f1ea61fbb0e066b597571d56f4ad",
+  "runs": [
+    {
+      "run": "linux-seed",
+      "cases": 16,
+      "case_execution_total_ms": 303088,
+      "vm_controller_duration_ms": 327015,
+      "boot_id": "975eecd8-4d5e-4511-8052-cc56f743ae67",
+      "qemu_reaped": true,
+      "evidence_synced_before_stop": true,
+      "netem_drop_increment": 8,
+      "ebpf_pass": 8,
+      "ebpf_drop_during_netem": 0,
+      "ebpf_limited_target_drop_after_netem": 4,
+      "normal_recovery_received": [
+        4,
+        4
+      ],
+      "unconfigured_status": "environment_error",
+      "unconfigured_exit": 3
+    },
+    {
+      "run": "mac-daily",
+      "cases": 16,
+      "case_execution_total_ms": 269272,
+      "vm_controller_duration_ms": 290143,
+      "boot_id": "bbf7ae58-4e42-4142-95e9-c3bc7b89f2a5",
+      "qemu_reaped": true,
+      "evidence_synced_before_stop": true,
+      "netem_drop_increment": 8,
+      "ebpf_pass": 8,
+      "ebpf_drop_during_netem": 0,
+      "ebpf_limited_target_drop_after_netem": 4,
+      "normal_recovery_received": [
+        4,
+        4
+      ],
+      "unconfigured_status": "environment_error",
+      "unconfigured_exit": 3
+    },
+    {
+      "run": "mac-fresh",
+      "cases": 16,
+      "case_execution_total_ms": 265117,
+      "vm_controller_duration_ms": 285318,
+      "boot_id": "bd030cef-fa5e-4db0-8f96-1432db1b922d",
+      "qemu_reaped": true,
+      "evidence_synced_before_stop": true,
+      "netem_drop_increment": 8,
+      "ebpf_pass": 8,
+      "ebpf_drop_during_netem": 0,
+      "ebpf_limited_target_drop_after_netem": 4,
+      "normal_recovery_received": [
+        4,
+        4
+      ],
+      "unconfigured_status": "environment_error",
+      "unconfigured_exit": 3
+    }
+  ],
+  "evidence_files": 8539,
+  "manifest_sha256": "99df21afd8be1583780296af1507412d9b26e4953b1366ad6283f56a8b46779a",
+  "linux_x86_64_kvm_acceptance": "incomplete; prior failures retained",
+  "third_party_trial": "deferred",
+  "k8s": "deferred",
+  "date": "2026-10-16",
+  "source_uncommitted": true,
+  "versions": {
+    "rust": "1.98.1",
+    "cargo": "1.98.0",
+    "python": "3.14.7",
+    "kernel": "6.12.112",
+    "qemu": "11.1.1"
+  },
+  "ssd": {
+    "filesystem": "APFS",
+    "root": "/Volumes/Elecom-1TB/Linux/veil-arena/netem-20261016-155358",
+    "existing_data_deleted": false,
+    "cache_relocated": false
+  },
+  "native_prepared": "/nix/store/qrk0z5g5akd8cxsk1qf6y98468f4pd9q-arena-netns-prepared",
+  "linux_prepared": "/nix/store/cf6crx23jnp6rkhxhrqsg5ayvnrlngf4-arena-netns-prepared",
+  "boot_inputs": [
+    {
+      "name": "store.img",
+      "sha256": "a6b404134daaf653738e1e07a0122d88066160040a7b639ba52ae78f1167f3df",
+      "source": "/nix/store/xki1p0l72h9fxd299h7r98m102a10c4d-arena-netns-store-image/store.img",
+      "bytes": 1072410624
+    },
+    {
+      "name": "Image",
+      "sha256": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+      "source": "/nix/store/45iw0ihvxla0l76l67nwkxadi9050l26-linux-6.12.112/Image",
+      "bytes": 61114880
+    },
+    {
+      "name": "initrd",
+      "sha256": "b8a226a2c7e5d4d10d2f7174a075da7380cfc4ede7b379d8a7e545a4885ce8af",
+      "source": "/nix/store/1lpjb966jk8w50kncjcbn8r6zgs4g8c7-initrd-linux-6.12.112/initrd",
+      "bytes": 26682112
+    }
+  ],
+  "existing_output_rejection": {
+    "status": "passed",
+    "expected_exit": 3,
+    "actual_exit": 3,
+    "target": "/Volumes/Elecom-1TB/Linux/veil-arena/netem-20261016-155358/results/linux-seed",
+    "files_unchanged": 2849,
+    "new_vm_started": false
+  },
+  "adapter": {
+    "native_prepared": "/nix/store/qrk0z5g5akd8cxsk1qf6y98468f4pd9q-arena-netns-prepared",
+    "native_launcher_sha256": "ef17fe5d5f5b43ecb449350e26567ace47ed6af730be3e7b44ac60926bff1558",
+    "ssd_launcher_sha256": "c86434945bd9d49923dfdca53a7c2979c0cfc24c261d057144475dae55610f40",
+    "changes": [
+      "manifest storage metadata",
+      "boot input paths",
+      "byte equality check before each launch"
+    ],
+    "lifecycle_checker_unchanged": true
+  },
+  "runtime_source_sha256": {
+    ".github/workflows/check.yml": "4c4848a93e5cf60192d3956b0b54dd3a08528d27538ac0fecc5f198ab4bf8ea5",
+    ".gitignore": "a549b55e337a2f3de694e5b8352b458b535347fa73e5e47d6b00b4822ef771b7",
+    ".python-version": "922fe0c3de073b01988e23348ea184456161678c5e329e6f34be89be24383f93",
+    "Cargo.lock": "5e2555bb1d8342b807894402c6d6abacdd084bbdfbdb2345f53646c556938363",
+    "Cargo.toml": "146d4037146b7c2e9a9b8d5313de2d3d390b78c336f0f29394204dbe211de6df",
+    "LICENSE": "c7aa57a4847f4be07791367e36a681febf05cc4082d783e6d7d508490d776fdf",
+    "environments/vm/offline.nix": "73ca3ac3ae0de909ac78e6fccc7830c322bf0afcf24251b13aa34b88e49a8d3e",
+    "flake.lock": "f7c1fdb4c746bd2314b4f394483589a2b359e647c12c345379d4069b0a5a4f3f",
+    "flake.nix": "1a8f466805325509cc9ab56feb23eef7b06ce21e6fa8064bf5f0125a1223ebe5",
+    "reference/LICENSE": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6",
+    "reference/tc_ingress.c": "0ed6801c0b1bdb14cac55d52226d9c3025550e633f76ab1835f71f1a03d22bed",
+    "reference/tc_load_reject.c": "db8499360288599a7e12250e30b40449b046571a33328e33105635d44a371c90",
+    "rust-toolchain.toml": "887f9be066a15585a2c583578e84b0fcb541126d81546276bad3d2ff00d61167",
+    "scripts/blackhole-workflow.sh": "753777ebefeea9fff4e7aba30dddd595917740ef80f6a6bcf06849e917cefce9",
+    "scripts/blackhole_workflow.py": "f4b3078d25252a7d38aa881327b90072cd027495d1bdd7fb54169111e618b647",
+    "scripts/build-netns-vm.sh": "ad1b539aab091c2cc24342675c0c3fd15b8e1c791c44363b7fdbaaec522432b5",
+    "scripts/build-offline-vm.sh": "b7104eede8af1c2d075629310cbbc6ca38ce35cc40b60c3f79cdbbf251576c4a",
+    "scripts/check.sh": "096d2854babf28c989a4de420830efc266f3987570776a9c8ec373d7e7b7b422",
+    "scripts/check_vm_result.py": "6fdb53e436c4557197dcde01a04d8eee410e9cf97357957320d40acef741efb1",
+    "scripts/guest_bundle.py": "4a3f1016a766668caaf2d52128826fb7dcacafed7a4662e8760f4739565c35fb",
+    "scripts/prepare-netns-from-guest.sh": "c5ddfa0e06977fc4b2cf7eea85580d5fb6eafe0fad6c51a783e5bb1f23a887a2",
+    "scripts/prepare-netns.sh": "ceaa37eff4c7f925808f871182f9eb00492424d2ff512b91289aef673f6b939e",
+    "src/bin/veil-arena-netns.rs": "4b52e7dcac195e97e07168caa7fb19ed82aaa2c0a68bf0498053b3df63849c29",
+    "src/interruption.rs": "2321fe21de4b9f6027cbe703af5f6abcb1d3db73a5012a0f22e2bd89a6378fbf",
+    "src/load_failure.rs": "52461e13647d2a262dc4f2c0489b0e0f1b19304198e77b68b2f813c64cd3a7bf",
+    "src/main.rs": "824f436c18585a1e06dbcf4f182af64f63ec57a78e159c0c3371e479f939c1a5",
+    "src/netem.rs": "698b440f4885ce498f1a4c1d77e5b0f6ce4fd9d6885e3786c54f969b32271f7d",
+    "src/netns.rs": "1f271e6f7d419fc4596db443a92920224b8526f50f25a43b401b1701966899b5",
+    "src/process.rs": "04c1ac4e0045eb88d42e56504bb59636aa02dd80ef7c2f55cb967d44f0e97374",
+    "src/tc.rs": "f17e4dd40fc377ae73e262ddd31d4f4c9e31b8201129d506763d1c551737ed91",
+    "src/test_run.rs": "1e0fcbc023545328cecf468864f712015515dbcd3d528909dcad5ced7847874a",
+    "src/watchdog.rs": "f83eb137d525c0d56a0d1e44a7721ef9a799905711a57c955430468dc9129a06",
+    "tests/test_blackhole_workflow.py": "3431f82fa5cef463dd120ee54d4403f5091089dc5bcce8dd5b489f4d5d896633",
+    "tests/test_guest_bundle.py": "6e9f402f8c6ecc658a957841fd848b3273f74f9fb429e6a55a95a50b26f1f9f5",
+    "tests/test_vm_result.py": "abe6c5a9eee59c77601078c2bc685d5dece57e885e5bcb77e48cc9c0ffe5074f",
+    "tools/vm-controller/Cargo.lock": "13df93bec39886ae378aac7181c92f16e50bcd38f39463f1db85edeabb6fd27c",
+    "tools/vm-controller/Cargo.toml": "9ff5837ba9a96674e432e8ae51645a5824602dc59037cce56394873a8559af5e",
+    "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "b8fcfc6f3eba161bf715d4d0fa3e6c49379719ac29d2e9bab7ff2384c21e7edb",
+    "tools/vm-controller/src/main.rs": "d0a27a994d27986783cbb0f98b2b73a226cb2181a6b4ea4737d51213605e6b23"
+  },
+  "manifest_file": "evidence-manifest-final.json",
+  "original_manifest_preserved": true,
+  "original_manifest_sha256": "a5c947c620965295d5aa70dcb16b867a46dcb6cac30f515c8daf8168511a0a05",
+  "excluded_finder_metadata": [
+    "results/.DS_Store",
+    "results/linux-seed/.DS_Store",
+    "results/linux-seed/daily/.DS_Store",
+    "results/mac-acceptance-001/.DS_Store",
+    "results/mac-acceptance-001/daily/.DS_Store",
+    "results/mac-acceptance-001/fresh/.DS_Store"
+  ],
+  "finder_metadata_changes": [
+    {
+      "path": "results/.DS_Store",
+      "before": "23d697b415e2da7ecc48bf9390085e8c7823655c1f1377d1fa42af296235ac3a",
+      "after": "b31ab9c67f72c8465c3cd369dddd792f7f24de1c47cb4dec7d00589fce335667"
+    },
+    {
+      "path": "results/mac-acceptance-001/.DS_Store",
+      "before": "276759e11aba1fc0ed78c9943ffb4e9ec45a52858dc23cd1971e86748a72f109",
+      "after": "7cac925b772b2f811692f20ef9eeb3c6d5e225173b95276f61e18dc5f709e2c9"
+    }
+  ],
+  "test_evidence_unchanged": true
+}

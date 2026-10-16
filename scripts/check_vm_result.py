@@ -27,7 +27,7 @@ TC_LABELS = ["tc-filters-before", "tc-plain-send", "tc-filters-attached", "tc-pa
              "tc-count-send", "tc-drop-send", "tc-filters-detached", "tc-detached-send"]
 
 BATCH_CASES = (("normal-001", 0), ("route-fault-001", 1), ("normal-002", 0), ("tc-ingress-001", 0),
-               ("tc-drop-disabled-001", 1), ("tc-wrong-hook-001", 3), ("tc-receiver-stopped-001", 3), ("bpf-test-run-001", 0), ("bpf-load-failure-001", 3), ("batch-cancel-001", 0), ("tc-after-cancel-001", 0), ("batch-timeout-001", 0), ("tc-restored-001", 0))
+               ("tc-drop-disabled-001", 1), ("tc-wrong-hook-001", 3), ("tc-receiver-stopped-001", 3), ("bpf-test-run-001", 0), ("bpf-load-failure-001", 3), ("batch-cancel-001", 0), ("tc-after-cancel-001", 0), ("batch-timeout-001", 0), ("tc-restored-001", 0), ("tc-netem-loss-001", 0), ("tc-netem-unconfigured-001", 3), ("tc-after-netem-001", 0))
 FAULTS = {"tc-drop-disabled-001":"drop-disabled", "tc-wrong-hook-001":"wrong-hook", "tc-receiver-stopped-001":"receiver-stopped"}
 
 
@@ -104,7 +104,7 @@ def check_batch(root: pathlib.Path) -> int:
         if summary.get("status") != "passed":
             return 1 if summary.get("status") == "failed" else 3
         cases = summary.get("cases")
-        if (summary.get("schema_version") != 6 or summary.get("scenario") != "netns-batch"
+        if (summary.get("schema_version") != 7 or summary.get("scenario") != "netns-batch"
                 or summary.get("exit_code") != 0 or summary.get("vm_boots") != 1
                 or service.read_text().strip() != "success" or not isinstance(cases, list) or len(cases) != len(BATCH_CASES)):
             return 3
@@ -133,6 +133,9 @@ def check_batch(root: pathlib.Path) -> int:
             elif case_id.startswith("batch-"):
                 if check_interruption(result, directory, "cancelled" if case_id == "batch-cancel-001" else "timeout") != 0:
                     return 3
+            elif case_id in {"tc-netem-loss-001", "tc-netem-unconfigured-001"}:
+                if check_netem(result, read_bounded(directory / "tc-result.json"), "netem-loss" if expected == 0 else "netem-unconfigured") != 0:
+                    return 3
             elif fault:
                 if check_tc_fault(result, read_bounded(directory / "tc-result.json"), fault) != 0:
                     return 3
@@ -155,7 +158,7 @@ def check_batch(root: pathlib.Path) -> int:
                 topology = read_bounded(directory / "topology.json")
                 if topology.get("omit_server_route") is not True:
                     return 3
-        print("Batch passed: thirteen cases including cancellation, timeout and restored TC; one VM boot")
+        print("Batch passed: sixteen cases including NetEm attribution, rejection and recovery; one VM boot")
         return 0
     except (OSError, ValueError, TypeError):
         print("Batch evidence missing or malformed", file=sys.stderr)
@@ -235,12 +238,72 @@ def check_tc_fault(network: dict, result: dict, fault: str) -> int:
         return 3
 
 
+def netem_owned(rows):
+    return (isinstance(rows, list) and len(rows) == 1 and isinstance(rows[0], dict)
+            and rows[0].get("kind") == "netem" and rows[0].get("handle") == "7a00:"
+            and rows[0].get("root") is True)
+
+
+def netem_absent(rows):
+    return isinstance(rows, list) and all(isinstance(r, dict) and r.get("kind") == "noqueue"
+                                        and r.get("handle") == "0:" and r.get("root") is True for r in rows)
+
+
+def netem_configured(rows):
+    if not netem_owned(rows): return False
+    value = rows[0].get("options", {}).get("loss-random", {}).get("loss")
+    return type(value) in (int, float) and value == 1.0
+
+
+NETEM_FIXTURE_LABELS = ["netem-router-link", "netem-server-link", "netem-router-ipv6-off", "netem-router-ipv6-readback",
+                        "netem-router-neighbor-static", "netem-server-neighbor-static",
+                        "netem-router-neighbor-readback", "netem-server-neighbor-readback"]
+
+
+def netem_fixture_ready(value):
+    try:
+        for key in ("router_mac", "server_mac"):
+            parts = value[key].split(":")
+            if len(parts) != 6 or not all(len(p) == 2 and 0 <= int(p, 16) <= 255 for p in parts): return False
+        def neighbor(rows, address, dev, mac):
+            return (isinstance(rows, list) and len(rows) == 1 and rows[0].get("dst") == address
+                    and rows[0].get("dev") == dev and rows[0].get("lladdr") == mac and rows[0].get("state") == ["PERMANENT"])
+        return (value.get("router_ipv6_disabled") is True
+                and neighbor(value["router_neighbor"], "10.77.2.10", "rt-server", value["server_mac"])
+                and neighbor(value["server_neighbor"], "10.77.2.1", "server0", value["router_mac"]))
+    except (KeyError, TypeError, ValueError, AttributeError): return False
+
+
+def check_netem(network, result, fault):
+    try:
+        negative = fault == "netem-unconfigured"
+        tc = TC_LABELS[:4] + ["netem-before"] + NETEM_FIXTURE_LABELS + ["netem-install", "netem-configured"]
+        if not negative: tc += ["netem-stats-before", "tc-count-send", "netem-stats-after"]
+        tc += ["netem-cleanup-before", "netem-remove", "netem-cleanup-after"]
+        if not negative: tc += TC_LABELS[5:]
+        labels = NETWORK_LABELS[:-5] + tc + (NETWORK_LABELS[-2:] if negative else NETWORK_LABELS[-5:])
+        if (network.get("schema_version") != 1 or network.get("scenario") != "netns-baseline"
+                or network.get("status") != ("environment_error" if negative else "passed")
+                or network.get("tc_reference") is not True or network.get("tc_fault") != fault
+                or network.get("detail") != result.get("detail")
+                or network.get("cleanup") != {"helpers_reaped":True,"owned_namespace_references":[],"parent_network_unchanged":True,"errors":[]}
+                or len(network["steps"]) != len(labels)): return 3
+        for i,(step,label) in enumerate(zip(network["steps"],labels)):
+            code = 1 if label.startswith("forwarding-off-") else 0
+            if (step.get("id") != f"{i+1:03}-{label}" or step.get("status") != "passed"
+                    or step.get("exit_code") != code or step.get("expected_exit_code") != code
+                    or step.get("signal") is not None or step.get("output_complete") is not True
+                    or step.get("log_truncated") is not False): return 3
+        return _validate_tc(result, fault)
+    except (KeyError, TypeError, ValueError, AttributeError): return 3
+
+
 def _validate_tc(result: dict, fault: str | None) -> int:
     """A missing positive control or missing kernel drop count cannot prove drop."""
     try:
         attachment = result["attachment"]
         if (result.get("schema_version") != 1 or result.get("scenario") != "tc-ingress"
-                or result.get("status") != (result.get("status") if fault=="interrupt-hold" else "failed" if fault=="drop-disabled" else "environment_error" if fault else "passed")
+                or result.get("status") != (result.get("status") if fault=="interrupt-hold" else "passed" if fault=="netem-loss" else "failed" if fault=="drop-disabled" else "environment_error" if fault else "passed")
                 or result.get("cleanup") != {"detached": True, "program_unloaded": True, "maps_unloaded": True, "pinned": False}
                 or attachment.get("interface") != "rt-app" or attachment.get("hook") != ("egress" if fault=="wrong-hook" else "ingress")
                 or attachment.get("attach") != "netlink-clsact" or attachment.get("aya") != "0.13.1"
@@ -280,6 +343,25 @@ def _validate_tc(result: dict, fault: str | None) -> int:
                             "reaped":True,"signal":9,"received_report_present":False,"sender_started":False}):
                     return 3
                 contract = contract[:3]
+            elif fault in {"netem-loss", "netem-unconfigured"}:
+                n = result["netem"]
+                if (n.get("interface") != "rt-server" or n.get("direction") != "egress"
+                        or n.get("position") != "after-router-tc-ingress" or n.get("expected_loss") != 1.0
+                        or not netem_fixture_ready(n.get("fixture_control"))
+                        or not netem_absent(n["before"]) or not netem_owned(n["configured"])
+                        or n["cleanup"].get("removed") is not True or not netem_owned(n["cleanup"]["before"])
+                        or not netem_absent(n["cleanup"]["after"])):
+                    return 3
+                positive = fault == "netem-loss"
+                if (n.get("configuration_verified") is not positive or n.get("sender_started") is not positive
+                        or netem_configured(n["configured"]) is not positive):
+                    return 3
+                if positive:
+                    if result.get("detail") is not None or not netem_configured(n["cleanup"]["before"]):
+                        return 3
+                else:
+                    if result.get("detail") != "NetEm loss configuration differs": return 3
+                    contract = contract[:2]
             elif fault == "interrupt-hold":
                 injection = result["injection"]
                 filters = injection["filters"]
@@ -299,6 +381,7 @@ def _validate_tc(result: dict, fault: str | None) -> int:
             return 3
         previous = [0]*6
         for item, (phase, mode, delta) in zip(phases, contract):
+            loss = fault == "netem-loss" and phase == "count"
             received = item["received"]
             before, after = item["before"], item["after"]
             packets = [{"port": port, "sequence": seq, "payload": f"VTC1:{phase}:{kind}:{seq}"}
@@ -306,14 +389,20 @@ def _validate_tc(result: dict, fault: str | None) -> int:
             if (item["phase"] != phase or item["sent"] != {"phase":phase, "source":"10.77.1.10:39100", "destination":"10.77.2.10", "packets":packets}
                     or received.get("phase") != phase or received.get("payloads_verified") is not True
                     or received.get("window_ms") != 500
-                    or received.get("target_sequences") != ([] if phase == "drop" and fault != "drop-disabled" else [0,1,2,3])
-                    or received.get("control_sequences") != [0,1,2,3]
+                    or received.get("target_sequences") != ([] if loss or (phase == "drop" and fault != "drop-disabled") else [0,1,2,3])
+                    or received.get("control_sequences") != ([] if loss else [0,1,2,3])
                     or before["mode"] != mode or after["mode"] != mode
                     or len(before["counters"]) != 6 or len(after["counters"]) != 6
                     or any(type(n) is not int or n < 0 for n in before["counters"]+after["counters"])
                     or item["counter_delta"] != delta
                     or [a-b for a,b in zip(after["counters"], before["counters"])] != delta):
                 return 3
+            if loss:
+                qb, qa = item["qdisc_before"], item["qdisc_after"]
+                if (not netem_configured(qb) or not netem_configured(qa)
+                        or type(qb[0].get("drops")) is not int or type(qa[0].get("drops")) is not int
+                        or qb[0]["drops"] < 0 or qa[0]["drops"] - qb[0]["drops"] != 8
+                        or n["cleanup"]["before"][0].get("drops") != qa[0]["drops"]): return 3
             if phase in {"pass", "count", "drop"}:
                 if before["counters"] != previous:
                     return 3
@@ -454,7 +543,7 @@ def check_interruption(result, directory, reason):
         batch = read_bounded(nested / "result.json")
         inner_contract = [row for row in BATCH_CASES if not row[0].startswith("batch-") and row[0] != "tc-after-cancel-001"]
         cases = batch["cases"]
-        if (batch.get("schema_version") != 6 or batch.get("scenario") != "netns-batch"
+        if (batch.get("schema_version") != 7 or batch.get("scenario") != "netns-batch"
                 or batch.get("status") != reason or batch.get("exit_code") != code
                 or batch.get("interruption_mode") != reason or batch.get("vm_boots") != 1
                 or len(cases) != len(inner_contract)):

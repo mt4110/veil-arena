@@ -30,6 +30,8 @@ NixpkgsのRustパッケージ属性のversionは1.98.1だが、同梱Cargoの`--
 
 macOSでNixOSのゲストclosureを作るには、対応するLinuxビルダーが必要。`pi-node`はLinux x86_64である。ARM64の準備には、共有Colimaと別の専用プロファイルを用意し、HOMEの共有・SSH agent転送を無効にした。Linux依存をMacのNix storeへ取り込まず、検証済みゲストのboot入力をbundleとして再利用できる。
 
+2026-10-16の追加確認では、[Mac ARM64と外部APFS SSD](MAC_SSD_VM.md)でNetEmを含む16ケースを新規2 VMで確認した。上表の初版13ケースと区別する。Linux x86_64／KVMの追加16ケースの最終受け入れは期限超過で未完了のまま残す。
+
 ### Linuxで準備したゲストをMacで再利用する
 
 信頼するソースからLinux ARM64で準備し、一括試験を通過したVMの結果を指定する。ゲストのUIDはMacの実行ユーザーと一致する必要がある。今回の専用LinuxビルダーとMacはUID 501で揃えた。
@@ -105,7 +107,7 @@ netnsの通常運用は[一括試験](NETNS_WORKFLOW.md)に移した。準備で
 - ゲストのrootはtmpfs、Nix storeはclosureだけを収めた読み取り専用EROFSイメージ。ホストのNix store全体はmountしない。
 - ホストとの共有は新規の結果ディレクトリのみ。ホストworkspaceはmountしない。
 - `/out`はホストOSにかかわらず9Pで定義する。固定NixOSモジュールのLinux既定値virtiofsを明示的に上書きし、launcherの9P接続と一致させる。定義にはfsTypeのassertionを入れる。
-- オフライン試験期限300秒、netns単一ケース期限90秒、一括ケース実行期限360秒、サービス期限600秒。QEMU起動後のホストコントローラーは660秒、外側のwatchdogは670秒と停止猶予5秒。各起動前にイメージchecksumを計算する。一括workflowにはlauncherごとに900秒の上限もある。serialログにもファイルサイズ上限を設定する。
+- オフライン試験期限300秒、netns単一ケース期限90秒、一括ケース実行期限540秒、サービス期限600秒。QEMU起動後のホストコントローラーは660秒、外側のwatchdogは670秒と停止猶予5秒。各起動前にイメージchecksumを計算する。一括workflowにはlauncherごとに900秒の上限もある。serialログにもファイルサイズ上限を設定する。
 - ホストのRustコントローラーが試験サービスの終了markerを確認し、出力をfsyncしてから所有するQEMUへSIGTERMを送る。停止後にserialと停止理由も同期する。SIGKILLへの強制移行、期限超過、同期失敗、サービス未完了は環境エラー。ホストのファイルを削除する後処理はない。
 - QEMUの終了コード0だけでは合格にしない。ホスト制御の完了とservice終了を照合する。オフラインは19段階とsource/binary不変、netnsは51段階の通信・経路・後片付けをそれぞれ確認する。
 

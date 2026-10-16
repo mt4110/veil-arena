@@ -286,7 +286,9 @@ pub fn execute_controlled(
                     owned.stop()?;
                     killed_at = Some(now);
                 }
-                stopped_at = Some(now);
+                // Start grace after the request is durable and SIGINT sent.
+                // Slow evidence fsync must not consume the child's cleanup time.
+                stopped_at = Some(Instant::now());
             }
         }
         if exit.is_none() {

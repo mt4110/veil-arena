@@ -235,11 +235,17 @@ pub fn run(out: &Path) -> io::Result<i32> {
     };
     let mut rows = vec![];
     let mut mismatch = false;
-    let until = Instant::now() + Duration::from_secs(20);
+    let prepared_at = Instant::now();
+    let mut preparation_ms = None;
+    let mut execution_started = None;
     let attempt = (|| -> io::Result<()> {
-        for fixture in fixtures() {
-            if Instant::now() >= until {
-                return Err(io::Error::other("direct test deadline"));
+        let fixtures = fixtures();
+        // Preserve every input before executing BPF. Durable output transport
+        // latency is preparation, not kernel execution; the parent batch still
+        // bounds the whole child, with an additional 90s preparation ceiling.
+        for fixture in &fixtures {
+            if prepared_at.elapsed() >= Duration::from_secs(90) {
+                return Err(io::Error::other("direct fixture preparation deadline"));
             }
             let filename = format!("{}.bin", fixture.id);
             let mut file = std::fs::OpenOptions::new()
@@ -249,6 +255,19 @@ pub fn run(out: &Path) -> io::Result<i32> {
                 .open(out.join(&filename))?;
             file.write_all(&fixture.bytes)?;
             file.sync_all()?;
+        }
+        preparation_ms = Some(prepared_at.elapsed().as_millis());
+        if prepared_at.elapsed() >= Duration::from_secs(90) {
+            return Err(io::Error::other("direct fixture preparation deadline"));
+        }
+        let start = Instant::now();
+        execution_started = Some(start);
+        let until = start + Duration::from_secs(20);
+        for fixture in fixtures {
+            if Instant::now() >= until {
+                return Err(io::Error::other("direct test deadline"));
+            }
+            let filename = format!("{}.bin", fixture.id);
             Array::<_, u32>::try_from(bpf.map_mut("MODE").unwrap())
                 .map_err(io::Error::other)?
                 .set(0, fixture.mode, 0)
@@ -287,6 +306,7 @@ pub fn run(out: &Path) -> io::Result<i32> {
         }
         Ok(())
     })();
+    let execution_ms = execution_started.map(|start| start.elapsed().as_millis());
     drop(bpf);
     let cleanup = tc::released(Some(id), ids)?;
     let clean = cleanup == (true, true);
@@ -300,6 +320,7 @@ pub fn run(out: &Path) -> io::Result<i32> {
         "environment_error"
     };
     let report = json!({"schema_version":1,"scenario":"bpf-test-run","status":status,"detail":attempt.err().map(|e|e.to_string()),
+        "preparation_duration_ms":preparation_ms,"execution_duration_ms":execution_ms,
         "api":"BPF_PROG_TEST_RUN","repeat":1,"attached":false,"live_frames":false,"program_id":id,"map_ids":ids,
         "object_sha256":format!("{:x}",Sha256::digest(&bytes)),"cases":rows,
         "cleanup":{"program_unloaded":cleanup.0,"maps_unloaded":cleanup.1,"pinned":false},"scope":"direct kernel execution only; not wire delivery"});
