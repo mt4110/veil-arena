@@ -14,6 +14,11 @@ bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 
 初期MVP（M0〜M2）の受け入れ検証を完了しました。[マイルストーン](docs/MILESTONES.md)と[公開用の検証集計](docs/validation/v0.1.0.json)に、条件・対応範囲・未検証事項をまとめています。
 
+v0.2.0のソース版に向け、反復試験・失敗診断・NetEm比較・SSD正式入口をまとめました。
+[リリースノート](docs/releases/v0.2.0-draft.md)と[公開準備の記録](docs/RELEASE_PREPARATION.md)を参照してください。
+現在の16ケースに関するLinux x86_64／KVMの期限超過は既知の制約として残しており、
+以前の13ケースの成功を現在の一括試験の成功とは扱いません。
+
 ホスト上のオフラインrunnerはOS sandboxではありません。Nixの開発環境と、外部NICを持たないLinux VMを用意しました。macOS ARM64のNix上のオフライン実行に加え、Linux x86_64／KVMのゲストで「正常版の成功 → 不具合版の検出 → 元コードで再成功」を確認済みです。ゲストの試験サービス終了後、ホストのRustコントローラーが結果をfsyncし、所有するQEMUを停止します。
 
 専用VM内にapp・router・serverのnetnsを作る[正常通信ベースライン](docs/NETNS_VM.md)も追加しました。Linux x86_64／KVMで双方向ICMP/TCP/UDP、router転送停止・回復、経路故障の検出、所有プロセスの回収を確認済みです。[正常・故障・再成功の検証記録](docs/NETNS_VALIDATION.md)を残しています。
