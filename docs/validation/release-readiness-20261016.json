@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-16",
+  "source_commit": "87af46caec6fd6746f70b52f27b731f9be1c62a1",
+  "main_ci": {
+    "conclusion": "success",
+    "headSha": "87af46caec6fd6746f70b52f27b731f9be1c62a1",
+    "status": "completed",
+    "url": "https://github.com/mt4110/veil-arena/actions/runs/38896609813"
+  },
+  "version_proposal": "v0.2.0",
+  "version_bump_applied": false,
+  "prepared": "/nix/store/bkjimwbnb05vh60zmwqikwzvkr2m3h7a-arena-netns-prepared",
+  "reused_previous_prepared_output": true,
+  "platform": "macOS ARM64 / native QEMU TCG / APFS SSD",
+  "workflow": "daily",
+  "vm_boots": 1,
+  "cases": 16,
+  "status": "passed",
+  "duration_ms": 292897,
+  "boot_id": "865dee51-757c-4209-bf99-3988832ae1f0",
+  "boot_inputs_sha256": "5291f8260817ec37fb7a3475bb046c8066e0fdd76615d94affded7291a08a367",
+  "evidence_synced_before_stop": true,
+  "owned_qemu_reaped": true,
+  "owned_qemu_pid_absent": true,
+  "unresolved_review_marks": [
+    {
+      "pr": 1,
+      "finding": "Nix Cargo package metadata differs from executable version; current assertion is correct"
+    },
+    {
+      "pr": 2,
+      "finding": "Current nineteen-stage guide already updated"
+    }
+  ],
+  "evidence_entries": 2854,
+  "evidence_manifest_sha256": "736bed6f609b4cac43a5e643bb664cc4ade7c8dbb5694f78ca59a940fad42851",
+  "archive_check": "main archive required source/license files present; artifacts and .git excluded",
+  "signing": {
+    "format": "ssh",
+    "old_tag_verified": true,
+    "new_signature_tested": false,
+    "configured_key_listed_in_agent": false
+  },
+  "limits": [
+    "Current sixteen-case Linux x86_64/KVM timeouts remain unresolved",
+    "No additional acceptance VM in this preparation run; prior two-VM acceptance is separate evidence",
+    "Final versioned source and CI not yet prepared",
+    "Third-party trial and k8s remain on hold"
+  ],
+  "publication": {
+    "commit_created": false,
+    "pushed": false,
+    "tag_created": false,
+    "release_published": false
+  }
+}
