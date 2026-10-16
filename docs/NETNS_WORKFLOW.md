@@ -39,6 +39,8 @@ ARENA_VM_ACCELERATOR=kvm bash scripts/prepare-netns.sh
 
 KVMを使わない対応環境では準備時に`ARENA_VM_ACCELERATOR=tcg`とする。macOSは対応CPUのLinuxビルダーが必要。CPU系統・accelerator・UIDは準備出力に固定し、試験時に黙って変更しない。
 
+検証済みguest bundleから準備した出力には、外部volume用の`arena-netns-volume VOLUME_ROOT GUEST_BUNDLE daily|acceptance NEW_OUTPUT_DIRECTORY`も含める。[外部SSDの正式な入口](MAC_SSD_VM.md)を参照する。マウント状態・固定入力との一致・保存範囲・既存出力を検査した後、同じlauncherとRust workflowを実行する。通常の`arena-netns`の固定入力は変更しない。Mac ARM64での[検証記録](VOLUME_ENTRY_VALIDATION.md)は、以前のローカルadapterの受け入れと区別する。
+
 `daily`は1 VM・16ケース。`acceptance`はまず同じ一括試験を行い、成功した場合だけ追加VMで同じ16ケースを行う。追加VMのboot IDが異なり、image/kernel/initrdのchecksumが同じであることも集計時に照合する。最初が失敗した場合は追加起動しない。これは同じ条件の再試験であり、違うCPUやkernel上での互換性検証ではない。
 
 ソースやVM定義を変えたら準備を再実行し、新しく返されたlauncherを使う。同じ入力なら既存出力を再利用する。ゲストrunnerを変えた場合はゲストimageが変わる。ホスト専用controller・集計コードだけの変更はゲストimageを変える依存ではない。依存版を変える場合はlockと版契約を明示して更新し、受け入れ試験を行う。

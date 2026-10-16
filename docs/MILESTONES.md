@@ -31,6 +31,8 @@ PR #7マージ後、[Linux x86_64の新しいチェックアウト](LINUX_FRESH_
 
 今回の技術的な到達点は、専用VMの固定UDPでNetEm全損失と参照eBPFの限定dropを区別し、設定不成立・明示解除・正常復帰を一括確認すること。[仕様](NETEM_COMPARISON.md)と[検証記録](NETEM_COMPARISON_VALIDATION.md)へ範囲と判定を残す。単体・静的検証に加え、Linux ARM64／TCGの先行1 VM、[Mac ARM64と外部SSD](MAC_SSD_VM.md)の追加新規VMを含む2 VMで各16ケースが成功し、この構成での技術的な受け入れは成立した。Linux x86_64／KVMの既存ケースの期限超過は未解決。第三者試用とk8sは引き続き保留し、M4の第三者受け入れや製品価値の確認へ読み替えない。
 
+後続の[外部volumeの正式入口](VOLUME_ENTRY_VALIDATION.md)では、SSD上のローカルadapterを必要としないNixコマンドへ整理した。入力不一致・未マウント先・上書きなどを拒否し、既存guest/cacheを使った新規2 VMの各16ケースを確認した。これは反復運用の改善であり、第三者試用や新しいネットワークシナリオの追加ではない。
+
 netns試験の反復運用は、準備と試験を分離する方式へ変更した。Nix storeの依存と読み取り専用imageを保持し、初版は1 VM内の正常・経路故障・正常・TC比較・3種類のTC故障・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧の13ケース一括試験だった。今回はNetEm比較・設定不成立・正常復帰を加えた16ケースとし、受け入れ時は追加の新規VMを使う。[運用手順](NETNS_WORKFLOW.md)と[以前の3ケースの証拠](NETNS_WORKFLOW_VALIDATION.md)を参照する。TC比較の現在の範囲は固定IPv4/UDP・1 ingress hook。別入口の`watchdog-acceptance`は停止VM→正常再実行VMを2組・計4起動とし、同じimageを再利用する。固定fixture以外の異常入力、他のロード障害、指定checkpoint以外の中断などは初版の保証に含めない。ARM64の実起動はLinuxの専用Colima環境とMacのnative QEMU／TCGで確認済み。
 
 TC追加後のdaily・acceptanceもLinux x86_64／KVMで確認した。[参照TCの検証記録](TC_INGRESS_VALIDATION.md)に、通過・計数・限定drop・解除後回復、BPF解放、新規VMでの再成功を保存している。その後のARM64実起動・Blackhole現行コードの再確認を含む初版の判定は、上記の受け入れ集計を参照する。
