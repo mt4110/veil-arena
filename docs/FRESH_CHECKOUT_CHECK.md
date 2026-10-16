@@ -39,6 +39,23 @@ git -C "$trial_root/veil-blackhole" status --short --branch
 
 cloneとfetchはローカルの元リポジトリだけを読む。cloneだけでは元リポジトリの`origin/main`を転送できるとは限らないため、そのrefも明示的に取得する。元の未コミット変更・未追跡ファイルは含めない。新しい入力のstatusに変更があれば、原因を確認してから進める。
 
+### Linuxで別の準備済みcacheを使う場合
+
+操作1の後、操作2へ進む前に、上で設定した3つの変数を既存の絶対パスへ置き換える。次は確認に使った専用ビルダーの例で、他のLinux端末にもこのパスがあるとは限らない。Arena用registryとBlackhole用vendorのCargo homeを混ぜない。
+
+```sh
+workflow_cache=/tmp/arena-m3-workflow-cache-20261011
+arena_cargo_home=/tmp/arena-home/.cargo
+project_cargo_home=/tmp/arena-short-dns-20261011/blackhole-cargo
+test -d "$workflow_cache"
+test -d "$arena_cargo_home"
+test -f "$project_cargo_home/config.toml"
+```
+
+このvendorの例では`config.toml`内のstore pathも準備済みであることが前提。registryを使う環境にvendor設定の作成を要求するものではない。
+
+同じ一般ユーザーのセッションで、まず`nix --version`を確認する。UIDだけを指定したコンテナではユーザーのhomeを解決できず、試験を開始する前にNixが停止する場合がある。これは依存準備・環境の問題であり、既知のDNS不具合ではない。通常のLinuxユーザーと同じ条件だと仮定せず、[今回の専用ビルダーでの準備と確認範囲](LINUX_FRESH_CHECKOUT_VALIDATION.md)を参照する。HOME・ユーザー登録・trusted-users・権限を自動変更して続行しない。
+
 ## 2. 正常な対象を2回実行する
 
 ```sh
@@ -111,4 +128,4 @@ git -C "$trial_root/veil-blackhole" status --short --branch
 
 OS/CPU、両revision、patchのhash、Nix/Cargo/workflow cacheの指定、3つのsummaryとログ、失敗した段階・実際と期待・未実行、正常版のソースとバイナリの不変性を記録する。初回の依存取得時間、別マシン、Linux、VM、Live通信、第三者の理解、時間削減・製品価値は、この手順を1回実行しただけでは確認済みにならない。
 
-2026-10-16の実施結果は[新しいチェックアウトの検証記録](FRESH_CHECKOUT_VALIDATION.md)を参照する。
+2026-10-16の実施結果は[macOSの検証記録](FRESH_CHECKOUT_VALIDATION.md)と[Linuxの追加検証記録](LINUX_FRESH_CHECKOUT_VALIDATION.md)を参照する。
