@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "scenario": "watchdog-lifecycle-diagnosis-review",
+  "pr": 14,
+  "review_thread": "PRRT_kwDOVDS8is6tmydO",
+  "base_commit": "b0687c1a5ce62c1f1f716c9335543b2a4bcebb42",
+  "reproduction": {
+    "faults": [
+      "qemu_reaped=false",
+      "qemu_exit_code=7",
+      "escalated=true",
+      "evidence_synced=false",
+      "evidence_synced_before_stop=false",
+      "sync_error set"
+    ],
+    "modes": [
+      "watchdog-daily",
+      "watchdog-acceptance"
+    ],
+    "misclassified_variants": 12
+  },
+  "regression": {
+    "mac_checks": "passed",
+    "linux_checks": "passed",
+    "linux_root_start": "passed",
+    "final_python_tests": 64,
+    "integration_tests": 14,
+    "lifecycle_field_mutations_before_and_after_verification": 70,
+    "lifecycle_fields_checked": 12,
+    "source_hashes_match_mac_linux": true
+  },
+  "source_sha256": {
+    "scripts/diagnose_netns.py": "3e43b75f2a85b9a900471ad9e4d9117f610727f42b58e5ba0d4f11a62f58e2a8",
+    "tests/netns_auto_diagnosis_cases.py": "34ad4c80d818fc1fbb0a361925f3b13f8d3bd1ce752f795cdfe0907185e69f65",
+    "tests/test_diagnose_netns.py": "77adf32da53d820ad64fd32483972ff2912d260ae9b8bf47ef95af51f30f846e",
+    "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "6fa2c4f1be3c271c82052796bd5418d3cd7dba208c60d500b55202b749f0e14c"
+  },
+  "evidence": "artifacts/watchdog-lifecycle-review-20261018",
+  "limitations": [
+    "Dummy evidence and launchers; no unreaped real VM created and no real VM watchdog rerun.",
+    "Diagnostic override requires complete, correctly typed lifecycle fields.",
+    "Original exit codes, deadlines, acceptance conditions and VM cleanup code unchanged.",
+    "Linux KVM timeout root cause remains undetermined.",
+    "No merge, tag or release; third-party trial and k8s remain on hold."
+  ]
+}

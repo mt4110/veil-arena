@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "scenario": "expected-watchdog-diagnosis-review",
+  "pr": 14,
+  "review_thread": "PRRT_kwDOVDS8is6tmo0W",
+  "base_commit": "bd223a7105123f4d9120de3ac7d562ad8cad35de",
+  "reproduction": {
+    "modes": [
+      "watchdog-daily",
+      "watchdog-acceptance"
+    ],
+    "missing_watchdog_verification": "incorrect vm_lifecycle_failure reproduced in both modes",
+    "log": "artifacts/watchdog-review-20261018/before-fix.log"
+  },
+  "regression": {
+    "mac_checks": "passed",
+    "linux_checks": "passed",
+    "linux_root_start": "passed",
+    "integration_tests": 11,
+    "python_tests": 63,
+    "source_hashes_match_mac_linux": true
+  },
+  "evidence": "artifacts/watchdog-review-20261018",
+  "limits": [
+    "Dummy launchers only; no real VM watchdog rerun.",
+    "No deadline, expected outcome or resource cleanup changes.",
+    "Linux KVM timeout root cause remains undetermined.",
+    "No merge, tag or release; third-party trial and k8s remain on hold."
+  ],
+  "source_sha256": {
+    "scripts/diagnose_netns.py": "ad400dd738dea2224e4ef62f02e6bc477f3d704f34507027981948d580c10f69",
+    "tests/netns_auto_diagnosis_cases.py": "6572b29b6dd194a2fc287556b9f5fd6609903ac25cde14d8e04fdb2b71689e82",
+    "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "45dd627171e0ddd9671125ad6add2fc64175ac6056fda943bf9ca6b68c06dc2b"
+  }
+}
