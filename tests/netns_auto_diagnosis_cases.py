@@ -69,7 +69,11 @@ else:
           'sync_error': None, 'watchdog_fixture': True, 'checkpoint_seen': True})
     write('watchdog-ready.json', {'state': 'T', 'batch_pid': 42})
     write('netns-batch/batch-progress.json', {'status': 'incomplete', 'runner_pid': 42, 'cases': []})
-    if kind == 'watchdog-ok' or kind.startswith('acceptance-'):
+    if kind == 'watchdog-cleanup':
+        stop = json.loads((root / 'vm-stop.json').read_text())
+        stop.update(json.loads(pathlib.Path(__file__).with_name('stop-patch.json').read_text()))
+        write('vm-stop.json', stop)
+    if kind in ('watchdog-ok', 'watchdog-cleanup') or kind.startswith('acceptance-'):
         write('watchdog-verification.json', {'status': 'passed', 'scenario': 'netns-watchdog'})
     exit_code = 3
 if kind == 'vm':
@@ -136,6 +140,23 @@ class AutomaticDiagnosisTests(unittest.TestCase):
         self.assertEqual(result.returncode, 3)
         self.assertIn('Kind: vm_lifecycle_failure', result.stdout)
         self.assertIn('startup_timeout', result.stdout)
+
+    def test_abnormal_watchdog_cleanup_takes_priority_over_verification(self):
+        faults = [('qemu_reaped', False), ('qemu_exit_code', 7), ('escalated', True),
+                  ('evidence_synced', False), ('evidence_synced_before_stop', False),
+                  ('sync_error', 'dummy fsync failure')]
+        for mode in ('watchdog-daily', 'watchdog-acceptance'):
+            for key, value in faults:
+                with self.subTest(mode=mode, field=key):
+                    (self.root / 'stop-patch.json').write_text(json.dumps({key: value}))
+                    result, output = self.run_workflow('watchdog-cleanup', mode=mode)
+                    self.assertEqual(result.returncode, 3)
+                    self.assertIn('Kind: vm_lifecycle_failure', result.stdout)
+                    self.assertNotIn('Kind: watchdog_evidence_verification_failure', result.stdout)
+                    self.assertIn(key, result.stdout)
+                    run = json.loads((output / 'summary.json').read_text())['runs'][0]
+                    self.assertNotEqual(run['status'], 'passed')
+                    self.assertFalse((output / 'daily').exists())
 
     def test_verified_watchdog_and_normal_recovery_do_not_run_diagnosis(self):
         result, _ = self.run_workflow('watchdog-ok', mode='watchdog-daily')

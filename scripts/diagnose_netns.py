@@ -57,6 +57,19 @@ def milliseconds(value):
     return value if type(value) is int and value >= 0 else None
 
 
+def watchdog_lifecycle_issues(stop):
+    # These are the stop/recovery fields required by verified_watchdog().
+    # A diagnostic override must fail closed on absent or mistyped evidence.
+    required = {
+        "schema_version": 2, "status": "environment_error", "reason": "watchdog",
+        "lifecycle_exit_code": 3, "qemu_reaped": True, "qemu_exit_code": 0,
+        "escalated": False, "evidence_synced": True, "evidence_synced_before_stop": True,
+        "sync_error": None, "watchdog_fixture": True, "checkpoint_seen": True,
+    }
+    return [key for key, expected in required.items()
+            if key not in stop or type(stop[key]) is not type(expected) or stop[key] != expected]
+
+
 def diagnose(root):
     evidence = Evidence(root)
     workflow = evidence.report("summary.json", required=True)
@@ -89,6 +102,18 @@ def diagnose(root):
             reference = evidence.reference(relative)
             if reference:
                 problem["logs"].append(reference)
+        watchdog_lifecycle_valid = False
+        if run.get("watchdog_fixture") is True:
+            if stop is None:
+                problem.update({"kind": "incomplete_evidence", "detail": "watchdog lifecycle evidence missing"})
+                break
+            issues = watchdog_lifecycle_issues(stop)
+            if issues:
+                problem.update({"kind": "vm_lifecycle_failure",
+                                "detail": f"watchdog lifecycle evidence invalid ({stop.get('reason')}): " + ", ".join(issues),
+                                "invalid_lifecycle_fields": issues})
+                break
+            watchdog_lifecycle_valid = True
         if run.get("evidence_verification") == "passed":
             problem.update({"kind": "acceptance_invariant_failure",
                             "detail": workflow.get("detail") or "cross-run acceptance check failed"})
@@ -102,8 +127,7 @@ def diagnose(root):
             break
         if (run.get("watchdog_fixture") is True
                 and run.get("exit_code") == run.get("expected_exit_code") == 3
-                and stop and stop.get("status") == "environment_error"
-                and stop.get("reason") == "watchdog"):
+                and watchdog_lifecycle_valid):
             # This stop is intentional. The workflow failed while checking its
             # evidence, not because an ordinary VM unexpectedly hit a watchdog.
             # Do not require a completed batch result from the stopped fixture.

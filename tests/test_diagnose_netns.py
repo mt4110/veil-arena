@@ -122,6 +122,35 @@ class DiagnosisTests(unittest.TestCase):
         self.assertEqual(problem["detail"], "watchdog_timeout")
         self.assertIsNone(problem["case"])
 
+    def test_watchdog_lifecycle_fields_must_be_complete_and_strictly_typed(self):
+        valid = {"schema_version": 2, "status": "environment_error", "reason": "watchdog",
+                 "lifecycle_exit_code": 3, "qemu_reaped": True, "qemu_exit_code": 0,
+                 "escalated": False, "evidence_synced": True, "evidence_synced_before_stop": True,
+                 "sync_error": None, "watchdog_fixture": True, "checkpoint_seen": True}
+        for stage in ('pending', 'passed'):
+            for key in valid:
+                variants = ('missing', 'wrong_type', 'wrong_value') if valid[key] is not None else ('missing', 'wrong_type')
+                for variant in variants:
+                    with self.subTest(stage=stage, field=key, variant=variant):
+                        root = self.directory()
+                        self.write(root, 'summary.json', {
+                            'scenario': 'netns-workflow', 'status': 'environment_error',
+                            'runs': [{'id': 'daily-watchdog', 'output': 'daily-watchdog', 'status': 'failed',
+                                      'watchdog_fixture': True, 'exit_code': 3, 'expected_exit_code': 3,
+                                      'evidence_verification': stage}]})
+                        stop = {k: v for k, v in valid.items() if k != key}
+                        if variant == 'wrong_type':
+                            # bools must not accept 0/1; integers must not accept strings.
+                            stop[key] = (int(valid[key]) if type(valid[key]) is bool
+                                         else 0 if type(valid[key]) is str else str(valid[key]))
+                        elif variant == 'wrong_value':
+                            stop[key] = (not valid[key] if type(valid[key]) is bool
+                                         else valid[key] + 1 if type(valid[key]) is int else 'unexpected')
+                        self.write(root, 'daily-watchdog/vm-stop.json', stop)
+                        problem = module.diagnose(root)['first_problem']
+                        self.assertEqual(problem['kind'], 'vm_lifecycle_failure')
+                        self.assertIn(key, problem['detail'])
+
 
 if __name__ == "__main__":
     unittest.main()
