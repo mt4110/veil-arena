@@ -68,6 +68,27 @@ docker run --name "veil-arena-$run" --user 1000:1000 --group-add "$group" \
 
 集計はhostの`$root/results/$run/summary.json`へ残る。`--rm`を指定せず、停止したcontainerも保持する。出力先やcontainer名が既存と衝突すれば上書きせず失敗する。このprepared pathとコピーは今回確認したx86_64／KVM／UID 1000の構成に限る。ソース変更後はbuilderで準備し直し、必要な新規store pathのコピーとNAR hash照合を行ってから新しいprepared pathを使う。今回の転送・照合手順は検証artifactに保存している。
 
+## 失敗した段階と証拠を調べる
+
+VM停止・証拠回収後、チェックアウトの固定Nix環境から読み取り専用の診断を実行できる。
+
+```sh
+nix develop
+python3 -B scripts/diagnose_netns.py /absolute/path/to/workflow
+# JSONを表示する場合も、同じ開発shell内で実行する。
+python3 -B scripts/diagnose_netns.py /absolute/path/to/workflow --json
+```
+
+診断は、最初に期待と一致しなかったケース、実際／期待の終了コード、記録された所要時間、
+ケース詳細と該当ログを表示する。意図した故障を検出して親バッチが合格としたケースは失敗箇所に選ばない。
+バッチ監督側のtimeoutと子ケースの不一致を分け、残っていない証拠は欠落として示す。
+診断コマンドの終了0は「診断を生成できた」という意味で、試験合格ではない。
+不正な入力・証拠欠落で診断できない場合は終了3。元のcheckerの判定、待機期限、証拠を変更しない。
+失敗原因をホスト負荷やrunnerの実装へ自動で帰属させるものでもない。
+
+[Linux x86_64／KVMの期限超過の切り分け記録](KVM_TIMEOUT_DIAGNOSTICS.md)に、
+旧失敗2件と、同じキャッシュ済みイメージで期限超過を再現しなかった1回の実行を分けて記録した。
+
 ## 集計と失敗
 
 標準出力は合否と`summary.json`の場所のみ。詳細は保存する。
