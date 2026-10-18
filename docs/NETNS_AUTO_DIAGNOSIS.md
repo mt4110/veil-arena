@@ -154,3 +154,6 @@ Linux初回は既存Rust fixtureの起動が `Text file busy (os error 26)` で�
 summaryとfixtureを保持し、期限・期待値・並列設定を変えず1回再確認すると成功したが、
 起動エラーの原因は未確定であり、本修正で解消したとは扱わない。
 [通常VMの検証集計](validation/ordinary-lifecycle-review-20261018.json)に範囲と制約を記録した。
+
+その後の上限付き調査で、並行fixture生成時のETXTBSYを再現し、テスト用launcherを固定scriptへ
+変更した。旧1件の直接追跡との区別、原因判断と修正後の確認は[切り分け記録](ETXTBSY_TRIAGE.md)を参照。
