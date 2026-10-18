@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "scenario": "etxtbsy-fixture-triage",
+  "base_commit": "e2961902fe4eee01b32c6a7405820b5923ded557",
+  "branch": "feat/etxtbsy-fixture",
+  "reproduction_budget_seconds": 600,
+  "reproduction_window_seconds_approx": 386.04,
+  "before": {
+    "single_target": {
+      "name": "single-target",
+      "arguments": [
+        "--exact",
+        "tests::failed_first_vm_prevents_acceptance_boot_and_preserves_logs",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "iteration_limit": 500,
+      "wall_limit_seconds": 150,
+      "completed": 500,
+      "status": "not_reproduced",
+      "duration_seconds": 32.36865602602484
+    },
+    "parallel_workflow": {
+      "name": "parallel-workflow",
+      "arguments": [
+        "--test-threads=4",
+        "--nocapture"
+      ],
+      "iteration_limit": 500,
+      "wall_limit_seconds": 150,
+      "completed": 57,
+      "status": "etxtbsy_reproduced",
+      "failure_iteration": 56,
+      "exit_code": 101,
+      "timed_out": false,
+      "log_prefix": "parallel-workflow-56",
+      "duration_seconds": 4.451200287032407
+    },
+    "wide_trace": {
+      "status": "not_reproduced_under_trace",
+      "iterations": 60,
+      "limit": 60
+    },
+    "execution_trace": {
+      "status": "etxtbsy_reproduced_under_trace",
+      "iterations": 28,
+      "limit": 100,
+      "log_prefix": "trace-fast-27",
+      "exit_code": 101,
+      "timed_out": false
+    },
+    "fd_trace": {
+      "status": "etxtbsy_reproduced_under_trace",
+      "iterations": 12,
+      "limit": 100,
+      "log_prefix": "trace-fd-11",
+      "exit_code": 101,
+      "timed_out": false
+    }
+  },
+  "finding": "Parallel mutable executable fixture creation allows writable FDs to be copied into sibling spawned children until exec; supported by captured open/close/clone/ETXTBSY ordering.",
+  "original_archived_failure": "Launcher matches main byte-for-byte, but original event has no syscall trace; identical holder not directly proven.",
+  "fix": "Use fixed executable fixtures; no runtime launcher write in cfg(test).",
+  "production_source_prefix_unchanged": true,
+  "same_script_bytes_as_before": true,
+  "after": {
+    "single_target": {
+      "name": "single-target",
+      "arguments": [
+        "--exact",
+        "tests::failed_first_vm_prevents_acceptance_boot_and_preserves_logs",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "iteration_limit": 500,
+      "wall_limit_seconds": 150,
+      "completed": 500,
+      "status": "not_reproduced",
+      "duration_seconds": 32.16143031598767
+    },
+    "parallel_workflow": {
+      "name": "parallel-workflow",
+      "arguments": [
+        "--test-threads=4",
+        "--nocapture"
+      ],
+      "iteration_limit": 500,
+      "wall_limit_seconds": 150,
+      "completed": 500,
+      "status": "not_reproduced",
+      "duration_seconds": 36.854581157967914
+    }
+  },
+  "regression": {
+    "mac_check": "passed",
+    "linux_check": "passed",
+    "root_workflow_unit_tests": 4,
+    "root_integration_tests": 15,
+    "python_tests": 65,
+    "mac_nix_package_build_and_unit_tests": "passed",
+    "source_hashes_match_mac_linux": true
+  },
+  "source_sha256": {
+    "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "377bd3c312e66c9fd01ecff3bec0a18078e616bdc8e59570af61412b9708109d",
+    "tools/vm-controller/src/fixtures/failed-vm.sh": "71755c47b4abbc2ced53cfd8345db8660e2a536e0e3e64b8046642df9168b08f",
+    "tools/vm-controller/src/fixtures/no-evidence.sh": "8ac91887f016002a70851a9715bc1a7e296603bd3e46f0eea283181ec3e98e7e",
+    "tools/vm-controller/src/fixtures/unrelated-error.sh": "42a65eadd38df0603b94b049c843ac37b5b25b8f47d37b4a4974403d2713740c"
+  },
+  "evidence_archive_sha256": "bed437b934e2323f6219aec1cbc289dc9bcb2770f480595a114bb7f9d6dd24af",
+  "evidence_files_verified": 3427,
+  "evidence_directory": "artifacts/etxtbsy-triage-20261018",
+  "limitations": [
+    "Bounded observations do not prove universal absence.",
+    "No actual VM failure injection.",
+    "At local validation on 2026-10-18, GitHub CI had not run for this change.",
+    "At local validation on 2026-10-18, no commit, push, PR, merge, tag or release had been performed.",
+    "Third-party trial and k8s remain on hold."
+  ]
+}

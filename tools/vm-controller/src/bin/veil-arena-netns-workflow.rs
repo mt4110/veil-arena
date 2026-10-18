@@ -425,7 +425,7 @@ mod tests {
     use std::sync::atomic::AtomicUsize;
     static NEXT_FIXTURE: AtomicUsize = AtomicUsize::new(0);
 
-    fn fixture(body: &str) -> (std::path::PathBuf, std::path::PathBuf) {
+    fn fixture(name: &str) -> (std::path::PathBuf, std::path::PathBuf) {
         let root = std::env::temp_dir().join(format!(
             "arena-workflow-{}-{}-{}",
             std::process::id(),
@@ -436,16 +436,18 @@ mod tests {
             NEXT_FIXTURE.fetch_add(1, Ordering::Relaxed)
         ));
         fs::create_dir(&root).unwrap();
-        let launcher = root.join("launcher");
-        fs::write(&launcher, format!("#!/bin/sh\n{body}\n")).unwrap();
-        fs::set_permissions(&launcher, fs::Permissions::from_mode(0o700)).unwrap();
+        // A sibling test can spawn while another thread writes a launcher.
+        // Its child may inherit that writable FD until exec, causing ETXTBSY.
+        // Use fixed executables; only result directories are generated here.
+        let launcher = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("src/fixtures")
+            .join(name);
+        assert!(fs::metadata(&launcher).unwrap().permissions().mode() & 0o111 != 0);
         (root, launcher)
     }
     #[test]
     fn clean_exit_without_evidence_cannot_pass() {
-        let (root, launcher) = fixture(
-            "if [ \"$1\" = --describe ]; then printf '%s' '{\"scenario\":\"netns-batch\"}'; fi; exit 0",
-        );
+        let (root, launcher) = fixture("no-evidence.sh");
         assert_eq!(workflow(&launcher, "daily", &root.join("run")).unwrap(), 3);
         assert_eq!(
             report(&root.join("run/summary.json")).unwrap()["status"],
@@ -454,9 +456,7 @@ mod tests {
     }
     #[test]
     fn failed_first_vm_prevents_acceptance_boot_and_preserves_logs() {
-        let (root, launcher) = fixture(
-            "if [ \"$1\" = --describe ]; then printf '%s' '{\"scenario\":\"netns-batch\"}'; exit 0; fi; printf failure; exit 1",
-        );
+        let (root, launcher) = fixture("failed-vm.sh");
         assert_eq!(
             workflow(&launcher, "acceptance", &root.join("run")).unwrap(),
             1
@@ -469,9 +469,7 @@ mod tests {
     }
     #[test]
     fn arbitrary_environment_error_is_not_an_expected_watchdog() {
-        let (root, launcher) = fixture(
-            "if [ \"$1\" = --describe ]; then printf '%s' '{\"scenario\":\"netns-batch\",\"watchdog_fixture_supported\":true}'; exit 0; fi; printf unrelated; exit 3",
-        );
+        let (root, launcher) = fixture("unrelated-error.sh");
         assert_eq!(
             workflow(&launcher, "watchdog-acceptance", &root.join("run")).unwrap(),
             3
@@ -484,7 +482,7 @@ mod tests {
     }
     #[test]
     fn existing_output_is_preserved() {
-        let (root, launcher) = fixture("exit 0");
+        let (root, launcher) = fixture("no-evidence.sh");
         let output = root.join("existing");
         fs::create_dir(&output).unwrap();
         fs::write(output.join("evidence"), b"keep").unwrap();
