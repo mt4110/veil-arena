@@ -74,3 +74,23 @@ dailyの16ケースが期待結果と一致した。正常時のコンソール�
 `vm-stop.json` は証拠の停止前同期、QEMU終了0・回収済み、escalationなしを示した。
 Linuxの実KVM VMで追加の受け入れをした結果ではない。
 [公開用の検証集計](validation/netns-auto-diagnosis-20261018.json)にソースのhashと確認範囲を残した。
+
+## watchdogの意図した停止と検証失敗の区別
+
+PR #14のレビュー対応では、watchdog fixtureの検証報告が欠けたときに、
+意図した停止を `vm_lifecycle_failure` と表示する問題を修正した。
+`watchdog-daily`／`watchdog-acceptance` の両方で修正前の誤分類を再現した。
+
+workflowは検証前から `watchdog_fixture` と `expected_exit_code` をrunへ記録する。
+診断はfixture・期待終了3・実際の終了3・watchdog停止の記録が揃う場合、
+`watchdog_evidence_verification_failure` としてworkflowの検証エラーと証拠の場所を表示する。
+中断fixtureに完成したバッチ結果を要求せず、検証報告・停止時点の進捗などの欠落を示す。
+これは停止証拠を合格へ再判定するものではなく、元の終了3を維持する。
+予定外の停止理由はVM停止の異常として残し、検証済みfixtureと正常再実行は成功のまま扱う。
+
+追加の3試験を含む統合試験11件で、両watchdogモードの報告欠落、予定外の停止、
+正しく検証されたwatchdogと後続正常VMの制御を確認する。すべてダミーランチャーでの確認であり、
+実VMのwatchdog試験を再実行した結果とは区別する。期限・期待値・資源回収処理は変更しない。
+
+Mac／Linuxの固定環境でチェック一式が成功し、Linuxのroot起動からの降格でも11件成功した。
+[レビュー対応の検証集計](validation/watchdog-diagnosis-review-20261018.json)に再現・ソースhash・確認範囲を残した。

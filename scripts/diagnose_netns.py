@@ -76,7 +76,6 @@ def diagnose(root):
             continue
         run_path = pathlib.Path(run["output"])
         batch_path = run_path / "netns-batch"
-        batch = evidence.report(batch_path / "result.json")
         problem = {"run": run.get("id"), "case": None, "kind": "incomplete_evidence", "logs": []}
         result["first_problem"] = problem
         stop_path = run_path / "vm-stop.json"
@@ -90,6 +89,22 @@ def diagnose(root):
             reference = evidence.reference(relative)
             if reference:
                 problem["logs"].append(reference)
+        if (run.get("watchdog_fixture") is True
+                and run.get("exit_code") == run.get("expected_exit_code") == 3
+                and stop and stop.get("status") == "environment_error"
+                and stop.get("reason") == "watchdog"):
+            # This stop is intentional. The workflow failed while checking its
+            # evidence, not because an ordinary VM unexpectedly hit a watchdog.
+            # Do not require a completed batch result from the stopped fixture.
+            problem.update({"kind": "watchdog_evidence_verification_failure",
+                            "detail": workflow.get("detail") or "watchdog evidence verification failed"})
+            for relative in [run_path / "watchdog-verification.json", run_path / "watchdog-ready.json",
+                             batch_path / "batch-progress.json"]:
+                reference = evidence.reference(relative)
+                if reference:
+                    problem["logs"].append(reference)
+            break
+        batch = evidence.report(batch_path / "result.json")
         if batch is None:
             break
         if batch.get("scenario") != "netns-batch" or not isinstance(batch.get("cases"), list):

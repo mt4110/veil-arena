@@ -272,7 +272,7 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
                 &root.join(format!("{name}.launcher.log")),
                 fixture,
             )?;
-            runs.push(json!({"id":name,"exit_code":exit,"status":"unverified","output":name}));
+            runs.push(json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"status":"unverified","output":name}));
             if exit != if fixture { 3 } else { 0 } {
                 final_code = if exit == 1 { 1 } else { 3 };
                 runs.last_mut().unwrap()["status"] = json!("failed");
@@ -285,7 +285,12 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
                 inputs_hash: hash,
                 cases,
             } = if fixture {
-                verified_watchdog(&output, &manifest)?
+                verified_watchdog(&output, &manifest).map_err(|error| {
+                    runs.last_mut().unwrap()["status"] = json!("failed");
+                    io::Error::other(format!(
+                        "{name} watchdog evidence verification failed: {error}"
+                    ))
+                })?
             } else {
                 verified(&output, &manifest)?
             };

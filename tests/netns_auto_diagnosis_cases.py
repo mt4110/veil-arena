@@ -11,8 +11,11 @@ import unittest
 SCRIPTS = pathlib.Path(__file__).resolve().parents[1] / "scripts"
 LAUNCHER = r'''
 import hashlib, json, os, pathlib, subprocess, sys
+fixture = sys.argv[1] == '--watchdog-fixture'
+if fixture:
+    del sys.argv[1]
 if sys.argv[1] == '--describe':
-    print(json.dumps({'scenario': 'netns-batch'}))
+    print(json.dumps({'scenario': 'netns-batch', 'watchdog_fixture_supported': True}))
     sys.exit(0)
 root = pathlib.Path(sys.argv[1])
 root.mkdir()
@@ -43,13 +46,26 @@ if kind in ('case', 'timeout'):
     cases[12]['execution'] = {'exit_code': 3, 'status': 'timeout' if kind == 'timeout' else 'failed', 'duration_ms': 4000}
     write('netns-batch/tc-restored-001/result.json', {'detail': 'dummy failure', 'steps': []})
     exit_code = 1 if kind == 'case' else 3
-write('netns-batch/result.json', {'schema_version': 7, 'scenario': 'netns-batch',
-      'status': 'passed' if exit_code == 0 else 'failed', 'exit_code': exit_code,
-      'vm_boots': 1, 'cases': cases})
-write('vm-manifest.json', {'scenario': 'netns-batch'})
-(root / 'guest-boot-id.txt').write_text('12345678-1234-1234-1234-123456789abc')
+if not fixture:
+    write('netns-batch/result.json', {'schema_version': 7, 'scenario': 'netns-batch',
+          'status': 'passed' if exit_code == 0 else 'failed', 'exit_code': exit_code,
+          'vm_boots': 1, 'cases': cases})
+write('vm-manifest.json', {'scenario': 'netns-batch', 'watchdog_fixture_supported': True})
+(root / 'guest-boot-id.txt').write_text('12345678-1234-1234-1234-123456789abc' if fixture else '12345678-1234-1234-1234-123456789abd')
 (root / 'boot-inputs.sha256').write_text('dummy boot inputs')
-(root / 'service-result.txt').write_text('success')
+if not fixture:
+    (root / 'service-result.txt').write_text('success')
+else:
+    write('vm-stop.json', {'schema_version': 2, 'status': 'environment_error',
+          'reason': 'startup_timeout' if kind == 'watchdog-wrong-stop' else 'watchdog',
+          'lifecycle_exit_code': 3, 'qemu_exit_code': 0, 'qemu_reaped': True,
+          'escalated': False, 'evidence_synced': True, 'evidence_synced_before_stop': True,
+          'sync_error': None, 'watchdog_fixture': True, 'checkpoint_seen': True})
+    write('watchdog-ready.json', {'state': 'T', 'batch_pid': 42})
+    write('netns-batch/batch-progress.json', {'status': 'incomplete', 'runner_pid': 42, 'cases': []})
+    if kind == 'watchdog-ok':
+        write('watchdog-verification.json', {'status': 'passed', 'scenario': 'netns-watchdog'})
+    exit_code = 3
 if kind == 'vm':
     write('vm-stop.json', {'status': 'environment_error', 'reason': 'watchdog'})
     exit_code = 3
@@ -79,21 +95,46 @@ class AutomaticDiagnosisTests(unittest.TestCase):
         self.launcher.chmod(0o700)
         self.binary = os.environ["ARENA_TEST_WORKFLOW"]
 
-    def run_workflow(self, kind, reader=None, python=None):
+    def run_workflow(self, kind, reader=None, python=None, mode='daily'):
         (self.root / "kind").write_text(kind)
         output = self.root / (kind + "-" + str(len(list(self.root.iterdir()))))
-        command = [self.binary, str(self.launcher), "daily", str(output), "--diagnose",
+        command = [self.binary, str(self.launcher), mode, str(output), "--diagnose",
                    python or sys.executable, str(reader or SCRIPTS / "diagnose_netns.py")]
         result = subprocess.run(command, capture_output=True, text=True, timeout=12)
-        ledger = json.loads((output / "daily").with_suffix('.ledger.json').read_text())
-        actual = {str(p.relative_to(output / "daily")): [hashlib.sha256(p.read_bytes()).hexdigest(), p.stat().st_mtime_ns]
-                  for p in (output / "daily").rglob("*") if p.is_file()}
+        run = output / ('daily-watchdog' if mode.startswith('watchdog-') else 'daily')
+        ledger = json.loads(run.with_suffix('.ledger.json').read_text())
+        actual = {str(p.relative_to(run)): [hashlib.sha256(p.read_bytes()).hexdigest(), p.stat().st_mtime_ns]
+                  for p in run.rglob("*") if p.is_file()}
         self.assertEqual(ledger, actual, "reader modified evidence")
-        child = json.loads((output / "daily/owned-child.json").read_text())
+        child = json.loads((run / "owned-child.json").read_text())
         self.assertTrue(child['reaped'])
         with self.assertRaises(ProcessLookupError):
             os.kill(child['pid'], 0)
         return result, output
+
+    def test_expected_watchdog_stop_with_missing_verification_is_not_vm_failure(self):
+        for mode in ('watchdog-daily', 'watchdog-acceptance'):
+            with self.subTest(mode=mode):
+                result, output = self.run_workflow('watchdog-missing', mode=mode)
+                self.assertEqual(result.returncode, 3)
+                self.assertIn('Kind: watchdog_evidence_verification_failure', result.stdout)
+                self.assertNotIn('Kind: vm_lifecycle_failure', result.stdout)
+                self.assertIn('watchdog-verification.json', result.stdout)
+                run = json.loads((output / 'summary.json').read_text())['runs'][0]
+                self.assertIs(run['watchdog_fixture'], True)
+                self.assertEqual(run['expected_exit_code'], 3)
+
+    def test_unexpected_watchdog_stop_remains_vm_failure(self):
+        result, _ = self.run_workflow('watchdog-wrong-stop', mode='watchdog-daily')
+        self.assertEqual(result.returncode, 3)
+        self.assertIn('Kind: vm_lifecycle_failure', result.stdout)
+        self.assertIn('startup_timeout', result.stdout)
+
+    def test_verified_watchdog_and_normal_recovery_do_not_run_diagnosis(self):
+        result, _ = self.run_workflow('watchdog-ok', mode='watchdog-daily')
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(len(result.stdout.splitlines()), 1)
+        self.assertEqual(result.stderr, '')
 
     def test_success_is_concise_and_does_not_start_reader(self):
         reader = self.root / "forbidden.py"
