@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "source_commit": "dbe0edc76f9005cd6b4c995f8ceb019626ed4df8",
+  "source_package_version": "0.2.0",
+  "proposed_release": "v0.2.1",
+  "main_ci": {
+    "conclusion": "success",
+    "headSha": "dbe0edc76f9005cd6b4c995f8ceb019626ed4df8",
+    "status": "completed",
+    "url": "https://github.com/mt4110/veil-arena/actions/runs/39140468729"
+  },
+  "prepared": "/nix/store/parw0xwnn6gir83x8igjfb0zbz05hrg8-arena-netns-prepared",
+  "mode": "daily",
+  "vm_boots": 1,
+  "case_count": 16,
+  "status": "passed",
+  "duration_ms": 291184,
+  "boot_inputs_sha256": "5291f8260817ec37fb7a3475bb046c8066e0fdd76615d94affded7291a08a367",
+  "qemu_reaped": true,
+  "qemu_pid_absent": true,
+  "evidence_synced_before_stop": true,
+  "qemu_exit_code": 0,
+  "escalated": false,
+  "all_case_cleanup_verified": true,
+  "netem_qdisc_drops": 8,
+  "netem_bpf_pass": 8,
+  "netem_bpf_drop": 0,
+  "netem_received": 0,
+  "netem_removed_then_target_drop": 4,
+  "post_netem_count_and_detach_received_each": {
+    "target": 4,
+    "control": 4
+  },
+  "configuration_mismatch_rejected_before_count": true,
+  "diagnostic_reported_status": "passed",
+  "guest_package_version": "0.1.0",
+  "host_controller_version": "0.2.0",
+  "host": "Mac ARM64 / native QEMU TCG / APFS SSD",
+  "guest": "aarch64-linux",
+  "cache_policy": "existing guest, kernel and dependencies reused; five host wrapper/manifest derivations built; no build/fetch during VM test",
+  "unresolved_review_threads": {
+    "PR1": 1,
+    "PR2": 1,
+    "PR3_through_PR15": 0
+  },
+  "review_assessment": "PR1 package metadata 1.98.1 differs from cargo executable 1.98.0 as intended; PR2 current guide says 19. Historical markers retained.",
+  "evidence_directory": "/Volumes/Elecom-1TB/Linux/veil-arena/v0.2.1-readiness-20261019",
+  "evidence_file_count": 2847,
+  "evidence_manifest_sha256": "7b66496e647bb1ff680a965869f15a8175831fd47c86edd33a39bf1b0ded16dc",
+  "pending_at_baseline": [
+    "Align Rust/controller, both lockfiles and Nix package versions to 0.2.1.",
+    "Check resulting final-source CI and versioned SSD entrypoint before publication.",
+    "Approve merge, signed tag and source release separately."
+  ],
+  "limitations": [
+    "One daily VM, not an additional two-VM acceptance.",
+    "Existing guest package is 0.1.0; not a newly built guest from current source.",
+    "Linux x86_64/KVM timeout root cause undetermined; fresh acceptance from current source incomplete.",
+    "Abnormal diagnostic behavior covered by dummy fixtures in CI; no new real VM failure injection.",
+    "IPv6 wire, HVF, physical SSD unplug and concurrent writes unverified.",
+    "Third-party trial and k8s on hold."
+  ]
+}
