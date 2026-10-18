@@ -114,6 +114,10 @@ def diagnose(root):
                                 "invalid_lifecycle_fields": issues})
                 break
             watchdog_lifecycle_valid = True
+        elif problem["kind"] == "vm_lifecycle_failure":
+            # Partial child evidence must not hide an already detected failure
+            # to stop the ordinary VM or preserve its evidence.
+            break
         if run.get("evidence_verification") == "passed":
             problem.update({"kind": "acceptance_invariant_failure",
                             "detail": workflow.get("detail") or "cross-run acceptance check failed"})

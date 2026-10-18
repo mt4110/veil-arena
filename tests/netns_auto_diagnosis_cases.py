@@ -89,6 +89,18 @@ if kind == 'missing':
     cases[12]['execution'] = {'exit_code': 3, 'status': 'failed'}
     write('netns-batch/result.json', {'scenario': 'netns-batch', 'cases': cases})
     exit_code = 3
+if kind.startswith('ordinary-lifecycle-'):
+    variant = kind.removeprefix('ordinary-lifecycle-')
+    if variant == 'malformed':
+        (root / 'netns-batch/result.json').write_text('{partial')
+    else:
+        cases[12]['status'] = 'failed'
+        cases[12]['execution'] = {'exit_code': 3, 'status': variant, 'duration_ms': 4000}
+        write('netns-batch/result.json', {'scenario': 'netns-batch', 'cases': cases})
+        write('netns-batch/tc-restored-001/result.json', {'detail': 'child failure', 'steps': []})
+    write('vm-stop.json', {'status': 'environment_error', 'reason': 'service_completed',
+          'qemu_reaped': False, 'qemu_exit_code': 7, 'evidence_synced': False, 'sync_error': 'dummy fsync failure'})
+    exit_code = 3
 # Snapshot before the reader starts, including mtime; ledger outside evidence.
 ledger = {str(p.relative_to(root)): [hashlib.sha256(p.read_bytes()).hexdigest(), p.stat().st_mtime_ns]
           for p in root.rglob('*') if p.is_file()}
@@ -157,6 +169,17 @@ class AutomaticDiagnosisTests(unittest.TestCase):
                     run = json.loads((output / 'summary.json').read_text())['runs'][0]
                     self.assertNotEqual(run['status'], 'passed')
                     self.assertFalse((output / 'daily').exists())
+
+    def test_ordinary_cleanup_failure_wins_over_child_evidence(self):
+        for variant in ('malformed', 'failed', 'timeout'):
+            with self.subTest(batch=variant):
+                result, output = self.run_workflow('ordinary-lifecycle-' + variant)
+                self.assertEqual(result.returncode, 3)
+                self.assertIn('Kind: vm_lifecycle_failure', result.stdout)
+                self.assertIn(str(output / 'daily/vm-stop.json'), result.stdout)
+                self.assertNotIn('diagnosis unavailable', result.stderr)
+                self.assertNotIn('Kind: case_failed', result.stdout)
+                self.assertNotIn('Kind: batch_supervisor_timeout', result.stdout)
 
     def test_verified_watchdog_and_normal_recovery_do_not_run_diagnosis(self):
         result, _ = self.run_workflow('watchdog-ok', mode='watchdog-daily')

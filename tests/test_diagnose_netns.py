@@ -151,6 +151,30 @@ class DiagnosisTests(unittest.TestCase):
                         self.assertEqual(problem['kind'], 'vm_lifecycle_failure')
                         self.assertIn(key, problem['detail'])
 
+    def test_ordinary_lifecycle_failure_wins_over_partial_batch_evidence(self):
+        for stage in ('pending', 'passed'):
+            for batch_kind in ('malformed', 'failed', 'timeout', 'missing'):
+                with self.subTest(stage=stage, batch=batch_kind):
+                    root = (self.directory() if batch_kind == 'missing' else
+                            self.fixture(execution_status='timeout' if batch_kind == 'timeout' else 'failed'))
+                    self.write(root, 'summary.json', {
+                        'scenario': 'netns-workflow', 'status': 'environment_error',
+                        'runs': [{'id': 'daily', 'output': 'daily', 'status': 'failed',
+                                  'watchdog_fixture': False, 'evidence_verification': stage}]})
+                    self.write(root, 'daily/vm-stop.json', {
+                        'status': 'environment_error', 'reason': 'shutdown_failed', 'qemu_reaped': False})
+                    if batch_kind == 'malformed':
+                        (root / 'daily/netns-batch/result.json').write_text('{partial')
+                    before = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*') if p.is_file()}
+                    diagnosis = module.diagnose(root)
+                    self.assertEqual(diagnosis['first_problem']['kind'], 'vm_lifecycle_failure')
+                    self.assertEqual(diagnosis['first_problem']['detail'], 'shutdown_failed')
+                    self.assertIsNone(diagnosis['first_problem']['case'])
+                    self.assertIn(str((root / 'daily/vm-stop.json').resolve()), diagnosis['first_problem']['logs'])
+                    self.assertNotIn('daily/netns-batch/result.json', diagnosis['missing_evidence'])
+                    self.assertEqual(before, {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+                                              for p in root.rglob('*') if p.is_file()})
+
 
 if __name__ == "__main__":
     unittest.main()
