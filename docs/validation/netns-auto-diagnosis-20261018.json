@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "scenario": "netns-auto-diagnosis",
+  "base_commit": "773c1235bf2ef7a66cb31b050d178d6b2eba6202",
+  "origin_main_at_check": "5b26eff49b0a8993dd169fc1dfbf2af5ed30ff32",
+  "pr13_state_at_check": "OPEN",
+  "branch": "feat/netns-auto-diagnosis",
+  "versions": {
+    "rust": "1.98.1",
+    "cargo_binary": "1.98.0",
+    "python": "3.14.7"
+  },
+  "regression": {
+    "mac_full_check": "passed",
+    "linux_full_check": "passed",
+    "final_integration_cases": 8,
+    "mac_final_integration": "passed",
+    "linux_final_integration": "passed",
+    "linux_source_hashes_match_mac": true,
+    "packaged_mac_case_timeout_recovery": "passed",
+    "linux_root_start_drops_to_uid_gid_65534": "8 passed",
+    "final_integration_after_ci_user_fix": "Mac ordinary user and Linux ordinary/root start: 8 passed each"
+  },
+  "ssd_vm": {
+    "status": "passed",
+    "vm_boots": 1,
+    "cases_matched": 16,
+    "duration_ms": 296061,
+    "boot_id": "5181a485-7b88-4fb0-8a79-6c93a5e6e222",
+    "boot_inputs_sha256": "5291f8260817ec37fb7a3475bb046c8066e0fdd76615d94affded7291a08a367",
+    "qemu_reaped": true,
+    "evidence_synced_before_stop": true,
+    "qemu_exit_code": 0,
+    "escalated": false,
+    "normal_output_lines": 1,
+    "prepared": "/nix/store/pm2803figak7sv0sm8vi5spwl1w92jy9-arena-netns-prepared",
+    "guest_policy": "existing trusted bundle reused; only host controller and entry rebuilt"
+  },
+  "source_sha256": {
+    "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "4fb451e5c7b73d55fecde06c4835a86eabc184043648d94ffa8947bb570489b9",
+    "tools/vm-controller/tests/netns_diagnosis.rs": "e9bbfbe23fc7689a6e5cf6d4a05529cdbb2d51b5f032e69f6f1e70fb252c7811",
+    "tests/netns_auto_diagnosis_cases.py": "173d394bce71c9107c7ee360594bb809f329cb30b30e5c1c4a02fe6a4bd5b5b4",
+    "scripts/diagnose_netns.py": "11e2562cfeb1000756a559540194197e54229b9d9f78ec9e0249e8b5d2c88a0d",
+    "environments/vm/offline.nix": "1ab2861e28f8f017d7cb2c4c7d106a5bdc19e66bfa54530895d1f4ded00845dd"
+  },
+  "evidence_directory": "artifacts/auto-diagnosis-20261018-dctcri9e",
+  "limitations": [
+    "Failure injection uses dummy launchers, not actual QEMU faults.",
+    "Linux x86_64/KVM timeout root cause remains undetermined; no new Linux KVM acceptance run.",
+    "PR13 was still OPEN at inspection; not a post-merge-main validation.",
+    "Third-party trial and k8s remain on hold."
+  ],
+  "publication_at_vm_validation": "uncommitted; no push, PR, merge, tag or release"
+}

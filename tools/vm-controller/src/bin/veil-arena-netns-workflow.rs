@@ -327,6 +327,33 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
     Ok(final_code)
 }
 
+fn diagnose(python: &Path, script: &Path, root: &Path) -> io::Result<()> {
+    // workflow() has already waited for the launcher and saved its summary.
+    // This reader must never participate in VM cleanup or change the verdict.
+    let mut child = Command::new(python)
+        .arg("-B")
+        .arg(script)
+        .arg(root)
+        .stdin(Stdio::null())
+        .spawn()?;
+    let started = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            return if status.success() {
+                Ok(())
+            } else {
+                Err(io::Error::other(format!("reader exited with {status}")))
+            };
+        }
+        if started.elapsed() >= Duration::from_secs(5) {
+            child.kill()?;
+            child.wait()?;
+            return Err(io::Error::other("reader exceeded 5s; stopped and reaped"));
+        }
+        std::thread::sleep(Duration::from_millis(25));
+    }
+}
+
 fn main() {
     for signal in [libc::SIGINT, libc::SIGTERM, libc::SIGHUP] {
         if unsafe { libc::signal(signal, cancel as *const () as libc::sighandler_t) }
@@ -336,14 +363,14 @@ fn main() {
         }
     }
     let args: Vec<_> = std::env::args_os().skip(1).collect();
-    if args.len() != 3
+    if !(args.len() == 3 || (args.len() == 6 && args[3] == "--diagnose"))
         || !matches!(
             args[1].to_str(),
             Some("daily" | "acceptance" | "watchdog-daily" | "watchdog-acceptance")
         )
     {
         eprintln!(
-            "usage: prepared-launcher daily|acceptance|watchdog-daily|watchdog-acceptance NEW_OUTPUT_DIRECTORY"
+            "usage: prepared-launcher daily|acceptance|watchdog-daily|watchdog-acceptance NEW_OUTPUT_DIRECTORY [--diagnose PYTHON SCRIPT]"
         );
         std::process::exit(2);
     }
@@ -356,6 +383,27 @@ fn main() {
         args[1].to_str().unwrap(),
         Path::new(&args[2]),
     );
+    if args.len() == 6 {
+        match &result {
+            Ok(0) => (),
+            Ok(code) => {
+                eprintln!("Workflow failed (exit {code}); reading preserved evidence:");
+                if let Err(error) = diagnose(
+                    Path::new(&args[4]),
+                    Path::new(&args[5]),
+                    Path::new(&args[2]),
+                ) {
+                    eprintln!(
+                        "diagnosis unavailable: {error}; original workflow exit {code} retained"
+                    );
+                }
+            }
+            // Do not inspect an old directory when create-new or saving failed.
+            Err(_) => eprintln!(
+                "diagnosis unavailable: workflow did not complete; original error retained"
+            ),
+        }
+    }
     std::process::exit(result.unwrap_or_else(|error| {
         eprintln!("workflow: {error}");
         3

@@ -70,7 +70,18 @@ docker run --name "veil-arena-$run" --user 1000:1000 --group-add "$group" \
 
 ## 失敗した段階と証拠を調べる
 
-VM停止・証拠回収後、チェックアウトの固定Nix環境から読み取り専用の診断を実行できる。
+新しく準備した正式入口 `arena-netns`／`arena-netns-volume` は、一括試験が失敗した場合、
+ランチャー終了・証拠保存後に読み取り専用の診断を自動表示する。正常時の表示は従来どおり。
+ケース不一致、バッチ監督側timeout、VM停止の異常を区別し、詳細と該当ログの場所を示す。
+診断不能の場合は `diagnosis unavailable` と理由を表示し、元の終了コードを維持する。
+診断だけに5秒の上限を設け、上限到達時は診断子プロセスを停止・回収する。
+VM・ケース・一括試験の期限や期待値、既存の証拠保存・QEMU回収処理は変更しない。
+[実行順序と回帰確認の範囲](NETNS_AUTO_DIAGNOSIS.md)も参照。
+
+過去に準備したimmutableな入口には自動表示は追加されない。
+既存guest bundleから `scripts/prepare-netns-from-guest.sh` でホスト側の入口を準備し直すと、
+guestを作り直さずに利用できる。旧証拠や既存prepared imageはそのまま保持できる。
+VM停止・証拠回収後、手動でもチェックアウトの固定Nix環境から診断を実行できる。
 
 ```sh
 nix develop
@@ -91,7 +102,7 @@ python3 -B scripts/diagnose_netns.py /absolute/path/to/workflow --json
 
 ## 集計と失敗
 
-標準出力は合否と`summary.json`の場所のみ。詳細は保存する。
+正常時の標準出力は合否と`summary.json`の場所のみ。失敗時は上記の診断も自動表示し、詳細な証拠を保存する。
 
 ```text
 artifacts/daily-001/
