@@ -14,8 +14,8 @@ bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 
 初期MVP（M0〜M2）の受け入れ検証を完了しました。[マイルストーン](docs/MILESTONES.md)と[公開用の検証集計](docs/validation/v0.1.0.json)に、条件・対応範囲・未検証事項をまとめています。
 
-v0.2.0のソース版に向け、反復試験・失敗診断・NetEm比較・SSD正式入口をまとめました。
-[リリースノート](docs/releases/v0.2.0-draft.md)と[公開準備の記録](docs/RELEASE_PREPARATION.md)を参照してください。
+v0.2.1のソース版に向け、netns一括試験の診断自動表示と、試験用ランチャーのText file busy対策をまとめています。
+[リリースノート案](docs/releases/v0.2.1-draft.md)と[公開準備の記録](docs/V0_2_1_READINESS.md)を参照してください。署名タグ・リリース公開は承認後に行います。
 現在の16ケースに関するLinux x86_64／KVMの期限超過は既知の制約として残しており、
 以前の13ケースの成功を現在の一括試験の成功とは扱いません。
 
