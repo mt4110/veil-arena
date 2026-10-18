@@ -262,7 +262,7 @@ let
   };
   workflow = hostPkgs.writeShellApplication {
     name = "arena-netns";
-    text = ''exec ${controller}/bin/veil-arena-netns-workflow ${launcher}/bin/arena-vm-netns-batch "$@"'';
+    text = ''exec ${controller}/bin/veil-arena-netns-workflow ${launcher}/bin/arena-vm-netns-batch "$@" --diagnose ${hostPkgs.python314}/bin/python3 ${../../scripts/diagnose_netns.py}'';
   };
   volumeWorkflow = hostPkgs.writeShellApplication {
     name = "arena-netns-volume";

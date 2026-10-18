@@ -272,7 +272,7 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
                 &root.join(format!("{name}.launcher.log")),
                 fixture,
             )?;
-            runs.push(json!({"id":name,"exit_code":exit,"status":"unverified","output":name}));
+            runs.push(json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"evidence_verification":"not_started","status":"unverified","output":name}));
             if exit != if fixture { 3 } else { 0 } {
                 final_code = if exit == 1 { 1 } else { 3 };
                 runs.last_mut().unwrap()["status"] = json!("failed");
@@ -280,15 +280,23 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
                     "{name} failed; inspect {name}.launcher.log"
                 )));
             }
+            runs.last_mut().unwrap()["evidence_verification"] = json!("pending");
             let Verified {
                 boot,
                 inputs_hash: hash,
                 cases,
             } = if fixture {
-                verified_watchdog(&output, &manifest)?
+                verified_watchdog(&output, &manifest).map_err(|error| {
+                    runs.last_mut().unwrap()["status"] = json!("failed");
+                    io::Error::other(format!(
+                        "{name} watchdog evidence verification failed: {error}"
+                    ))
+                })?
             } else {
                 verified(&output, &manifest)?
             };
+            // Evidence validation and cross-run acceptance are separate gates.
+            runs.last_mut().unwrap()["evidence_verification"] = json!("passed");
             if previous
                 .as_ref()
                 .is_some_and(|(old_boot, old_hash)| *old_boot == boot || *old_hash != hash)
@@ -302,7 +310,7 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
             }
             boots.push(boot.clone());
             previous = Some((boot.clone(), hash.clone()));
-            *runs.last_mut().unwrap() = json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"status":"passed","output":name,"boot_id":boot,"boot_inputs_sha256":hash,"cases":cases});
+            *runs.last_mut().unwrap() = json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"evidence_verification":"passed","status":"passed","output":name,"boot_id":boot,"boot_inputs_sha256":hash,"cases":cases});
         }
         final_code = 0;
         Ok(())
@@ -327,6 +335,33 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
     Ok(final_code)
 }
 
+fn diagnose(python: &Path, script: &Path, root: &Path) -> io::Result<()> {
+    // workflow() has already waited for the launcher and saved its summary.
+    // This reader must never participate in VM cleanup or change the verdict.
+    let mut child = Command::new(python)
+        .arg("-B")
+        .arg(script)
+        .arg(root)
+        .stdin(Stdio::null())
+        .spawn()?;
+    let started = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            return if status.success() {
+                Ok(())
+            } else {
+                Err(io::Error::other(format!("reader exited with {status}")))
+            };
+        }
+        if started.elapsed() >= Duration::from_secs(5) {
+            child.kill()?;
+            child.wait()?;
+            return Err(io::Error::other("reader exceeded 5s; stopped and reaped"));
+        }
+        std::thread::sleep(Duration::from_millis(25));
+    }
+}
+
 fn main() {
     for signal in [libc::SIGINT, libc::SIGTERM, libc::SIGHUP] {
         if unsafe { libc::signal(signal, cancel as *const () as libc::sighandler_t) }
@@ -336,14 +371,14 @@ fn main() {
         }
     }
     let args: Vec<_> = std::env::args_os().skip(1).collect();
-    if args.len() != 3
+    if !(args.len() == 3 || (args.len() == 6 && args[3] == "--diagnose"))
         || !matches!(
             args[1].to_str(),
             Some("daily" | "acceptance" | "watchdog-daily" | "watchdog-acceptance")
         )
     {
         eprintln!(
-            "usage: prepared-launcher daily|acceptance|watchdog-daily|watchdog-acceptance NEW_OUTPUT_DIRECTORY"
+            "usage: prepared-launcher daily|acceptance|watchdog-daily|watchdog-acceptance NEW_OUTPUT_DIRECTORY [--diagnose PYTHON SCRIPT]"
         );
         std::process::exit(2);
     }
@@ -356,6 +391,27 @@ fn main() {
         args[1].to_str().unwrap(),
         Path::new(&args[2]),
     );
+    if args.len() == 6 {
+        match &result {
+            Ok(0) => (),
+            Ok(code) => {
+                eprintln!("Workflow failed (exit {code}); reading preserved evidence:");
+                if let Err(error) = diagnose(
+                    Path::new(&args[4]),
+                    Path::new(&args[5]),
+                    Path::new(&args[2]),
+                ) {
+                    eprintln!(
+                        "diagnosis unavailable: {error}; original workflow exit {code} retained"
+                    );
+                }
+            }
+            // Do not inspect an old directory when create-new or saving failed.
+            Err(_) => eprintln!(
+                "diagnosis unavailable: workflow did not complete; original error retained"
+            ),
+        }
+    }
     std::process::exit(result.unwrap_or_else(|error| {
         eprintln!("workflow: {error}");
         3

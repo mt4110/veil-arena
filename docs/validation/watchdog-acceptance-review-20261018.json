@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "scenario": "watchdog-acceptance-diagnosis-review",
+  "pr": 14,
+  "review_thread": "PRRT_kwDOVDS8is6tmstw",
+  "base_commit": "e16a5c07f8a71bfc2fe3c02c336233a061631904",
+  "reproduction": {
+    "incorrect_classification": "watchdog_evidence_verification_failure",
+    "conditions": [
+      "boot repeats preceding VM",
+      "boot repeats earlier non-adjacent VM",
+      "boot input hash mismatch"
+    ],
+    "reproduced_conditions": 3
+  },
+  "regression": {
+    "mac_checks": "passed",
+    "linux_checks": "passed",
+    "linux_root_start": "passed",
+    "integration_tests": 13,
+    "python_tests": 63,
+    "source_hashes_match_mac_linux": true,
+    "full_watchdog_acceptance_dummy_control": "4 distinct boot IDs and identical inputs passed"
+  },
+  "source_sha256": {
+    "scripts/diagnose_netns.py": "f3c04a90ed22c83f7c62dcb76c1a783779e4bde178138703b93555878cf7cbee",
+    "tests/netns_auto_diagnosis_cases.py": "f4f42ce4f54a665d98409bad3a5bd9b63c5229d7929dc3893ec770426ccba2db",
+    "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "6fa2c4f1be3c271c82052796bd5418d3cd7dba208c60d500b55202b749f0e14c"
+  },
+  "evidence": "artifacts/watchdog-acceptance-review-20261018",
+  "limitations": [
+    "Dummy launchers only; no real VM watchdog rerun.",
+    "No deadlines, acceptance invariants, exit codes or VM cleanup rules relaxed.",
+    "Linux KVM timeout root cause remains undetermined.",
+    "No merge, tag or release; third-party trial and k8s remain on hold."
+  ]
+}

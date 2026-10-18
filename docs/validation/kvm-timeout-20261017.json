@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "date_jst": "2026-10-17",
+  "base_commit": "5b26eff49b0a8993dd169fc1dfbf2af5ed30ff32",
+  "purpose": "Investigate existing Linux x86_64/KVM timeouts; preserve verdicts and deadlines",
+  "prepared": "/nix/store/cyqd86jjqm885ybfz96hhpms97f8y0jb-arena-netns-prepared",
+  "runtime_policy": "Existing NetEm v7 guest/controller reused; not current-source guest acceptance",
+  "old_failures": [
+    {
+      "run": "v7-acceptance-v1",
+      "case": "tc-after-cancel-001",
+      "kind": "case_failed",
+      "duration_ms": 93895,
+      "detail": "echo helper readiness timeout/cancellation",
+      "deadline_scope": "Not distinguishable between readiness wait and case deadline from old evidence"
+    },
+    {
+      "run": "v7-acceptance-v2",
+      "case": "tc-restored-001",
+      "kind": "batch_supervisor_timeout",
+      "duration_ms": 36540,
+      "preceding_case_duration_ms": 505549
+    }
+  ],
+  "current_reproduction": {
+    "mode": "daily",
+    "vm_boots": 1,
+    "cases": 16,
+    "status": "passed",
+    "duration_ms": 298898,
+    "boot_id": "bd55b1f1-3b74-4a0c-a474-bf99d419ab7d",
+    "boot_inputs_sha256": "c4fa933cca57a189408173fbd9221f172d66a2a7b6b059f5856a97d9ad2c5413",
+    "boot_inputs_identical_to_old_failures": true,
+    "timeout_reproduced": false,
+    "evidence_synced_before_stop": true,
+    "owned_qemu_reaped": true,
+    "container_exited": true,
+    "netem_drop_delta": 8,
+    "ebpf_pass_during_netem": 8,
+    "ebpf_drop_during_netem": 0,
+    "normal_tc_recovered": true
+  },
+  "root_cause": "undetermined; neither host I/O nor runner defect established",
+  "host_observation": {
+    "host_interval_samples": 59,
+    "host_iowait_pct": {
+      "min": 4,
+      "max": 41,
+      "mean": 19.95
+    },
+    "host_idle_pct": {
+      "min": 9,
+      "max": 50,
+      "mean": 28.05
+    }
+  },
+  "host_fsync_probe": "Host-only 4x4KiB each: disk 11.921-14.090 ms, tmpfs 0.003-0.013 ms; not guest 9P or past-failure measurement",
+  "old_failure_files_unchanged": 3887,
+  "runtime_deadlines_and_expectations_changed": false,
+  "other_processes_stopped": false,
+  "diagnosis_input_sha256": {
+    "scripts/diagnose_netns.py": "11e2562cfeb1000756a559540194197e54229b9d9f78ec9e0249e8b5d2c88a0d",
+    "tests/test_diagnose_netns.py": "74bac6f54f00a409f587cbbcfc04da43a87fa4683c2a5da9171cadffed7d3bc2"
+  },
+  "checks": {
+    "mac": "scripts/check.sh passed: Rust 10, controller 4 + workflow 5, Python 63, fmt/Clippy, Nix evaluation",
+    "linux": "Python 3.14.7, 63 tests passed using preserved runtime cache; no Rust rebuild",
+    "initial_linux_fixture_packaging_failure_retained": true,
+    "diagnostic_only_exit_zero_is_not_a_test_verdict": true
+  },
+  "evidence_entries": 2882,
+  "evidence_manifest_sha256": "38c397f542c6b6071836ea7bf2010e9eb3c47a5db62ce3bbf00a25e3bc993f5c",
+  "limits": [
+    "Root cause unresolved",
+    "One cached VM success, not fresh-VM acceptance or guaranteed repeatability",
+    "Current-source guest not rebuilt",
+    "No new GitHub CI before push",
+    "Third-party trial and k8s remain on hold"
+  ],
+  "record_created_before_PR": true
+}

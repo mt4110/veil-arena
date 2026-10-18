@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-18",
+  "scenario": "ordinary-lifecycle-diagnosis-review",
+  "pr": 13,
+  "review_thread": "PRRT_kwDOVDS8is6tm9Sf",
+  "base_commit": "e90e2f3d9bd4d20dc1ba5a497cf4fae4a9579661",
+  "reproduction": {
+    "batch_evidence": [
+      "malformed JSON",
+      "failed case",
+      "supervisor timeout"
+    ],
+    "misclassified_integration_variants": 3
+  },
+  "regression": {
+    "mac_checks_final": "passed",
+    "linux_checks_final": "passed",
+    "linux_root_start": "passed",
+    "python_tests": 65,
+    "integration_tests": 15,
+    "unit_matrix": "pending/passed verification markers x malformed/failed/timeout/missing batch report",
+    "source_hashes_match_mac_linux": true
+  },
+  "source_sha256": {
+    "scripts/diagnose_netns.py": "73defea7df20b4de04646152a0143d9e4bc51076a6f2b9bc661aff03443b3a38",
+    "tests/netns_auto_diagnosis_cases.py": "fd840c2f65e5a21dc41091ee83a465fce9d8a9f2700d0a73bd8bb46e24eb91ad",
+    "tests/test_diagnose_netns.py": "d3f467a061ccad4a72272b4b1391e0498f88ae63be1874abdd2cb726ad309629"
+  },
+  "evidence": "artifacts/ordinary-lifecycle-review-20261018",
+  "initial_mac_test_failure": "New assertion compared /tmp and /private/tmp literally; corrected to resolved absolute path, keeping exact matching and classification assertions.",
+  "linux_initial_existing_test_failure": {
+    "test": "failed_first_vm_prevents_acceptance_boot_and_preserves_logs",
+    "detail": "Text file busy (os error 26)",
+    "stage": "before launcher execution",
+    "same_configuration_single_rerun": "passed",
+    "root_cause": "undetermined",
+    "evidence": "linux-etxtbsy-fixture.tar"
+  },
+  "limitations": [
+    "Dummy evidence and launchers; no real VM failure injection.",
+    "Guest, VM cleanup code, deadlines, expectations and acceptance rules unchanged.",
+    "Initial Linux ETXTBSY failure retained; not claimed fixed.",
+    "Linux KVM timeout root cause remains undetermined.",
+    "No merge, tag or release; third-party trial and k8s remain on hold."
+  ]
+}
