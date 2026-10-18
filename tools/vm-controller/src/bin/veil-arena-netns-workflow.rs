@@ -272,7 +272,7 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
                 &root.join(format!("{name}.launcher.log")),
                 fixture,
             )?;
-            runs.push(json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"status":"unverified","output":name}));
+            runs.push(json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"evidence_verification":"not_started","status":"unverified","output":name}));
             if exit != if fixture { 3 } else { 0 } {
                 final_code = if exit == 1 { 1 } else { 3 };
                 runs.last_mut().unwrap()["status"] = json!("failed");
@@ -280,6 +280,7 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
                     "{name} failed; inspect {name}.launcher.log"
                 )));
             }
+            runs.last_mut().unwrap()["evidence_verification"] = json!("pending");
             let Verified {
                 boot,
                 inputs_hash: hash,
@@ -294,6 +295,8 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
             } else {
                 verified(&output, &manifest)?
             };
+            // Evidence validation and cross-run acceptance are separate gates.
+            runs.last_mut().unwrap()["evidence_verification"] = json!("passed");
             if previous
                 .as_ref()
                 .is_some_and(|(old_boot, old_hash)| *old_boot == boot || *old_hash != hash)
@@ -307,7 +310,7 @@ fn workflow(launcher: &Path, mode: &str, root: &Path) -> io::Result<i32> {
             }
             boots.push(boot.clone());
             previous = Some((boot.clone(), hash.clone()));
-            *runs.last_mut().unwrap() = json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"status":"passed","output":name,"boot_id":boot,"boot_inputs_sha256":hash,"cases":cases});
+            *runs.last_mut().unwrap() = json!({"id":name,"exit_code":exit,"expected_exit_code":if fixture {3} else {0},"watchdog_fixture":fixture,"evidence_verification":"passed","status":"passed","output":name,"boot_id":boot,"boot_inputs_sha256":hash,"cases":cases});
         }
         final_code = 0;
         Ok(())

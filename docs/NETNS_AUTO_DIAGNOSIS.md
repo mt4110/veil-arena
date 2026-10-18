@@ -94,3 +94,23 @@ workflowは検証前から `watchdog_fixture` と `expected_exit_code` をrunへ
 
 Mac／Linuxの固定環境でチェック一式が成功し、Linuxのroot起動からの降格でも11件成功した。
 [レビュー対応の検証集計](validation/watchdog-diagnosis-review-20261018.json)に再現・ソースhash・確認範囲を残した。
+
+## 証拠検証後の受け入れ条件違反
+
+続くレビュー対応では、`fresh-watchdog` の個別証拠が正しくても、boot IDの重複や
+入力hash不一致で受け入れに失敗した場合の診断を区別した。
+修正前は、前のboot IDとの重複・以前のboot IDの再使用・入力hash不一致の3条件とも
+watchdog証拠の検証失敗と誤分類していた。
+
+runへ `evidence_verification`（`not_started`／`pending`／`passed`）を記録し、
+証拠検証が成功した直後、VM間の受け入れ条件を調べる前に `passed` とする。
+この状態で全体が失敗した場合、診断は `acceptance_invariant_failure` として
+workflowの条件違反とboot ID／起動入力の証拠を示す。証拠検証成功だけではrunを合格にしない。
+検証報告欠落は引き続き `watchdog_evidence_verification_failure`、予定外の停止はVM異常のまま。
+
+統合試験13件には上記3条件の拒否と、4つの異なるboot ID・同一起動入力での
+`watchdog-acceptance` 成功を含む。実VMの再起動ではなくダミーランチャーによる制御の確認で、
+元の終了3、期限、期待値、VM回収処理は維持する。
+
+Mac／Linuxのチェック一式とLinuxのroot起動からの降格で、統合試験13件が成功した。
+[追加レビューの検証集計](validation/watchdog-acceptance-review-20261018.json)に確認範囲を記録した。

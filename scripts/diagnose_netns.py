@@ -89,6 +89,17 @@ def diagnose(root):
             reference = evidence.reference(relative)
             if reference:
                 problem["logs"].append(reference)
+        if run.get("evidence_verification") == "passed":
+            problem.update({"kind": "acceptance_invariant_failure",
+                            "detail": workflow.get("detail") or "cross-run acceptance check failed"})
+            references = [run_path / "guest-boot-id.txt", run_path / "boot-inputs.sha256"]
+            if run.get("watchdog_fixture") is True:
+                references.append(run_path / "watchdog-verification.json")
+            for relative in references:
+                reference = evidence.reference(relative)
+                if reference:
+                    problem["logs"].append(reference)
+            break
         if (run.get("watchdog_fixture") is True
                 and run.get("exit_code") == run.get("expected_exit_code") == 3
                 and stop and stop.get("status") == "environment_error"

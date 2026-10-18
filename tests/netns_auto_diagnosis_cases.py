@@ -51,8 +51,14 @@ if not fixture:
           'status': 'passed' if exit_code == 0 else 'failed', 'exit_code': exit_code,
           'vm_boots': 1, 'cases': cases})
 write('vm-manifest.json', {'scenario': 'netns-batch', 'watchdog_fixture_supported': True})
-(root / 'guest-boot-id.txt').write_text('12345678-1234-1234-1234-123456789abc' if fixture else '12345678-1234-1234-1234-123456789abd')
-(root / 'boot-inputs.sha256').write_text('dummy boot inputs')
+boot = {'daily-watchdog': 'a', 'daily': 'b', 'fresh-watchdog': 'c', 'fresh': 'd'}.get(root.name, 'e')
+if root.name == 'fresh-watchdog':
+    if kind == 'acceptance-repeat-previous':
+        boot = 'b'
+    elif kind == 'acceptance-repeat-earlier':
+        boot = 'a'
+(root / 'guest-boot-id.txt').write_text('12345678-1234-1234-1234-123456789ab' + boot)
+(root / 'boot-inputs.sha256').write_text('different inputs' if root.name == 'fresh-watchdog' and kind == 'acceptance-input-mismatch' else 'dummy boot inputs')
 if not fixture:
     (root / 'service-result.txt').write_text('success')
 else:
@@ -63,7 +69,7 @@ else:
           'sync_error': None, 'watchdog_fixture': True, 'checkpoint_seen': True})
     write('watchdog-ready.json', {'state': 'T', 'batch_pid': 42})
     write('netns-batch/batch-progress.json', {'status': 'incomplete', 'runner_pid': 42, 'cases': []})
-    if kind == 'watchdog-ok':
+    if kind == 'watchdog-ok' or kind.startswith('acceptance-'):
         write('watchdog-verification.json', {'status': 'passed', 'scenario': 'netns-watchdog'})
     exit_code = 3
 if kind == 'vm':
@@ -123,6 +129,7 @@ class AutomaticDiagnosisTests(unittest.TestCase):
                 run = json.loads((output / 'summary.json').read_text())['runs'][0]
                 self.assertIs(run['watchdog_fixture'], True)
                 self.assertEqual(run['expected_exit_code'], 3)
+                self.assertEqual(run['evidence_verification'], 'pending')
 
     def test_unexpected_watchdog_stop_remains_vm_failure(self):
         result, _ = self.run_workflow('watchdog-wrong-stop', mode='watchdog-daily')
@@ -135,6 +142,35 @@ class AutomaticDiagnosisTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(len(result.stdout.splitlines()), 1)
         self.assertEqual(result.stderr, '')
+
+    def test_verified_watchdog_acceptance_failures_are_not_evidence_failures(self):
+        for kind, detail in [('acceptance-repeat-previous', 'different boot with identical inputs'),
+                             ('acceptance-repeat-earlier', 'VM boot identity repeated'),
+                             ('acceptance-input-mismatch', 'different boot with identical inputs')]:
+            with self.subTest(kind=kind):
+                result, output = self.run_workflow(kind, mode='watchdog-acceptance')
+                self.assertEqual(result.returncode, 3)
+                self.assertIn('First problem: fresh-watchdog', result.stdout)
+                self.assertIn('Kind: acceptance_invariant_failure', result.stdout)
+                self.assertNotIn('Kind: watchdog_evidence_verification_failure', result.stdout)
+                self.assertIn(detail, result.stdout)
+                self.assertIn('guest-boot-id.txt', result.stdout)
+                self.assertIn('boot-inputs.sha256', result.stdout)
+                runs = json.loads((output / 'summary.json').read_text())['runs']
+                self.assertEqual(len(runs), 3)
+                self.assertTrue(all(run['status'] == 'passed' for run in runs[:2]))
+                self.assertEqual(runs[2]['evidence_verification'], 'passed')
+                self.assertNotEqual(runs[2]['status'], 'passed')
+                self.assertFalse((output / 'fresh').exists())
+
+    def test_watchdog_acceptance_with_distinct_boots_passes(self):
+        result, output = self.run_workflow('acceptance-ok', mode='watchdog-acceptance')
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(len(result.stdout.splitlines()), 1)
+        self.assertEqual(result.stderr, '')
+        runs = json.loads((output / 'summary.json').read_text())['runs']
+        self.assertEqual(len(runs), 4)
+        self.assertEqual(len({run['boot_id'] for run in runs}), 4)
 
     def test_success_is_concise_and_does_not_start_reader(self):
         reader = self.root / "forbidden.py"
