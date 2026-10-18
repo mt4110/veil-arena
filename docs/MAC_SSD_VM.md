@@ -33,7 +33,7 @@ prepared=$(bash scripts/prepare-netns-from-guest.sh "$bundle")
 
 ## 反復と受け入れ
 
-`arena-netns-volume VOLUME_ROOT GUEST_BUNDLE daily|acceptance NEW_OUTPUT_DIRECTORY`を使う。`daily`は新規VMを1回、`acceptance`は成功時に追加の新規VMも起動する。どちらも試験中のbuild/fetchをしない。引数は絶対パスとし、出力先の親ディレクトリは同じvolume内に既に存在するものを指定する。bundle自体の中へ結果を保存しない。
+`arena-netns-volume VOLUME_ROOT GUEST_BUNDLE daily|acceptance|watchdog-daily NEW_OUTPUT_DIRECTORY`を使う。`daily`は新規VMを1回、`acceptance`は成功時に追加の新規VMも起動する。`watchdog-daily`はrunner停止試験VMと、その証拠検証成功後の正常再実行VMの計2回を起動する。いずれも試験中のbuild/fetchをしない。引数は絶対パスとし、出力先の親ディレクトリは同じvolume内に既に存在するものを指定する。bundle自体の中へ結果を保存しない。
 
 ```sh
 "$prepared/bin/arena-netns-volume" "$volume" "$bundle" daily \
@@ -44,6 +44,21 @@ prepared=$(bash scripts/prepare-netns-from-guest.sh "$bundle")
 ```
 
 入口はvolumeのマウント状態と同一filesystem内の保存範囲を確認し、固定Nix bundleのmetadata・kernel paramsと一致すること、boot入力のSHA-256を照合する。自己申告のhashだけを書き換えた別bundleも受け入れない。既存の出力・dangling symlink・未マウントのディレクトリは環境エラー3で拒否し、検査失敗時にはworkflowの出力を作らない。入力パスは各VM起動時にも再検査する。
+
+### runner停止からの復帰確認
+
+このモードに対応したソースから、同じ `prepare-netns-from-guest.sh` でホスト側入口を準備する。既存の古いimmutableな入口へは追加されない。検証済みguest bundle・kernel・依存cacheは再利用できる。
+
+```sh
+"$prepared/bin/arena-netns-volume" "$volume" "$bundle" watchdog-daily \
+  "$root/results/watchdog-daily-$(date +%Y%m%d-%H%M%S)"
+```
+
+[既存watchdog試験](HOST_WATCHDOG.md)と同じcheckpointで所有guest runnerをSIGSTOPし、停止状態を確認後、ホストの既存試験用期限で所有QEMUを停止する。意図したVM終了3を、証拠同期・回収・停止状態・未完了guest結果の検証が揃った場合だけ期待どおりと扱う。その後、別のboot ID・同一起動入力の新規VMで正常16ケースを実行する。停止試験の証拠が不十分なら後続VMは起動しない。
+
+全体の `summary.json` がpassed／終了0でも、`daily-watchdog/vm-stop.json` の環境エラー3は意図した停止として保持する。停止VMは完成batch結果やguest cleanup成功を生成せず、VM内資源は所有QEMU終了によって回収する。正常再実行の証拠は `daily/` に分けて保存する。失敗時には既存の自動診断と元の終了コードが維持される。
+
+SSD入口は `watchdog-acceptance` をまだ受け付けない。4 VMの追加受け入れが必要な場合は別途対象・実行条件を決める。kernel panic、guest kernel無応答、ホストI/O停止、SSD抜去・同時書換えを再現する試験ではない。
 
 SSDはVM停止と証拠保存が完了するまで接続したままにする。稼働中の抜去・第三者による同時書換えを安全に継続できる保証ではない。終了後も過去のVM結果、bundle、cache、GC rootを自動削除しない。再実行時に準備用Colimaを起動する必要はない。
 
@@ -58,3 +73,11 @@ Linux ARM64／TCGの先行1 VMで16ケースが成功し、Mac ARM64のnative QE
 ## 正式入口の確認
 
 正式入口で入力不一致・未マウント先・既存出力など6条件をVM起動前に拒否し、その後の新規2 VMで各16ケースの成功を確認した。新しいソースコピーからの準備も同じ出力を再利用した。[正式入口の検証記録](VOLUME_ENTRY_VALIDATION.md)と[集計](validation/volume-entry-20261016.json)を参照する。物理SSDの抜去は行わず、存在しない／未マウントのディレクトリで未接続時の拒否を確認した。
+
+## SSD入口のrunner停止試験
+
+SSD入口に `watchdog-daily` を追加し、Mac ARM64／TCGで停止VMと正常復帰VMの1組を確認した。
+意図した環境エラー3・未完了guest結果を保持し、停止前の証拠同期・所有QEMU回収の検証後、
+別boot ID・同一起動入力の新規VMで正常16ケースが期待結果と一致した。
+[確認範囲と証拠](SSD_WATCHDOG_VALIDATION.md)を参照する。既存のguest・依存cacheを再利用し、
+Linuxホストや4 VMの追加受け入れへは一般化しない。
