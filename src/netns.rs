@@ -9,6 +9,8 @@ mod netem;
 mod process;
 #[path = "tc.rs"]
 mod tc;
+#[path = "tcp_syn.rs"]
+mod tcp_syn;
 #[path = "test_run.rs"]
 mod test_run;
 #[path = "watchdog.rs"]
@@ -30,7 +32,7 @@ use std::time::{Duration, Instant};
 const APP: &str = "10.77.1.10";
 const SERVER: &str = "10.77.2.10";
 const TIMEOUT: Duration = Duration::from_secs(90);
-const BATCH_CASES: [(&str, i32); 16] = [
+const BATCH_CASES: [(&str, i32); 18] = [
     ("normal-001", 0),
     ("route-fault-001", 1),
     ("normal-002", 0),
@@ -47,6 +49,8 @@ const BATCH_CASES: [(&str, i32); 16] = [
     ("tc-netem-loss-001", 0),
     ("tc-netem-unconfigured-001", 3),
     ("tc-after-netem-001", 0),
+    ("tc-tcp-drop-disabled-001", 1),
+    ("tc-tcp-syn-001", 0),
 ];
 
 fn save(path: &Path, value: &Value) -> io::Result<()> {
@@ -616,7 +620,11 @@ fn baseline(
             }
         }
         if tc_case {
-            tc::comparison(&mut run, app, router, server_pid, &exe, &out, tc_fault)?;
+            if tc_fault.starts_with("tcp-") {
+                tcp_syn::comparison(&mut run, app, router, server_pid, &exe, &out, tc_fault)?;
+            } else {
+                tc::comparison(&mut run, app, router, server_pid, &exe, &out, tc_fault)?;
+            }
         }
         for (role, pid) in [("app", app), ("router", router), ("server", server_pid)] {
             run.command(
@@ -707,7 +715,7 @@ fn baseline(
         "cleanup":{"helpers_reaped":echoes.iter().chain(namespaces.iter()).all(|p|p.stopped),
             "owned_namespace_references":live,"parent_network_unchanged":parent_unchanged,"errors":cleanup_errors},
         "tc_reference":tc_case,"tc_fault":tc_fault,
-        "scope":if tc_case {"IPv4 baseline plus fixed UDP TC ingress reference; no external NIC"} else {"IPv4 ICMP/TCP/UDP only; no eBPF; no external NIC"}}),
+        "scope":if tc_fault.starts_with("tcp-") {"IPv4 baseline plus fixed initial TCP SYN TC reference; no external NIC"} else if tc_case {"IPv4 baseline plus fixed UDP TC ingress reference; no external NIC"} else {"IPv4 ICMP/TCP/UDP only; no eBPF; no external NIC"}}),
     )?;
     Ok(match status {
         "passed" => 0,
@@ -740,7 +748,7 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
     };
     let mut cases = vec![];
     let mut exit_code = 0;
-    // Sixteen cases include two nested interruption batches. Keep the guest
+    // Eighteen cases include two nested interruption batches. Keep the guest
     // 600s service and 670s host watchdog above this bounded suite budget.
     let deadline = Instant::now() + Duration::from_secs(540);
     for (id, expected) in BATCH_CASES {
@@ -780,6 +788,8 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
             "interrupt-hold"
         } else {
             match id {
+                "tc-tcp-drop-disabled-001" => "tcp-drop-disabled",
+                "tc-tcp-syn-001" => "tcp-syn",
                 "tc-drop-disabled-001" => "drop-disabled",
                 "tc-wrong-hook-001" => "wrong-hook",
                 "tc-receiver-stopped-001" => "receiver-stopped",
@@ -858,7 +868,9 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
                     && r["tc_fault"] == fault
                     && r["tc_reference"] == true
                     && read_report(&out.join(id).join("tc-result.json")).is_ok_and(|t| {
-                        if matches!(fault, "netem-loss" | "netem-unconfigured") {
+                        if fault.starts_with("tcp-") {
+                            tcp_syn::matches_report(&t, fault)
+                        } else if matches!(fault, "netem-loss" | "netem-unconfigured") {
                             tc::matches_netem(&t, fault)
                         } else if fault == "none" {
                             t["status"] == "passed"
@@ -915,7 +927,7 @@ fn batch(out: PathBuf, interruption_mode: Option<&str>) -> io::Result<i32> {
     }
     save(
         &out.join("result.json"),
-        &json!({"schema_version":7,"scenario":"netns-batch",
+        &json!({"schema_version":8,"scenario":"netns-batch",
         "status":match exit_code {0=>"passed",1=>"failed",130=>"cancelled",4=>"timeout",_=>"environment_error"},"interruption_mode":interruption_mode,
         "cases":cases,"exit_code":exit_code,"vm_boots":1,
         "namespace_policy":"fresh owned namespaces for communication cases; verified cleanup before next case"}),
@@ -1035,10 +1047,16 @@ pub fn main() -> i32 {
                     "interrupt-hold",
                     "netem-loss",
                     "netem-unconfigured",
+                    "tcp-syn",
+                    "tcp-drop-disabled",
                 ]
                 .contains(&fault.as_str()) =>
         {
             tc::agent(Path::new(path), fault).map(|()| 0)
+        }
+        [mode, phase] if mode == "--tcp-send" => tcp_syn::sender(phase).map(|()| 0),
+        [mode, phase, path] if mode == "--tcp-receiver" => {
+            tcp_syn::receiver(phase, Path::new(path)).map(|()| 0)
         }
         [mode, phase] if mode == "--tc-send" => tc::sender(phase).map(|()| 0),
         [mode, phase, path] if mode == "--tc-receiver" => {
@@ -1063,6 +1081,8 @@ pub fn main() -> i32 {
                     "interrupt-hold",
                     "netem-loss",
                     "netem-unconfigured",
+                    "tcp-syn",
+                    "tcp-drop-disabled",
                 ]
                 .contains(&fault.as_str()) =>
         {

@@ -111,12 +111,12 @@ mod tests {
         let mut cases: Vec<_> = super::super::BATCH_CASES.iter()
             .filter(|(id,_)| !id.starts_with("batch-") && *id != "tc-after-cancel-001")
             .enumerate().map(|(i,(id,_))| json!({"id":id,"status":if i<3 {"passed"} else if i==3 {"failed"} else {"not_run"}})).collect();
-        assert_eq!(cases.len(), 13);
+        assert_eq!(cases.len(), 15);
         assert!(valid_interrupted_cases(&json!(cases)));
         let last = cases.pop().unwrap();
         assert!(!valid_interrupted_cases(&json!(cases)));
         cases.push(last);
-        cases[12]["id"] = json!("unrelated");
+        cases[14]["id"] = json!("unrelated");
         assert!(!valid_interrupted_cases(&json!(cases)));
     }
 }

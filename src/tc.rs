@@ -87,6 +87,9 @@ pub fn agent(out: &Path, fault: &str) -> io::Result<()> {
                 .ok_or_else(|| io::Error::other("invalid TC control"))?;
             let mode = match phase {
                 "pass" => 0_u32,
+                "count" if fault.starts_with("tcp-") => 3,
+                "drop" if fault == "tcp-drop-disabled" => 3,
+                "drop" if fault == "tcp-syn" => 4,
                 "count" => 1,
                 "drop" if fault == "drop-disabled" => 1,
                 "drop" => 2,
@@ -226,7 +229,13 @@ pub fn receiver(phase: &str, out: &Path) -> io::Result<()> {
     )
 }
 
-fn request(run: &Run, agent: &mut Owned, out: &Path, phase: &str, when: &str) -> io::Result<Value> {
+pub(super) fn request(
+    run: &Run,
+    agent: &mut Owned,
+    out: &Path,
+    phase: &str,
+    when: &str,
+) -> io::Result<Value> {
     writeln!(
         agent
             .child
@@ -238,6 +247,25 @@ fn request(run: &Run, agent: &mut Owned, out: &Path, phase: &str, when: &str) ->
     let path = out.join(format!("tc-{phase}-{when}.json"));
     run.ready_within(agent, &path, Duration::from_secs(8))?;
     read_report(&path)
+}
+
+pub(super) fn attachment_matches(filters: &Value, ready: &Value) -> bool {
+    filters.as_array().is_some_and(|fs| {
+        fs.iter()
+            .filter(|f| {
+                f["options"]["prog"]["id"] == ready["program_id"]
+                    && f["options"]["direct-action"] == true
+                    && f["options"]["handle"] == "0x1"
+            })
+            .count()
+            == 1
+            && fs.iter().all(|f| {
+                f["kind"] == "bpf"
+                    && f["pref"] == 49152
+                    && (f["options"]["prog"]["id"].is_null()
+                        || f["options"]["prog"]["id"] == ready["program_id"])
+            })
+    })
 }
 
 pub fn comparison(
@@ -310,22 +338,7 @@ pub fn comparison(
                     )?)?;
                     injection = json!({"ingress_filters":filters,"egress_filters":egress});
                 }
-                if !filters.as_array().is_some_and(|fs| {
-                    fs.iter()
-                        .filter(|f| {
-                            f["options"]["prog"]["id"] == ready["program_id"]
-                                && f["options"]["direct-action"] == true
-                                && f["options"]["handle"] == "0x1"
-                        })
-                        .count()
-                        == 1
-                        && fs.iter().all(|f| {
-                            f["kind"] == "bpf"
-                                && f["pref"] == 49152
-                                && (f["options"]["prog"]["id"].is_null()
-                                    || f["options"]["prog"]["id"] == ready["program_id"])
-                        })
-                }) {
+                if !attachment_matches(&filters, &ready) {
                     return Err(io::Error::other("TC attachment identity differs"));
                 }
                 if fault == "interrupt-hold" {
@@ -693,5 +706,29 @@ mod tests {
         item["received"]["control_sequences"] = json!([0, 1, 2, 3]);
         item["received"]["target_sequences"] = json!([0]);
         assert!(!valid_phase(&item));
+    }
+}
+
+#[cfg(test)]
+mod attachment_tests {
+    use super::*;
+    #[test]
+    fn summary_row_is_allowed_but_program_identity_must_match_exactly_once() {
+        let ready = json!({"program_id":42});
+        let rows = json!([{"kind":"bpf","pref":49152},
+            {"kind":"bpf","pref":49152,"options":{"prog":{"id":42},"handle":"0x1","direct-action":true}}]);
+        assert!(attachment_matches(&rows, &ready));
+        let mut wrong = rows.clone();
+        wrong[1]["options"]["prog"]["id"] = json!(43);
+        assert!(!attachment_matches(&wrong, &ready));
+        let mut wrong = rows.clone();
+        wrong[1]["options"]["direct-action"] = json!(false);
+        assert!(!attachment_matches(&wrong, &ready));
+        let mut wrong = rows.clone();
+        wrong[0]["pref"] = json!(123);
+        assert!(!attachment_matches(&wrong, &ready));
+        let mut wrong = rows.clone();
+        wrong.as_array_mut().unwrap().push(rows[1].clone());
+        assert!(!attachment_matches(&wrong, &ready));
     }
 }

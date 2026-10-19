@@ -1,10 +1,10 @@
 # netns試験の準備と反復運用
 
-重い準備を試験から分離する。Nixの依存・ビルド出力・読み取り専用VMイメージを保持し、日常試験は1回のVM起動内で16ケースを実行する。変更を受け入れる際には、同じイメージを使った追加の新規VMでも一括試験を確認する。動いているVMや前のケースのnetnsを引き継ぐ方式ではない。
+重い準備を試験から分離する。Nixの依存・ビルド出力・読み取り専用VMイメージを保持し、日常試験は1回のVM起動内で18ケースを実行する。変更を受け入れる際には、同じイメージを使った追加の新規VMでも一括試験を確認する。動いているVMや前のケースのnetnsを引き継ぐ方式ではない。
 
 2026-10-10に3ケースの両モードと準備出力の再利用を確認し、2026-10-11に[TC ingress比較](TC_INGRESS.md)を4つ目のケースとして追加し、その後3つのTC故障とTC復旧を追加した。[検証記録](NETNS_WORKFLOW_VALIDATION.md)に結果と未確認項目を残す。
 
-以前の4ケースは[TC検証記録](TC_INGRESS_VALIDATION.md)、以前の8ケースは[故障検出の検証記録](TC_FAULT_VALIDATION.md)、以前の9ケースは[BPF直接実行の検証記録](BPF_TEST_RUN_VALIDATION.md)、以前の10ケースは[ロード失敗の検証記録](BPF_LOAD_FAILURE_VALIDATION.md)、以前の13ケースは[中断・復帰の検証記録](BATCH_INTERRUPTION_VALIDATION.md)を参照する。現在の16ケースは[NetEm比較](NETEM_COMPARISON.md)を追加した契約である。[Mac ARM64と外部SSD](MAC_SSD_VM.md)で追加新規VMを含む受け入れを確認した。下記のpi-node用x86_64準備パスでの最終版受け入れは期限超過で未完了のまま残す。[検証記録](NETEM_COMPARISON_VALIDATION.md)を参照する。
+以前の4ケースは[TC検証記録](TC_INGRESS_VALIDATION.md)、以前の8ケースは[故障検出の検証記録](TC_FAULT_VALIDATION.md)、以前の9ケースは[BPF直接実行の検証記録](BPF_TEST_RUN_VALIDATION.md)、以前の10ケースは[ロード失敗の検証記録](BPF_LOAD_FAILURE_VALIDATION.md)、以前の13ケースは[中断・復帰の検証記録](BATCH_INTERRUPTION_VALIDATION.md)を参照する。16ケース版は[NetEm比較](NETEM_COMPARISON.md)を追加した契約である。[Mac ARM64と外部SSD](MAC_SSD_VM.md)で追加新規VMを含む受け入れを確認した。下記のpi-node用x86_64準備パスでの最終版受け入れは期限超過で未完了のまま残す。[検証記録](NETEM_COMPARISON_VALIDATION.md)を参照する。
 
 ## 再利用と新規作成
 
@@ -17,7 +17,9 @@
 | app・router・serverのnetns | 通信ケースごとに新規作成。所有helper回収と親ネットワーク不変を確認して次へ進む |
 | 結果 | 新規出力先へ保存。過去の結果・image・依存cache・GC rootを自動削除しない |
 
-ケースは「正常通信 → 戻り経路故障 → 正常通信 → TC比較 → drop無効化 → 誤ったhook → 受信helper停止 → BPF直接実行 → ロード失敗 → 一括キャンセル → TC復帰 → 一括タイムアウト → TC復旧 → NetEm全損失比較 → NetEm設定不成立 → TC正常復帰」の固定16個。故障ケースは単なる非ゼロ終了では合格にせず、両gatewayへの成功、指定したapp/server pingの失敗、後片付け成功を照合する。想定外の失敗は後続ケースを止め、未実行を記録する。各ケースの検証内容は[正常通信ベースライン](NETNS_VM.md)を参照する。
+現在の18ケースは[TCP SYN比較](TCP_SYN_VALIDATION.md)を末尾に追加した契約で、batch schema 8を要求する。古い16ケースのbundleは当時の入口・証拠と一緒に保持し、現在の18ケース成功へ読み替えない。
+
+ケースは「正常通信 → 戻り経路故障 → 正常通信 → TC比較 → drop無効化 → 誤ったhook → 受信helper停止 → BPF直接実行 → ロード失敗 → 一括キャンセル → TC復帰 → 一括タイムアウト → TC復旧 → NetEm全損失比較 → NetEm設定不成立 → TC正常復帰 → TCP drop無効化の検出 → TCP SYN比較」の固定18個。故障ケースは単なる非ゼロ終了では合格にせず、両gatewayへの成功、指定したapp/server pingの失敗、後片付け成功を照合する。想定外の失敗は後続ケースを止め、未実行を記録する。各ケースの検証内容は[正常通信ベースライン](NETNS_VM.md)を参照する。
 
 ## コマンド
 
@@ -114,20 +116,20 @@ artifacts/daily-001/
     boot-inputs.sha256             image/kernel/initrd
     guest-boot-id.txt              起動識別子
     serial.log / vm-stop.json      ゲストログとホストの停止・同期記録
-    netns-batch/result.json        16ケースの集計
+    netns-batch/result.json        18ケースの集計
     netns-batch/<case>/            段階ログ、topology、cleanup、result
 ```
 
-acceptanceでは`fresh/`と`fresh.launcher.log`も残る。正常ケースは51段階、経路故障は33段階、正常TCは59段階と5モードの送信/受信/counter照合。BPF直接実行は70入力のerrno・戻り値・counter・保存byte列を照合する。ロード失敗ケースはverifierの特定診断・未送信・map解放を照合する。TC故障は原因ごとに打ち切り位置と診断を固定する。これらは構築・通信・診断・後片付けの段階数で、攻撃パターン数ではない。元のケース結果はdrop無効化で`failed`、誤ったhookと受信helper停止で`environment_error`のまま保存し、その故障を正しく検出した対照試験として一括結果に`passed`を記録する。
+acceptanceでは`fresh/`と`fresh.launcher.log`も残る。正常ケースは51段階、経路故障は33段階、正常TCは59段階と5モードの送信/受信/counter照合。BPF直接実行は109入力のerrno・戻り値・counter・保存byte列を照合する。ロード失敗ケースはverifierの特定診断・未送信・map解放を照合する。TC故障は原因ごとに打ち切り位置と診断を固定する。これらは構築・通信・診断・後片付けの段階数で、攻撃パターン数ではない。元のケース結果はdrop無効化で`failed`、誤ったhookと受信helper停止で`environment_error`のまま保存し、その故障を正しく検出した対照試験として一括結果に`passed`を記録する。
 
-終了コードは0=全体成功、1=期待値との不一致、2=引数不正、3=環境・証拠・停止エラー。既存出力先を再使用しない。受け入れで片方のVMが失敗した場合も、最初のログと結果を保存する。batch schema 7は16ケースをすべて要求する。故障ケースは期待した終了コードと原因・通信記録・解放を照合し、想定外の同じ終了コードを合格にしない。終了コード0でも証拠が不完全なら合格にしない。boot IDや入力checksumが一致条件を満たさない場合も環境エラーにする。
+終了コードは0=全体成功、1=期待値との不一致、2=引数不正、3=環境・証拠・停止エラー。既存出力先を再使用しない。受け入れで片方のVMが失敗した場合も、最初のログと結果を保存する。batch schema 8は18ケースをすべて要求する。故障ケースは期待した終了コードと原因・通信記録・解放を照合し、想定外の同じ終了コードを合格にしない。終了コード0でも証拠が不完全なら合格にしない。boot IDや入力checksumが一致条件を満たさない場合も環境エラーにする。
 
 guest JSONは完成・file fsync後に最終名へ原子的に公開する。`.pending`も保持し、既存報告を上書きしない。
 
 一括制御・集計はRust、VM起動は固定shell wrapper、証拠の形式チェックは固定Pythonの標準ライブラリ。pytestは追加しない。日常試験のVM停止条件は従来通り、guest service終了を確認し、ホストが出力をfsyncして所有QEMUを停止する。guestの正常unmountまで確認した保証ではない。
 
-この運用はまずnetns試験に適用する。ブラックホールの人工入力試験は既存の入口を維持し、オフラインVM内のコンパイル済みtarget共有は含めない。ARM64の今回の実起動は上記の構成で確認した。別ホスト構成での互換性、IPv6、TCのTCP drop・固定fixture以外の異常入力、VM panicや電源断での回収は別の確認項目として残す。
+この運用はまずnetns試験に適用する。ブラックホールの人工入力試験は既存の入口を維持し、オフラインVM内のコンパイル済みtarget共有は含めない。ARM64の今回の実起動は上記の構成で確認した。別ホスト構成での互換性、IPv6、確立済みTCPの遮断・固定fixture以外の異常入力、VM panicや電源断での回収は別の確認項目として残す。
 
-VM内の一括試験を実際に中断する[キャンセル・タイムアウト試験](BATCH_INTERRUPTION.md)も含める。内側の中断結果は`cancelled`/130・`timeout`/4のまま保存し、資源回収と後続TC復帰を別に判定する。通常の一括結果は16ケースすべての期待結果一致が必要。
+VM内の一括試験を実際に中断する[キャンセル・タイムアウト試験](BATCH_INTERRUPTION.md)も含める。内側の中断結果は`cancelled`/130・`timeout`/4のまま保存し、資源回収と後続TC復帰を別に判定する。通常の一括結果は18ケースすべての期待結果一致が必要。
 
 guestの終了処理に頼れない停止は[ホストwatchdog試験](HOST_WATCHDOG.md)で検証する。`watchdog-daily`は停止VM→正常再実行VMの2起動、`watchdog-acceptance`は同じ組を追加新規VMでも確認する4起動。同じprepared imageを使い、通常の`daily`/`acceptance`と分けて選べる。

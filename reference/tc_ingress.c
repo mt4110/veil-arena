@@ -1,4 +1,4 @@
-/* Arena reference, not a production firewall. Fixed IPv4/UDP fixtures only. */
+/* Arena reference, not a production firewall. Fixed IPv4 UDP and initial TCP SYN fixtures only. */
 #include <linux/bpf.h>
 #include <linux/pkt_cls.h>
 #define SEC(name) __attribute__((section(name), used))
@@ -19,7 +19,7 @@ static __always_inline __u16 be16(const unsigned char *p) {
 SEC("classifier") int arena_ingress(struct __sk_buff *skb) {
     unsigned char *p = (void *)(unsigned long)skb->data;
     unsigned char *end = (void *)(unsigned long)skb->data_end;
-    if (p + 34 > end || be16(p + 12) != 0x0800 || p[14] >> 4 != 4 || p[23] != 17)
+    if (p + 34 > end || be16(p + 12) != 0x0800 || p[14] >> 4 != 4)
         return TC_ACT_OK;
     __u32 ihl = (p[14] & 15) * 4;
     if (ihl < 20 || ihl > 60 || (be16(p + 20) & 0x3fff) != 0)
@@ -28,6 +28,26 @@ SEC("classifier") int arena_ingress(struct __sk_buff *skb) {
         p[30] != 10 || p[31] != 77 || p[32] != 2 || p[33] != 10)
         return TC_ACT_OK;
     __u32 total = be16(p + 16);
+    __u32 key = 0;
+    __u32 *mode = lookup(&MODE, &key);
+    if (!mode || *mode == 0) return TC_ACT_OK;
+    if (p[23] == 6) {
+        if ((*mode != 3 && *mode != 4) || total < ihl + 20 || p + 14 + total > end)
+            return TC_ACT_OK;
+        unsigned char *tcp = p + 14 + ihl;
+        if (tcp + 20 > end) return TC_ACT_OK;
+        __u32 hlen = (tcp[12] >> 4) * 4;
+        if (hlen < 20 || hlen > total - ihl || tcp + hlen > end || (tcp[13] & 0x17) != 0x02)
+            return TC_ACT_OK;
+        __u16 port = be16(tcp + 2);
+        if (port != 39201 && port != 39202) return TC_ACT_OK;
+        __u32 base = port == 39201 ? 0 : 3;
+        count(base);
+        if (*mode == 4 && port == 39201) { count(base + 2); return TC_ACT_SHOT; }
+        count(base + 1);
+        return TC_ACT_OK;
+    }
+    if (p[23] != 17 || (*mode != 1 && *mode != 2)) return TC_ACT_OK;
     if (total < ihl + 12 || p + 14 + total > end) return TC_ACT_OK;
     unsigned char *udp = p + 14 + ihl;
     if (udp + 12 > end || be16(udp) != 39100 || be16(udp + 4) < 12 ||
@@ -37,9 +57,6 @@ SEC("classifier") int arena_ingress(struct __sk_buff *skb) {
     if (udp_len > total - ihl || udp + udp_len > end) return TC_ACT_OK;
     __u16 port = be16(udp + 2);
     if (port != 39101 && port != 39102) return TC_ACT_OK;
-    __u32 key = 0;
-    __u32 *mode = lookup(&MODE, &key);
-    if (!mode || *mode == 0) return TC_ACT_OK;
     __u32 base = port == 39101 ? 0 : 3;
     count(base);
     if (*mode == 2 && port == 39101) {

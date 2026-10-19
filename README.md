@@ -16,7 +16,7 @@ bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 
 v0.2.1のソース版に向け、netns一括試験の診断自動表示と、試験用ランチャーのText file busy対策をまとめています。
 [リリースノート案](docs/releases/v0.2.1-draft.md)と[公開準備の記録](docs/V0_2_1_READINESS.md)を参照してください。署名タグ・リリース公開は承認後に行います。
-現在の16ケースに関するLinux x86_64／KVMの期限超過は既知の制約として残しており、
+以前の16ケースに関するLinux x86_64／KVMの期限超過は既知の制約として残しており、
 以前の13ケースの成功を現在の一括試験の成功とは扱いません。
 
 ホスト上のオフラインrunnerはOS sandboxではありません。Nixの開発環境と、外部NICを持たないLinux VMを用意しました。macOS ARM64のNix上のオフライン実行に加え、Linux x86_64／KVMのゲストで「正常版の成功 → 不具合版の検出 → 元コードで再成功」を確認済みです。ゲストの試験サービス終了後、ホストのRustコントローラーが結果をfsyncし、所有するQEMUを停止します。
@@ -33,9 +33,11 @@ ARENA_VM_ACCELERATOR=kvm bash scripts/prepare-netns.sh
   "$PWD/artifacts/acceptance-001"
 ```
 
-[一括実行・キャッシュ再利用の運用](docs/NETNS_WORKFLOW.md)では、正常・戻り経路故障・正常・TC比較・drop無効化・誤ったhook・受信helper停止・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧・NetEm全損失比較・設定不成立・正常復帰の16ケースを1回のVM起動で実行し、`summary.json`へ集計します。通信ケースのnetnsは新規作成し、後片付けを確認します。Nix store、依存、読み取り専用VMイメージは再利用し、試験中はビルド・依存取得を行いません。既存の単一ケース用launcherも維持しています。
+[一括実行・キャッシュ再利用の運用](docs/NETNS_WORKFLOW.md)では、正常・戻り経路故障・正常・TC比較・drop無効化・誤ったhook・受信helper停止・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧・NetEm全損失比較・設定不成立・正常復帰にTCP drop無効化・TCP SYN比較を加えた18ケースを1回のVM起動で実行し、`summary.json`へ集計します。通信ケースのnetnsは新規作成し、後片付けを確認します。Nix store、依存、読み取り専用VMイメージは再利用し、試験中はビルド・依存取得を行いません。既存の単一ケース用launcherも維持しています。
 
 Rust/Ayaで[TC ingressの参照eBPF](docs/TC_INGRESS.md)も接続しました。固定IPv4/UDP fixtureで、eBPFなし・pass・count・限定drop・detach後を比較し、送信/受信とkernel counterを照合します。参照packetコードは固定Clangで生成するC objectです。[故障検出の記録](docs/TC_FAULT_VALIDATION.md)で、遮断不成立と環境故障を正しい理由で不合格にできるか確認します。
+
+[固定IPv4 TCPの新規接続比較](docs/TCP_SYN_VALIDATION.md)では、対象ポートの初期SYNだけをdropし、対照接続の成功とdetach後の正常復帰を照合します。SYN再送のpacket数とアプリケーションの接続試行数は分けて記録します。現在の一括試験はschema 8・18ケースを要求するため、古い16ケースのguest bundleを再利用する場合はguestの更新が必要です。
 
 [NetEmとeBPFの損失の区別](docs/NETEM_COMPARISON.md)では、routerの送信側にNetEmの全損失を設定し、TC ingressのpass counter・qdisc drop counter・受信を照合します。設定不成立はcount phaseの送信前に環境エラーとし、解除後の正常到達を確認します。[Mac ARM64と外部SSD](docs/MAC_SSD_VM.md)で新規2 VM・各16ケースの受け入れを確認しました。Linux x86_64／KVMで残る期限超過は別に扱います。[検証記録](docs/NETEM_COMPARISON_VALIDATION.md)を参照してください。
 

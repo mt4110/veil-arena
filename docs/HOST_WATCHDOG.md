@@ -30,15 +30,15 @@ guest内の一括runnerが終了処理を実行できないとき、ホストが
 
 | モード | 起動順序 |
 |---|---|
-| `daily` / `acceptance` | 従来の正常一括試験。1 VM / 2 VM、各16ケース |
+| `daily` / `acceptance` | 従来の正常一括試験。1 VM / 2 VM、各18ケース |
 | `watchdog-daily` | 停止試験VM → 新規の正常再実行VM。計2 VM |
 | `watchdog-acceptance` | 停止試験VM → 正常再実行VM → 追加の新規停止試験VM → 正常再実行VM。計4 VM |
 
 起動した全VM（`watchdog-daily`は2、`watchdog-acceptance`は4）のboot IDがすべて異なり、image/kernel/initrd checksumが一致することを照合する。停止試験は停止状態・部分対照・host期限・証拠同期・QEMU回収を確認できた場合だけ、期待する環境エラーの検出として外側の集計へ合格を記録する。単なる終了3では合格にしない。予期しない結果の場合は後続VMを起動しない。
 
-正常再実行VMはそれぞれ現在の16ケースを実行し、通過・カウント・限定UDP drop・対照通過・detach後の通信、異常入力、ロード故障、guestキャンセル・タイムアウトからの復帰も確認する。guest kernelの応答喪失やQEMUの停止不能を確認したことにはしない。
+正常再実行VMはそれぞれ現在の18ケースを実行し、通過・カウント・限定UDP／初期TCP SYN drop・対照通過・detach後の通信、異常入力、ロード故障、guestキャンセル・タイムアウトからの復帰も確認する。guest kernelの応答喪失やQEMUの停止不能を確認したことにはしない。
 
-SSD上の既存bundleを使う場合は、[SSD正式入口の手順](MAC_SSD_VM.md#runner停止からの復帰確認)から `arena-netns-volume ... watchdog-daily ...` を実行できる。こちらは停止と正常再実行の2 VMに限定する。
+SSD上の既存bundleを使う場合は、[SSD正式入口の手順](MAC_SSD_VM.md#runner停止からの復帰確認)から `arena-netns-volume ... watchdog-daily ...` を実行できる。こちらは停止と正常再実行の2 VMに限定する。現在の18ケースに対応したguestが必要で、以前の16ケースbundleとホスト側checkerを混在させない。TCP追加後guestでの実VM停止・復帰の組は今回再実行しておらず、以前の停止試験の成功と区別する。
 
 ## 証拠
 

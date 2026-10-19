@@ -165,6 +165,74 @@ fn fixtures() -> Vec<Fixture> {
             });
         }
     }
+    let mut tcp = vec![0u8; 54];
+    tcp[..34].copy_from_slice(&packet[..34]);
+    tcp[23] = 6;
+    tcp[16..18].copy_from_slice(&40u16.to_be_bytes());
+    tcp[34..36].copy_from_slice(&40000u16.to_be_bytes());
+    tcp[36..38].copy_from_slice(&39201u16.to_be_bytes());
+    tcp[46] = 0x50;
+    tcp[47] = 2;
+    checksum(&mut tcp);
+    for size in 34..54 {
+        rows.push(Fixture {
+            id: format!("tcp-prefix-{size}"),
+            bytes: tcp[..size].to_vec(),
+            mode: 4,
+            errno: None,
+            retval: Some(0),
+            delta: [0; 6],
+        });
+    }
+    for mode in [0, 3, 4] {
+        for control in [false, true] {
+            for flags in if mode == 4 {
+                vec![2, 0x12, 0x10, 4, 1, 3]
+            } else {
+                vec![2]
+            } {
+                let mut bytes = tcp.clone();
+                bytes[47] = flags;
+                if control {
+                    bytes[36..38].copy_from_slice(&39202u16.to_be_bytes());
+                }
+                let mut delta = [0; 6];
+                let drop = mode == 4 && !control && flags == 2;
+                if mode != 0 && flags == 2 {
+                    let b = if control { 3 } else { 0 };
+                    delta[b] = 1;
+                    delta[b + if drop { 2 } else { 1 }] = 1;
+                }
+                rows.push(Fixture {
+                    id: format!(
+                        "tcp-{mode}-{}-{flags}",
+                        if control { "control" } else { "target" }
+                    ),
+                    bytes,
+                    mode,
+                    errno: None,
+                    retval: Some(if drop { 2 } else { 0 }),
+                    delta,
+                });
+            }
+        }
+    }
+    for (id, offset, data) in [
+        ("tcp-doff-small", 46, vec![0x40]),
+        ("tcp-doff-overrun", 46, vec![0xf0]),
+        ("tcp-total-overrun", 16, vec![0, 41]),
+    ] {
+        let mut bytes = tcp.clone();
+        bytes[offset..offset + data.len()].copy_from_slice(&data);
+        rows.push(Fixture {
+            id: id.into(),
+            bytes,
+            mode: 4,
+            errno: None,
+            retval: Some(0),
+            delta: [0; 6],
+        });
+    }
     rows
 }
 fn execute(fd: i32, bytes: &[u8]) -> (Option<i32>, Option<u32>, Vec<u8>) {
@@ -368,7 +436,7 @@ mod tests {
         assert_eq!(std::mem::offset_of!(TestAttr, ctx_in), 48);
         assert_eq!(std::mem::offset_of!(TestAttr, flags), 64);
         let f = fixtures();
-        assert_eq!(f.len(), 70);
+        assert_eq!(f.len(), 109);
         assert_eq!(f.iter().filter(|f| f.errno.is_some()).count(), 34);
         assert!(
             f.iter()
