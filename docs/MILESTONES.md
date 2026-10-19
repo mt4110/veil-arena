@@ -33,7 +33,7 @@ PR #7マージ後、[Linux x86_64の新しいチェックアウト](LINUX_FRESH_
 
 後続の[外部volumeの正式入口](VOLUME_ENTRY_VALIDATION.md)では、SSD上のローカルadapterを必要としないNixコマンドへ整理した。入力不一致・未マウント先・上書きなどを拒否し、既存guest/cacheを使った新規2 VMの各16ケースを確認した。これは反復運用の改善であり、第三者試用や新しいネットワークシナリオの追加ではない。
 
-netns試験の反復運用は、準備と試験を分離する方式へ変更した。Nix storeの依存と読み取り専用imageを保持し、初版は1 VM内の正常・経路故障・正常・TC比較・3種類のTC故障・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧の13ケース一括試験だった。今回はNetEm比較・設定不成立・正常復帰を加えた16ケースとし、受け入れ時は追加の新規VMを使う。[運用手順](NETNS_WORKFLOW.md)と[以前の3ケースの証拠](NETNS_WORKFLOW_VALIDATION.md)を参照する。TC比較の現在の範囲は固定IPv4/UDP・1 ingress hook。別入口の`watchdog-acceptance`は停止VM→正常再実行VMを2組・計4起動とし、同じimageを再利用する。固定fixture以外の異常入力、他のロード障害、指定checkpoint以外の中断などは初版の保証に含めない。ARM64の実起動はLinuxの専用Colima環境とMacのnative QEMU／TCGで確認済み。
+netns試験の反復運用は、準備と試験を分離する方式へ変更した。Nix storeの依存と読み取り専用imageを保持し、初版は1 VM内の正常・経路故障・正常・TC比較・3種類のTC故障・BPF直接実行・ロード失敗・一括キャンセル・TC復帰・一括タイムアウト・TC復旧の13ケース一括試験だった。16ケース版ではNetEm比較・設定不成立・正常復帰を追加し、受け入れ時は追加の新規VMを使う。[運用手順](NETNS_WORKFLOW.md)と[以前の3ケースの証拠](NETNS_WORKFLOW_VALIDATION.md)を参照する。TCP追加前のTC比較は固定IPv4/UDP・1 ingress hook。別入口の`watchdog-acceptance`は停止VM→正常再実行VMを2組・計4起動とし、同じimageを再利用する。固定fixture以外の異常入力、他のロード障害、指定checkpoint以外の中断などは初版の保証に含めない。ARM64の実起動はLinuxの専用Colima環境とMacのnative QEMU／TCGで確認済み。
 
 TC追加後のdaily・acceptanceもLinux x86_64／KVMで確認した。[参照TCの検証記録](TC_INGRESS_VALIDATION.md)に、通過・計数・限定drop・解除後回復、BPF解放、新規VMでの再成功を保存している。その後のARM64実起動・Blackhole現行コードの再確認を含む初版の判定は、上記の受け入れ集計を参照する。
 
@@ -45,6 +45,8 @@ TC追加後のdaily・acceptanceもLinux x86_64／KVMで確認した。[参照TC
 | 現在のveil-blackhole | macOSの読み取り専用DNS観測・人工入力再生。送信・遮断は対象外 | Linux/Ayaの遮断器を既存機能と仮定しない。MVPはarena内の参照用eBPFプログラムで検証し、製品との接続は別に判断する |
 
 veil-blackholeの根拠は、隣接リポジトリの[README](https://github.com/mt4110/veil-blackhole/blob/a6813c4bffc45eb8b5ebdd70bb36251f473d8554/README.md)と[Phase 1設計](https://github.com/mt4110/veil-blackhole/blob/a6813c4bffc45eb8b5ebdd70bb36251f473d8554/docs/PHASE1_DESIGN.md)。LinuxのeBPFとmacOSのBPF取得は、同じ検証環境で代替できると考えない。veil-keeperの実装状態は今回の計画の前提に含めない。
+
+2026-10-19、SSD運用の本人確認を一区切りとし、次のネットワーク課題を[固定IPv4 TCPの新規接続の限定drop](TCP_SYN_VALIDATION.md)とした。通過・count・対象drop／対照成功・detach後復帰とdrop無効化の故障検出を一括試験へ加え、現行契約はschema 8・18ケースとなる。これはArenaの参照eBPFの検証範囲を広げる作業であり、Blackholeの実装変更や実機Live検証、M4の第三者試用の再開ではない。結果と未確認範囲はリンク先へ分けて記録する。
 
 ## 初期利用者と価値の測り方
 

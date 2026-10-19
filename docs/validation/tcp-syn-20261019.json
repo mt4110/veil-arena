@@ -1,0 +1,631 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "base_commit": "a3cd1b049d25bbb48d6b97314529fe526f3df13f",
+  "branch": "feat/tcp-syn-validation",
+  "verification_source": "uncommitted source identified by runtime_source_hashes; no commit or push",
+  "status": "passed",
+  "change": "fixed IPv4 TCP initial SYN pass/count/target drop/control pass/detach recovery",
+  "prepared_mac": "/nix/store/ixakiqgrd7xckx2bwc3sksmqkkq37mzs-arena-netns-prepared",
+  "cache_policy": "kernel and dependency/build caches reused; guest rebuilt for changed runner and reference BPF; same immutable image used in three fresh VM boots; no build/fetch during tests",
+  "versions": {
+    "cargo": "1.98.0",
+    "kernel": "6.12.112",
+    "python": "3.14.7",
+    "rust": "1.98.1"
+  },
+  "runs": [
+    {
+      "platform": "Linux ARM64 / Colima builder / QEMU TCG",
+      "output": "artifacts/tcp-syn-20261019/linux-evidence/seed-v3/daily",
+      "boot_id": "ec2110f6-4783-4238-a8a6-a6e02ef414e8",
+      "boot_inputs_sha256": "95a44f2b3f9925ce22ecf646fc251901909e2cb49c651f8a792920e585eea42f",
+      "duration_ms": 357142,
+      "batch_cases": 18,
+      "batch_schema": 8,
+      "bpf_direct_inputs": 109,
+      "tcp_phases": [
+        {
+          "phase": "plain",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "phase": "pass",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "phase": "count",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            1,
+            1,
+            0,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "phase": "drop",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "timeout",
+            "connected"
+          ],
+          "accepted_connections": [
+            0,
+            1
+          ],
+          "syn_counter_delta": [
+            2,
+            0,
+            2,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "phase": "detached",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "drop_disabled_detected": true,
+      "tc_cleanup": {
+        "detached": true,
+        "maps_unloaded": true,
+        "pinned": false,
+        "program_unloaded": true
+      },
+      "vm_cleanup": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 9175,
+        "duration_ms": 357142,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 9176,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "guest_manifest": {
+        "accelerator": "tcg",
+        "arena_package": "/nix/store/qz3s1rkkpmsjin9x5sns1ww25yvbq32h-veil-arena-0.2.1",
+        "aya_version": "0.13.1",
+        "guestSystem": "aarch64-linux",
+        "guest_system": "/nix/store/wi71940f82hcaz9fjbbnywfiagpwrzz3-nixos-system-veil-arena-offline-26.11.20261008.8edc0c7",
+        "hostSystem": "aarch64-linux",
+        "hostUid": 501,
+        "host_controller": "/nix/store/rkbj56pvlwv3fz0fbbyignq9y8l1j25w-veil-arena-vm-controller-0.2.1",
+        "host_mounts": [
+          "dedicated output directory only"
+        ],
+        "lifecycle": "host fsync available evidence before owned QEMU stop; completion or watchdog",
+        "memory_mib": 4096,
+        "network": "no NIC",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "omitServerRoute": false,
+        "output_transport": "9p2000.L",
+        "scenario": "netns-batch",
+        "schema_version": 1,
+        "source_store_path": null,
+        "store_image": "/nix/store/gb93adpkl18sz0dj71f0m778yjwbn7jh-arena-netns-store-image",
+        "tc_reference": "/nix/store/ibg0jshzibsh4rvr66xc8kfbwhh9zgpi-arena-tc-reference",
+        "vcpus": 2,
+        "versions": {
+          "cargo": "1.98.0",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "rust": "1.98.1"
+        },
+        "watchdog_fixture_supported": true
+      }
+    },
+    {
+      "platform": "Mac ARM64 / native QEMU TCG / APFS SSD",
+      "output": "/Volumes/Elecom-1TB/Linux/veil-arena/tcp-syn-20261019/results/acceptance-v3/daily",
+      "boot_id": "864eb9dd-99dd-437f-a645-5e2bdd9b9005",
+      "boot_inputs_sha256": "ac56790ba2b182104efc0fcd69d2641779bab213e5d03719eda1b9b0cfba6dcc",
+      "duration_ms": 316428,
+      "batch_cases": 18,
+      "batch_schema": 8,
+      "bpf_direct_inputs": 109,
+      "tcp_phases": [
+        {
+          "phase": "plain",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "phase": "pass",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "phase": "count",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            1,
+            1,
+            0,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "phase": "drop",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "timeout",
+            "connected"
+          ],
+          "accepted_connections": [
+            0,
+            1
+          ],
+          "syn_counter_delta": [
+            2,
+            0,
+            2,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "phase": "detached",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "drop_disabled_detected": true,
+      "tc_cleanup": {
+        "detached": true,
+        "maps_unloaded": true,
+        "pinned": false,
+        "program_unloaded": true
+      },
+      "vm_cleanup": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 50233,
+        "duration_ms": 316428,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 50235,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "guest_manifest": {
+        "accelerator": "tcg",
+        "arena_package": "/nix/store/qz3s1rkkpmsjin9x5sns1ww25yvbq32h-veil-arena-0.2.1",
+        "aya_version": "0.13.1",
+        "boot_input_storage": "verified mounted volume",
+        "boot_volume": "/Volumes/Elecom-1TB",
+        "guestSystem": "aarch64-linux",
+        "guest_system": "/nix/store/wi71940f82hcaz9fjbbnywfiagpwrzz3-nixos-system-veil-arena-offline-26.11.20261008.8edc0c7",
+        "hostSystem": "aarch64-darwin",
+        "hostUid": 501,
+        "host_controller": "/nix/store/8yn1bvd7crkbd3nazizgk5ifzw31g2mj-veil-arena-vm-controller-0.2.1",
+        "host_mounts": [
+          "dedicated output directory only"
+        ],
+        "lifecycle": "host fsync available evidence before owned QEMU stop; completion or watchdog",
+        "memory_mib": 4096,
+        "network": "no NIC",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "omitServerRoute": false,
+        "output_transport": "9p2000.L",
+        "scenario": "netns-batch",
+        "schema_version": 1,
+        "source_store_path": null,
+        "store_image": "/Volumes/Elecom-1TB/Linux/veil-arena/tcp-syn-20261019/images/guest-bundle",
+        "tc_reference": "/nix/store/ibg0jshzibsh4rvr66xc8kfbwhh9zgpi-arena-tc-reference",
+        "vcpus": 2,
+        "versions": {
+          "cargo": "1.98.0",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "rust": "1.98.1"
+        },
+        "watchdog_fixture_supported": true
+      }
+    },
+    {
+      "platform": "Mac ARM64 / native QEMU TCG / APFS SSD",
+      "output": "/Volumes/Elecom-1TB/Linux/veil-arena/tcp-syn-20261019/results/acceptance-v3/fresh",
+      "boot_id": "05a9ebfd-c3bb-44ab-8e47-36ed94c6440c",
+      "boot_inputs_sha256": "ac56790ba2b182104efc0fcd69d2641779bab213e5d03719eda1b9b0cfba6dcc",
+      "duration_ms": 317658,
+      "batch_cases": 18,
+      "batch_schema": 8,
+      "bpf_direct_inputs": 109,
+      "tcp_phases": [
+        {
+          "phase": "plain",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "phase": "pass",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "phase": "count",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            1,
+            1,
+            0,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "phase": "drop",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "timeout",
+            "connected"
+          ],
+          "accepted_connections": [
+            0,
+            1
+          ],
+          "syn_counter_delta": [
+            2,
+            0,
+            2,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "phase": "detached",
+          "application_attempts": 2,
+          "connection_outcomes": [
+            "connected",
+            "connected"
+          ],
+          "accepted_connections": [
+            1,
+            1
+          ],
+          "syn_counter_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "drop_disabled_detected": true,
+      "tc_cleanup": {
+        "detached": true,
+        "maps_unloaded": true,
+        "pinned": false,
+        "program_unloaded": true
+      },
+      "vm_cleanup": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 52243,
+        "duration_ms": 317658,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 52245,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "guest_manifest": {
+        "accelerator": "tcg",
+        "arena_package": "/nix/store/qz3s1rkkpmsjin9x5sns1ww25yvbq32h-veil-arena-0.2.1",
+        "aya_version": "0.13.1",
+        "boot_input_storage": "verified mounted volume",
+        "boot_volume": "/Volumes/Elecom-1TB",
+        "guestSystem": "aarch64-linux",
+        "guest_system": "/nix/store/wi71940f82hcaz9fjbbnywfiagpwrzz3-nixos-system-veil-arena-offline-26.11.20261008.8edc0c7",
+        "hostSystem": "aarch64-darwin",
+        "hostUid": 501,
+        "host_controller": "/nix/store/8yn1bvd7crkbd3nazizgk5ifzw31g2mj-veil-arena-vm-controller-0.2.1",
+        "host_mounts": [
+          "dedicated output directory only"
+        ],
+        "lifecycle": "host fsync available evidence before owned QEMU stop; completion or watchdog",
+        "memory_mib": 4096,
+        "network": "no NIC",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "omitServerRoute": false,
+        "output_transport": "9p2000.L",
+        "scenario": "netns-batch",
+        "schema_version": 1,
+        "source_store_path": null,
+        "store_image": "/Volumes/Elecom-1TB/Linux/veil-arena/tcp-syn-20261019/images/guest-bundle",
+        "tc_reference": "/nix/store/ibg0jshzibsh4rvr66xc8kfbwhh9zgpi-arena-tc-reference",
+        "vcpus": 2,
+        "versions": {
+          "cargo": "1.98.0",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "rust": "1.98.1"
+        },
+        "watchdog_fixture_supported": true
+      }
+    }
+  ],
+  "mac_acceptance_duration_ms": 641700,
+  "mac_acceptance_same_boot_inputs": true,
+  "distinct_boot_ids": true,
+  "runtime_source_hashes": {
+    ".python-version": "922fe0c3de073b01988e23348ea184456161678c5e329e6f34be89be24383f93",
+    "Cargo.lock": "a213899632317585375e482d0ce5e289e5d52a47b6f9c45f21bcd8f97faaf0a9",
+    "Cargo.toml": "046743f80660dba0d77399a4fd72d9994c8930be0b7fb7a96e48870480d0f496",
+    "environments/vm/offline.nix": "36cb4317eb900a9079a78641993ac5052f000ae9d0ad794b10bdecf36f909d78",
+    "flake.lock": "f7c1fdb4c746bd2314b4f394483589a2b359e647c12c345379d4069b0a5a4f3f",
+    "flake.nix": "423932b332153415fa8865c3795d92c7b7fcfd1d9ccfb97b487f69c95b0b2e67",
+    "reference/LICENSE": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6",
+    "reference/tc_ingress.c": "66ab3295df1d461c36ee4f2ce42c60d0e2ee305cdee1c24b98763e9fb1d0171a",
+    "reference/tc_load_reject.c": "db8499360288599a7e12250e30b40449b046571a33328e33105635d44a371c90",
+    "rust-toolchain.toml": "887f9be066a15585a2c583578e84b0fcb541126d81546276bad3d2ff00d61167",
+    "scripts/blackhole-workflow.sh": "753777ebefeea9fff4e7aba30dddd595917740ef80f6a6bcf06849e917cefce9",
+    "scripts/blackhole_workflow.py": "f4b3078d25252a7d38aa881327b90072cd027495d1bdd7fb54169111e618b647",
+    "scripts/build-netns-vm.sh": "ad1b539aab091c2cc24342675c0c3fd15b8e1c791c44363b7fdbaaec522432b5",
+    "scripts/build-offline-vm.sh": "b7104eede8af1c2d075629310cbbc6ca38ce35cc40b60c3f79cdbbf251576c4a",
+    "scripts/check.sh": "096d2854babf28c989a4de420830efc266f3987570776a9c8ec373d7e7b7b422",
+    "scripts/check_vm_result.py": "55b857633032e7d316a6a63d6bad1ae58bcbf18481b551af28efba2ebee98a01",
+    "scripts/diagnose_netns.py": "73defea7df20b4de04646152a0143d9e4bc51076a6f2b9bc661aff03443b3a38",
+    "scripts/guest_bundle.py": "4a3f1016a766668caaf2d52128826fb7dcacafed7a4662e8760f4739565c35fb",
+    "scripts/prepare-netns-from-guest.sh": "c5ddfa0e06977fc4b2cf7eea85580d5fb6eafe0fad6c51a783e5bb1f23a887a2",
+    "scripts/prepare-netns.sh": "ceaa37eff4c7f925808f871182f9eb00492424d2ff512b91289aef673f6b939e",
+    "scripts/volume_guest.py": "d281715e884d18d5e0f61fb1bfb57ef6438782c4e303bc738d6200dc523ebaac",
+    "src/bin/veil-arena-netns.rs": "4b52e7dcac195e97e07168caa7fb19ed82aaa2c0a68bf0498053b3df63849c29",
+    "src/interruption.rs": "75b262dff313cb2ac4ce3beaf783c89308508a659f3bed33a07bb9b125bb126c",
+    "src/load_failure.rs": "52461e13647d2a262dc4f2c0489b0e0f1b19304198e77b68b2f813c64cd3a7bf",
+    "src/main.rs": "824f436c18585a1e06dbcf4f182af64f63ec57a78e159c0c3371e479f939c1a5",
+    "src/netem.rs": "698b440f4885ce498f1a4c1d77e5b0f6ce4fd9d6885e3786c54f969b32271f7d",
+    "src/netns.rs": "a2042c1cd960b5f7c11ec7bed2223f2611e4c316c74aebecfec901225c6db302",
+    "src/process.rs": "04c1ac4e0045eb88d42e56504bb59636aa02dd80ef7c2f55cb967d44f0e97374",
+    "src/readiness-publication.sh": "a397b911b0e8543bfb70389aeb7134e72e9f4e630b98fd5029c18c92af3a1ccb",
+    "src/tc.rs": "bb513b19e340e06064951f7f38d0a642e87af7430cdd61af45023f8eea632116",
+    "src/tcp_syn.rs": "c40e9ccc9a34ab6457e56a350914494015deb8283628054773f775a73a0e0431",
+    "src/test_run.rs": "d7ecd9e99ddcad8e182145d24a42e0310adba867b43cd65659aa1f7fe7ab1d68",
+    "src/watchdog.rs": "f83eb137d525c0d56a0d1e44a7721ef9a799905711a57c955430468dc9129a06",
+    "tests/netns_auto_diagnosis_cases.py": "f7a2e2bb7d205454f0a55114aaab30405044ee5f5e4380747c3d8bdac540c831",
+    "tests/test_blackhole_workflow.py": "3431f82fa5cef463dd120ee54d4403f5091089dc5bcce8dd5b489f4d5d896633",
+    "tests/test_diagnose_netns.py": "d3f467a061ccad4a72272b4b1391e0498f88ae63be1874abdd2cb726ad309629",
+    "tests/test_guest_bundle.py": "6e9f402f8c6ecc658a957841fd848b3273f74f9fb429e6a55a95a50b26f1f9f5",
+    "tests/test_readiness_publication.py": "fa354b84a903ff2f49a3624ade3e253b2a2534c2c721129135c3e7ef2319f9af",
+    "tests/test_vm_result.py": "d4d94f0abc8ab3a627d75d94f589aafd470d0bb707d548f1603c32a7b8b93bd3",
+    "tests/test_volume_guest.py": "a16a7e79fa69dd56200aa12f33cee13fb602b4a3b1b09f26dfa7b9d090c7dc85",
+    "tools/vm-controller/Cargo.lock": "45f7358cdb6d6d96c84fa49c96fe98dd475acaa6a2775f2f782b20e7cccade22",
+    "tools/vm-controller/Cargo.toml": "728063a5b5ad576aad4e0ac64c8035a4e424c806cc3f4d6cc8872ff5d033d8f1",
+    "tools/vm-controller/src/bin/veil-arena-netns-workflow.rs": "ddaa6690ddf69b4dcb583eb4730b85f3cc96857094c5aa1460c28c6890c688e7",
+    "tools/vm-controller/src/fixtures/failed-vm.sh": "71755c47b4abbc2ced53cfd8345db8660e2a536e0e3e64b8046642df9168b08f",
+    "tools/vm-controller/src/fixtures/no-evidence.sh": "8ac91887f016002a70851a9715bc1a7e296603bd3e46f0eea283181ec3e98e7e",
+    "tools/vm-controller/src/fixtures/unrelated-error.sh": "42a65eadd38df0603b94b049c843ac37b5b25b8f47d37b4a4974403d2713740c",
+    "tools/vm-controller/src/main.rs": "d0a27a994d27986783cbb0f98b2b73a226cb2181a6b4ea4737d51213605e6b23",
+    "tools/vm-controller/tests/netns_diagnosis.rs": "e9bbfbe23fc7689a6e5cf6d4a05529cdbb2d51b5f032e69f6f1e70fb252c7811"
+  },
+  "evidence_directory": "/Volumes/Elecom-1TB/Linux/veil-arena/tcp-syn-20261019",
+  "ssd_evidence_file_count": 6454,
+  "ssd_manifest_sha256": "1c1f89a46c814f30b6041e932d232de621683608eefd1e7c46b60ae9d079696e",
+  "linux_evidence_directory": "/Users/takemuramasaki/_workspace/veil-arena/artifacts/tcp-syn-20261019/linux-evidence/seed-v3",
+  "linux_evidence_file_count": 3225,
+  "linux_manifest_sha256": "ca9e450485750cca1fb410a757138cb23a5805433c7905f6b55d4aef6c6a91d7",
+  "regression": {
+    "mac_check": "passed",
+    "linux_arm64_check": "passed",
+    "python_tests": 67,
+    "linux_netns_rust_tests": 18,
+    "tc_identity_summary_row_regression": "accept one matching program plus tc header row; reject wrong ID, wrong hook properties and duplicate program rows"
+  },
+  "initial_failures": [
+    {
+      "stage": "initial Python regression",
+      "cause": "interruption checker still required schema 7 after batch schema changed to 8",
+      "resolution": "require schema 8 consistently; both interruption and complete batch fixtures pass"
+    },
+    {
+      "version": "v1",
+      "cause": "interruption unit expectation still 13 rather than updated 15 tail cases",
+      "resolution": "updated fixed suite expectation, no deadline or success condition relaxed"
+    },
+    {
+      "version": "v2",
+      "cause": "new TCP attachment checker incorrectly required one tc JSON row; real tc includes header plus program row",
+      "resolution": "share existing UDP exact identity predicate and add regression; failed fixture and logs retained"
+    }
+  ],
+  "limits": [
+    "Fixed 10.77.1.10 to 10.77.2.10, ports 39201/39202 and initial SYN only; not a connection-tracking firewall.",
+    "No established-connection blocking, IPv6, arbitrary traffic, performance claim or real Blackhole Live validation.",
+    "Linux x86_64/KVM historic 16-case timeout root cause remains unknown; current 18-case runtime unverified there.",
+    "Current watchdog-daily real stopped/recovery pair not rerun with updated guest; host dummy regression and batch cancellation/timeout tested.",
+    "Old 16-case guest bundles and prior evidence retained; no physical SSD unplug injection.",
+    "Third-party trial, k8s, signed tag and release remain on hold; no PR or push performed."
+  ],
+  "same_guest_content_hashes_across_all_vms": true
+}

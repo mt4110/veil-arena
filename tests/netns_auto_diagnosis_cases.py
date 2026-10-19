@@ -31,12 +31,12 @@ write('vm-stop.json', {'status': 'passed', 'reason': 'service_completed',
       'qemu_exit_code': 0, 'escalated': False, 'evidence_synced': True,
       'evidence_synced_before_stop': True, 'qemu_reaped': True})
 (root / 'serial.log').write_text('dummy guest output')
-codes = [0, 1, 0, 0, 1, 3, 3, 0, 3, 0, 0, 0, 0, 0, 3, 0]
+codes = [0, 1, 0, 0, 1, 3, 3, 0, 3, 0, 0, 0, 0, 0, 3, 0, 1, 0]
 names = ['normal-001', 'route-fault-001', 'normal-002', 'tc-ingress-001',
  'tc-drop-disabled-001', 'tc-wrong-hook-001', 'tc-receiver-stopped-001',
  'bpf-test-run-001', 'bpf-load-failure-001', 'batch-cancel-001',
  'tc-after-cancel-001', 'batch-timeout-001', 'tc-restored-001',
- 'tc-netem-loss-001', 'tc-netem-unconfigured-001', 'tc-after-netem-001']
+ 'tc-netem-loss-001', 'tc-netem-unconfigured-001', 'tc-after-netem-001', 'tc-tcp-drop-disabled-001', 'tc-tcp-syn-001']
 cases = [{'id': name, 'status': 'passed', 'expected_exit_code': code,
           'report': name + '/result.json', 'execution': {'exit_code': code}}
          for name, code in zip(names, codes)]
@@ -47,7 +47,7 @@ if kind in ('case', 'timeout'):
     write('netns-batch/tc-restored-001/result.json', {'detail': 'dummy failure', 'steps': []})
     exit_code = 1 if kind == 'case' else 3
 if not fixture:
-    write('netns-batch/result.json', {'schema_version': 7, 'scenario': 'netns-batch',
+    write('netns-batch/result.json', {'schema_version': 8, 'scenario': 'netns-batch',
           'status': 'passed' if exit_code == 0 else 'failed', 'exit_code': exit_code,
           'vm_boots': 1, 'cases': cases})
 write('vm-manifest.json', {'scenario': 'netns-batch', 'watchdog_fixture_supported': True})

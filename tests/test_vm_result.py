@@ -146,6 +146,9 @@ class BatchEvidenceTests(unittest.TestCase):
             if case_id in checker.FAULTS:
                 result, tc = TcFaultEvidenceTests().result(checker.FAULTS[case_id])
                 (target / "tc-result.json").write_text(json.dumps(tc))
+            if case_id in {"tc-tcp-syn-001", "tc-tcp-drop-disabled-001"}:
+                result, tc = TcpSynEvidenceTests().result("tcp-syn" if expected == 0 else "tcp-drop-disabled")
+                (target / "tc-result.json").write_text(json.dumps(tc))
             if case_id == "bpf-test-run-001":
                 result = DirectEvidenceTests().fixture(target)
             if case_id == "bpf-load-failure-001":
@@ -156,7 +159,7 @@ class BatchEvidenceTests(unittest.TestCase):
             cases.append({"id": case_id, "status": "passed", "expected_exit_code": expected,
                           "report": f"{case_id}/result.json", "execution": {"exit_code": expected, "signal": None,
                           "output_complete": True, "log_truncated": False, "status": "failed" if expected else "passed"}})
-        summary = {"schema_version": 7, "scenario": "netns-batch", "status": "passed", "exit_code": 0, "vm_boots": 1, "cases": cases}
+        summary = {"schema_version": 8, "scenario": "netns-batch", "status": "passed", "exit_code": 0, "vm_boots": 1, "cases": cases}
         (directory / "result.json").write_text(json.dumps(summary))
         (root / "service-result.txt").write_text("success")
         return root, summary
@@ -530,6 +533,54 @@ class WatchdogEvidenceTests(unittest.TestCase):
         root=self.fixture();path=root/"netns-batch/tc-ingress-001/tc-plain-received.json"
         data=json.loads(path.read_text());data["control_sequences"]=[];path.write_text(json.dumps(data))
         self.assertEqual(checker.check_watchdog(root),3)
+
+
+
+class TcpSynEvidenceTests(unittest.TestCase):
+    def result(self, fault="tcp-syn", syn_packets=2):
+        negative=fault=="tcp-drop-disabled"
+        phases=[];previous=[0]*6
+        names=["plain","pass","count","drop"]+([] if negative else ["detached"])
+        for phase in names:
+            blocked=phase=="drop" and not negative
+            mode={"plain":None,"pass":0,"count":3,"drop":3 if negative else 4,"detached":None}[phase]
+            delta=([syn_packets,0,syn_packets,syn_packets,syn_packets,0] if blocked else [syn_packets,syn_packets,0,syn_packets,syn_packets,0]) if phase in ("count","drop") else [0]*6
+            before=previous if mode is not None else [0]*6
+            after=[a+b for a,b in zip(before,delta)]
+            phases.append({"phase":phase,"before":{"mode":mode,"counters":before},"after":{"mode":mode,"counters":after},"counter_delta":delta,
+                "sent":{"phase":phase,"connection_attempts":[{"kind":kind,"port":port,"connect":"timeout" if blocked and kind==0 else "connected","payload_verified":not(blocked and kind==0)} for kind,port in enumerate((39201,39202))]},
+                "received":{"phase":phase,"accepted_connections":[0 if blocked else 1,1],"payloads_verified":True}})
+            if mode is not None:previous=after
+        labels=checker.NETWORK_LABELS[:-5]+(checker.TC_LABELS[:6] if negative else checker.TC_LABELS)+checker.NETWORK_LABELS[-2 if negative else -5:]
+        network=NetworkEvidenceTests().result()
+        detail="TCP drop delivery/count assertion failed" if negative else None
+        network.update(status="failed" if negative else "passed",tc_reference=True,tc_fault=fault,detail=detail)
+        network['steps']=[{"id":f"{i+1:03}-{label}","status":"passed","exit_code":1 if label.startswith('forwarding-off-') else 0,"expected_exit_code":1 if label.startswith('forwarding-off-') else 0,"signal":None,"output_complete":True,"log_truncated":False} for i,label in enumerate(labels)]
+        report=TcEvidenceTests().result()
+        report.update(scenario="tc-tcp-syn",fault=fault,status=network['status'],detail=detail,phases=phases)
+        return network,report
+
+    def test_tcp_positive_controls_and_variable_syn_retransmissions(self):
+        for n in [1,2,4]:
+            network,report=self.result(syn_packets=n)
+            self.assertEqual(checker.check_tcp_syn(network,report,'tcp-syn'),0)
+        network,report=self.result('tcp-drop-disabled')
+        self.assertEqual(checker.check_tcp_syn(network,report,'tcp-drop-disabled'),0)
+        self.assertEqual(checker.check_tcp_syn(network,report,'tcp-syn'),3)
+
+    def test_timeout_without_drop_or_control_and_missing_cleanup_rejected(self):
+        import copy
+        network,report=self.result()
+        for mutate in [lambda r:r['phases'][3]['counter_delta'].__setitem__(2,0),
+                       lambda r:r['phases'][3]['sent']['connection_attempts'][0].__setitem__('connect','error'),
+                       lambda r:r['phases'][3]['received'].__setitem__('accepted_connections',[0,0]),
+                       lambda r:r['phases'][3]['sent']['connection_attempts'][1].__setitem__('payload_verified',False),
+                       lambda r:r['cleanup'].__setitem__('maps_unloaded',False),
+                       lambda r:r['attachment'].__setitem__('hook','egress'),
+                       lambda r:r['phases'].pop()]:
+            changed=copy.deepcopy(report);mutate(changed)
+            self.assertEqual(checker.check_tcp_syn(network,changed,'tcp-syn'),3)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -126,13 +126,15 @@ fn verified(root: &Path, manifest: &Value) -> io::Result<Verified> {
         ("tc-netem-loss-001", 0),
         ("tc-netem-unconfigured-001", 3),
         ("tc-after-netem-001", 0),
+        ("tc-tcp-drop-disabled-001", 1),
+        ("tc-tcp-syn-001", 0),
     ];
-    if result["schema_version"] != 7
+    if result["schema_version"] != 8
         || result["scenario"] != "netns-batch"
         || result["status"] != "passed"
         || result["exit_code"] != 0
         || result["vm_boots"] != 1
-        || cases.len() != 16
+        || cases.len() != 18
         || !cases.iter().zip(expected).all(|(case, (id, code))| {
             case["id"] == id
                 && case["status"] == "passed"

@@ -24,10 +24,12 @@ Nix storeと依存キャッシュ、専用Colimaの既存ディスクは元の�
 ```sh
 # リポジトリのルートから、既存bundleを再利用してホスト側の入口を準備する。
 volume=/Volumes/Elecom-1TB
-root="$volume/Linux/veil-arena/netem-20261016-155358"
+root="$volume/Linux/veil-arena/tcp-syn-20261019"
 bundle="$root/images/guest-bundle"
 prepared=$(bash scripts/prepare-netns-from-guest.sh "$bundle")
 ```
+
+現在の一括試験はschema 8・18ケースを要求する。上のパスはTCP追加後のbundle例であり、初回NetEm用の16ケースbundleとは別に保存する。古い結果・bundleを上書きせず、guestコードや参照eBPFの変更時には対応Linuxビルダーで更新してから再利用する。[TCPの試験契約と検証記録](TCP_SYN_VALIDATION.md)を参照する。以下の初回・本人実行の16ケース記録は当時の結果として保持する。
 
 準備の出力はGC rootで保持する。同じ入力と依存ならキャッシュを再利用する。旧入口や証拠を付け替えたり削除したりしない。通常の`arena-netns`は引き続きNix store内のイメージを使う。`arena-netns-volume`は同じlauncher・watchdog・controller・checkerへ、検証した外部bundleの参照を渡す。生成済みshellの書換えやローカルadapterの生成は不要。
 
@@ -54,7 +56,7 @@ prepared=$(bash scripts/prepare-netns-from-guest.sh "$bundle")
   "$root/results/watchdog-daily-$(date +%Y%m%d-%H%M%S)"
 ```
 
-[既存watchdog試験](HOST_WATCHDOG.md)と同じcheckpointで所有guest runnerをSIGSTOPし、停止状態を確認後、ホストの既存試験用期限で所有QEMUを停止する。意図したVM終了3を、証拠同期・回収・停止状態・未完了guest結果の検証が揃った場合だけ期待どおりと扱う。その後、別のboot ID・同一起動入力の新規VMで正常16ケースを実行する。停止試験の証拠が不十分なら後続VMは起動しない。
+[既存watchdog試験](HOST_WATCHDOG.md)と同じcheckpointで所有guest runnerをSIGSTOPし、停止状態を確認後、ホストの既存試験用期限で所有QEMUを停止する。意図したVM終了3を、証拠同期・回収・停止状態・未完了guest結果の検証が揃った場合だけ期待どおりと扱う。その後、別のboot ID・同一起動入力の新規VMで正常18ケースを実行する。停止試験の証拠が不十分なら後続VMは起動しない。
 
 全体の `summary.json` がpassed／終了0でも、`daily-watchdog/vm-stop.json` の環境エラー3は意図した停止として保持する。停止VMは完成batch結果やguest cleanup成功を生成せず、VM内資源は所有QEMU終了によって回収する。正常再実行の証拠は `daily/` に分けて保存する。失敗時には既存の自動診断と元の終了コードが維持される。
 

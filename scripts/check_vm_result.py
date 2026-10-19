@@ -27,7 +27,7 @@ TC_LABELS = ["tc-filters-before", "tc-plain-send", "tc-filters-attached", "tc-pa
              "tc-count-send", "tc-drop-send", "tc-filters-detached", "tc-detached-send"]
 
 BATCH_CASES = (("normal-001", 0), ("route-fault-001", 1), ("normal-002", 0), ("tc-ingress-001", 0),
-               ("tc-drop-disabled-001", 1), ("tc-wrong-hook-001", 3), ("tc-receiver-stopped-001", 3), ("bpf-test-run-001", 0), ("bpf-load-failure-001", 3), ("batch-cancel-001", 0), ("tc-after-cancel-001", 0), ("batch-timeout-001", 0), ("tc-restored-001", 0), ("tc-netem-loss-001", 0), ("tc-netem-unconfigured-001", 3), ("tc-after-netem-001", 0))
+               ("tc-drop-disabled-001", 1), ("tc-wrong-hook-001", 3), ("tc-receiver-stopped-001", 3), ("bpf-test-run-001", 0), ("bpf-load-failure-001", 3), ("batch-cancel-001", 0), ("tc-after-cancel-001", 0), ("batch-timeout-001", 0), ("tc-restored-001", 0), ("tc-netem-loss-001", 0), ("tc-netem-unconfigured-001", 3), ("tc-after-netem-001", 0), ("tc-tcp-drop-disabled-001", 1), ("tc-tcp-syn-001", 0))
 FAULTS = {"tc-drop-disabled-001":"drop-disabled", "tc-wrong-hook-001":"wrong-hook", "tc-receiver-stopped-001":"receiver-stopped"}
 
 
@@ -104,7 +104,7 @@ def check_batch(root: pathlib.Path) -> int:
         if summary.get("status") != "passed":
             return 1 if summary.get("status") == "failed" else 3
         cases = summary.get("cases")
-        if (summary.get("schema_version") != 7 or summary.get("scenario") != "netns-batch"
+        if (summary.get("schema_version") != 8 or summary.get("scenario") != "netns-batch"
                 or summary.get("exit_code") != 0 or summary.get("vm_boots") != 1
                 or service.read_text().strip() != "success" or not isinstance(cases, list) or len(cases) != len(BATCH_CASES)):
             return 3
@@ -135,6 +135,9 @@ def check_batch(root: pathlib.Path) -> int:
                     return 3
             elif case_id in {"tc-netem-loss-001", "tc-netem-unconfigured-001"}:
                 if check_netem(result, read_bounded(directory / "tc-result.json"), "netem-loss" if expected == 0 else "netem-unconfigured") != 0:
+                    return 3
+            elif case_id in {"tc-tcp-syn-001", "tc-tcp-drop-disabled-001"}:
+                if check_tcp_syn(result, read_bounded(directory / "tc-result.json"), "tcp-syn" if expected == 0 else "tcp-drop-disabled") != 0:
                     return 3
             elif fault:
                 if check_tc_fault(result, read_bounded(directory / "tc-result.json"), fault) != 0:
@@ -205,6 +208,69 @@ def check_netns(result: dict, service: str, tc_case: bool = False) -> int:
     print("Guest IPv4 ICMP/TCP/UDP baseline and lifetime cleanup passed")
     return 0
 
+
+def check_tcp_syn(network, result, fault):
+    try:
+        negative = fault == "tcp-drop-disabled"
+        labels = NETWORK_LABELS[:-5] + (TC_LABELS[:6] if negative else TC_LABELS) + NETWORK_LABELS[-2 if negative else -5:]
+        expected_status = "failed" if negative else "passed"
+        if (fault not in {"tcp-syn", "tcp-drop-disabled"} or network.get("scenario") != "netns-baseline"
+                or network.get("status") != expected_status or network.get("tc_fault") != fault
+                or network.get("tc_reference") is not True
+                or network.get("cleanup") != {"helpers_reaped":True,"owned_namespace_references":[],"parent_network_unchanged":True,"errors":[]}
+                or result.get("schema_version") != 1 or result.get("scenario") != "tc-tcp-syn"
+                or result.get("status") != expected_status or result.get("fault") != fault
+                or result.get("detail") != ("TCP drop delivery/count assertion failed" if negative else None)
+                or network.get("detail") != result.get("detail")
+                or result.get("cleanup") != {"detached":True,"program_unloaded":True,"maps_unloaded":True,"pinned":False}): return 3
+        attachment = result["attachment"]
+        if (attachment.get("interface") != "rt-app" or attachment.get("hook") != "ingress"
+                or attachment.get("attach") != "netlink-clsact" or attachment.get("aya") != "0.13.1"
+                or attachment.get("priority") != 49152 or attachment.get("handle") != 1 or attachment.get("pinned") is not False
+                or type(attachment.get("program_id")) is not int or attachment["program_id"] <= 0
+                or len(attachment["map_ids"]) != 2 or len(set(attachment["map_ids"])) != 2
+                or any(type(i) is not int or i <= 0 for i in attachment["map_ids"])
+                or len(bytes.fromhex(attachment["object_sha256"])) != 32): return 3
+        steps = network["steps"]
+        if len(steps) != len(labels): return 3
+        for i,(step,label) in enumerate(zip(steps,labels)):
+            expected = 1 if label.startswith("forwarding-off-") else 0
+            if (step.get("id") != f"{i+1:03}-{label}" or step.get("status") != "passed"
+                    or step.get("exit_code") != expected or step.get("expected_exit_code") != expected
+                    or step.get("signal") is not None or step.get("output_complete") is not True
+                    or step.get("log_truncated") is not False): return 3
+        names = ["plain","pass","count","drop"] + ([] if negative else ["detached"])
+        phases = result["phases"]
+        if len(phases) != len(names): return 3
+        previous = [0]*6
+        for item,phase in zip(phases,names):
+            dropped = phase == "drop" and not negative
+            mode = {"plain":None,"pass":0,"count":3,"drop":3 if negative else 4,"detached":None}[phase]
+            before,after = item["before"],item["after"]
+            b,a,delta = before["counters"],after["counters"],item["counter_delta"]
+            sent,received = item["sent"],item["received"]
+            if (item["phase"] != phase or sent["phase"] != phase or received["phase"] != phase
+                    or before["mode"] != mode or after["mode"] != mode
+                    or any(len(v) != 6 for v in [b,a,delta])
+                    or any(type(n) is not int or n < 0 for n in b+a+delta)
+                    or [x-y for x,y in zip(a,b)] != delta
+                    or (phase != "detached" and b != previous)
+                    or received.get("payloads_verified") is not True
+                    or received.get("accepted_connections") != [0 if dropped else 1,1]
+                    or len(sent["connection_attempts"]) != 2): return 3
+            for kind,attempt in enumerate(sent["connection_attempts"]):
+                blocked = dropped and kind == 0
+                if (attempt.get("kind") != kind or attempt.get("port") != (39201,39202)[kind]
+                        or attempt.get("connect") != ("timeout" if blocked else "connected")
+                        or attempt.get("payload_verified") is not (not blocked)): return 3
+            if phase in {"plain","pass","detached"}:
+                if delta != [0]*6: return 3
+            elif (delta[0] < 1 or delta[3] < 1 or delta[4] != delta[3] or delta[5] != 0
+                    or (dropped and (delta[1] != 0 or delta[2] != delta[0]))
+                    or (not dropped and (delta[1] != delta[0] or delta[2] != 0))): return 3
+            previous = a
+        return 0
+    except (KeyError,TypeError,ValueError,AttributeError,IndexError): return 3
 
 def check_tc(result: dict) -> int:
     return _validate_tc(result, None)
@@ -444,6 +510,20 @@ def direct_fixtures():
             drop = mode == 2 and not control; delta = [0]*6; base = 3 if control else 0
             if mode: delta[base] = 1; delta[base+(2 if drop else 1)] = 1
             rows.append((f"recovery-{mode}-{'control' if control else 'target'}",bytes(p),mode,None,2 if drop else 0,delta))
+    tcp=bytearray(54);tcp[:34]=packet[:34];tcp[23]=6;tcp[16:18]=(40).to_bytes(2,"big")
+    tcp[34:36]=(40000).to_bytes(2,"big");tcp[36:38]=(39201).to_bytes(2,"big");tcp[46]=0x50;tcp[47]=2;checksum(tcp)
+    for size in range(34,54):rows.append((f"tcp-prefix-{size}",bytes(tcp[:size]),4,None,0,[0]*6))
+    for mode in (0,3,4):
+        for control in (False,True):
+            for flags in ((2,0x12,0x10,4,1,3) if mode==4 else (2,)):
+                p=tcp.copy();p[47]=flags
+                if control:p[36:38]=(39202).to_bytes(2,"big")
+                delta=[0]*6;drop=mode==4 and not control and flags==2
+                if mode and flags==2:
+                    base=3 if control else 0;delta[base]=1;delta[base+(2 if drop else 1)]=1
+                rows.append((f"tcp-{mode}-{'control' if control else 'target'}-{flags}",bytes(p),mode,None,2 if drop else 0,delta))
+    for name,offset,data in (("tcp-doff-small",46,bytes([0x40])),("tcp-doff-overrun",46,bytes([0xf0])),("tcp-total-overrun",16,bytes([0,41]))):
+        p=tcp.copy();p[offset:offset+len(data)]=data;rows.append((name,bytes(p),4,None,0,[0]*6))
     return rows
 
 
@@ -543,7 +623,7 @@ def check_interruption(result, directory, reason):
         batch = read_bounded(nested / "result.json")
         inner_contract = [row for row in BATCH_CASES if not row[0].startswith("batch-") and row[0] != "tc-after-cancel-001"]
         cases = batch["cases"]
-        if (batch.get("schema_version") != 7 or batch.get("scenario") != "netns-batch"
+        if (batch.get("schema_version") != 8 or batch.get("scenario") != "netns-batch"
                 or batch.get("status") != reason or batch.get("exit_code") != code
                 or batch.get("interruption_mode") != reason or batch.get("vm_boots") != 1
                 or len(cases) != len(inner_contract)):
