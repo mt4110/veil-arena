@@ -161,7 +161,7 @@ def check_batch(root: pathlib.Path) -> int:
                 topology = read_bounded(directory / "topology.json")
                 if topology.get("omit_server_route") is not True:
                     return 3
-        print("Batch passed: sixteen cases including NetEm attribution, rejection and recovery; one VM boot")
+        print(f"Batch passed: {len(BATCH_CASES)} cases including TCP SYN and NetEm controls; one VM boot")
         return 0
     except (OSError, ValueError, TypeError):
         print("Batch evidence missing or malformed", file=sys.stderr)
@@ -214,7 +214,8 @@ def check_tcp_syn(network, result, fault):
         negative = fault == "tcp-drop-disabled"
         labels = NETWORK_LABELS[:-5] + (TC_LABELS[:6] if negative else TC_LABELS) + NETWORK_LABELS[-2 if negative else -5:]
         expected_status = "failed" if negative else "passed"
-        if (fault not in {"tcp-syn", "tcp-drop-disabled"} or network.get("scenario") != "netns-baseline"
+        if (fault not in {"tcp-syn", "tcp-drop-disabled"} or network.get("schema_version") != 1
+                or network.get("scenario") != "netns-baseline"
                 or network.get("status") != expected_status or network.get("tc_fault") != fault
                 or network.get("tc_reference") is not True
                 or network.get("cleanup") != {"helpers_reaped":True,"owned_namespace_references":[],"parent_network_unchanged":True,"errors":[]}

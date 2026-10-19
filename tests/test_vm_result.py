@@ -568,6 +568,33 @@ class TcpSynEvidenceTests(unittest.TestCase):
         self.assertEqual(checker.check_tcp_syn(network,report,'tcp-drop-disabled'),0)
         self.assertEqual(checker.check_tcp_syn(network,report,'tcp-syn'),3)
 
+    def test_tcp_network_schema_is_required_for_both_outcomes(self):
+        for fault in ("tcp-syn", "tcp-drop-disabled"):
+            network, report = self.result(fault)
+            self.assertEqual(checker.check_tcp_syn(network, report, fault), 0)
+            for version in (None, 0, 2, "1"):
+                with self.subTest(fault=fault, schema=version):
+                    changed = dict(network)
+                    changed["schema_version"] = version
+                    self.assertEqual(checker.check_tcp_syn(changed, report, fault), 3)
+            network.pop("schema_version")
+            self.assertEqual(checker.check_tcp_syn(network, report, fault), 3)
+
+    def test_batch_rejects_tcp_inner_network_schema_mismatch(self):
+        for case_id in ("tc-tcp-syn-001", "tc-tcp-drop-disabled-001"):
+            for version in (None, 2):
+                with self.subTest(case=case_id, schema=version):
+                    root, _ = BatchEvidenceTests().fixture()
+                    self.assertEqual(checker.check(root, "netns-batch"), 0)
+                    path = root / "netns-batch" / case_id / "result.json"
+                    network = json.loads(path.read_text())
+                    if version is None:
+                        network.pop("schema_version")
+                    else:
+                        network["schema_version"] = version
+                    path.write_text(json.dumps(network))
+                    self.assertEqual(checker.check(root, "netns-batch"), 3)
+
     def test_timeout_without_drop_or_control_and_missing_cleanup_rejected(self):
         import copy
         network,report=self.result()

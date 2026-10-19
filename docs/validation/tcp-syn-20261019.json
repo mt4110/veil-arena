@@ -627,5 +627,33 @@
     "Old 16-case guest bundles and prior evidence retained; no physical SSD unplug injection.",
     "Third-party trial, k8s, signed tag and release remain on hold; no PR or push performed."
   ],
-  "same_guest_content_hashes_across_all_vms": true
+  "same_guest_content_hashes_across_all_vms": true,
+  "post_review_checker_validation": {
+    "base_validation_commit": "20f5ee7b6565d28216850feeb2801a8d63dc24a2",
+    "review": "https://github.com/mt4110/veil-arena/pull/19#discussion_r4314625038",
+    "change": "require schema 1 on the TCP inner network report; malformed evidence returns environment error 3",
+    "vm_rerun": false,
+    "reason": "checker and host regression only; guest runner and reference BPF unchanged",
+    "runs": [
+      {
+        "output": "artifacts/tcp-syn-20261019/linux-evidence/seed-v3/daily",
+        "batch_exit": 0,
+        "malformed_tcp_schema_rejected": true
+      },
+      {
+        "output": "/Volumes/Elecom-1TB/Linux/veil-arena/tcp-syn-20261019/results/acceptance-v3/daily",
+        "batch_exit": 0,
+        "malformed_tcp_schema_rejected": true
+      },
+      {
+        "output": "/Volumes/Elecom-1TB/Linux/veil-arena/tcp-syn-20261019/results/acceptance-v3/fresh",
+        "batch_exit": 0,
+        "malformed_tcp_schema_rejected": true
+      }
+    ],
+    "checker_sha256": "efa417a59e2de5600ca35c676d7da38f619b16955f4e411a40e8f37571b491f6",
+    "test_sha256": "f037eebbdbd1d02fa529bfb9c9da06244aa90a2de85aa8fbcdb85bee9ed74a8f",
+    "mac_check": "passed",
+    "python_tests": 69
+  }
 }

@@ -115,6 +115,21 @@ checkerの一部に残るschema 7が不一致を起こした。18ケースの契
 別programが混在しないことを引き続き要求した。header行の許容とID・priority・direct-action・重複の拒否を
 Rust回帰試験へ追加した。失敗VMの証拠・後片付け結果も保持し、修正後の別guest（v3）で確認した。
 
+## PRレビュー後のchecker補強
+
+PR #19のschema検査漏れを再現し、TCP内側のnetwork reportにもschema 1を必須とした。
+schema欠落・null・0・2・文字列を環境エラー3として拒否し、正常／drop無効化の両方を確認した。
+一括試験にも内側レポートのschema不正を混ぜ、外側schema 8だけでは成功しない回帰試験を追加した。
+修正前は新しい回帰試験が失敗し、修正後はMacの全チェック（Python 69件を含む）が成功した。
+正常一括試験の表示も、古い16ケース固定の文言から現在のケース数に合わせた。
+
+この補強はhost checkerと回帰試験のみで、guest runner・参照eBPF・期限は変更していない。
+VMを再起動せず、上記で保存した3 VMすべての18ケースを修正後checkerで再判定して成功した。
+保存済みの両TCPレポートを使ったschema不正の検査も成功した。旧証拠・bundleは変更していない。
+初回の入力48ファイルのhashは元のsnapshotとして保持し、変更後checker／回帰試験のhashは
+[集計](validation/tcp-syn-20261019.json)の `post_review_checker_validation` に別記する。
+GitHub Linux x86_64 CIは修正後コミットで確認し、PRから結果を参照する。
+
 ## 範囲
 
 固定IPv4の新規接続と初期SYNに限る。確立済み接続の遮断、IPv6、任意の攻撃入力、
