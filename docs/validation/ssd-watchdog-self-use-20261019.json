@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "scenario": "ssd-watchdog-owner-self-use",
+  "repository_main_at_recording": "58b130f2911f51474ef2ae13dd880de2a06a7e11",
+  "prepared": "/nix/store/h2fc020yc30jjflfcl3cngyh15cxjkyn-arena-netns-prepared",
+  "evidence_directory": "/Volumes/Elecom-1TB/Linux/veil-arena/watchdog-self-use-20261019-123656",
+  "user_report": {
+    "workflow_console": "watchdog-daily: passed",
+    "shell_exit_code": 0,
+    "finder_opened_evidence_directory": true,
+    "finder_evidence_source": "user report in this chat; not independent UI observation"
+  },
+  "saved_reports_check": {
+    "status": "passed",
+    "exit_code": 0,
+    "vm_boots": 2,
+    "duration_ms": 349152,
+    "watchdog_vm_exit_code": 3,
+    "watchdog_runner_state": "T",
+    "watchdog_evidence_verification": "passed",
+    "watchdog_guest_result": "incomplete",
+    "normal_recovery_cases": 16,
+    "different_boot_ids": true,
+    "same_boot_inputs": true,
+    "both_qemu_reaped_and_exit_zero_reported": true,
+    "both_evidence_synced_before_stop_reported": true,
+    "both_escalated": false
+  },
+  "selected_report_sha256": {
+    "summary.json": "5f6f16440fd28ae09876e1535c5005018a45a85590dce74263672317350b0bb3",
+    "daily-watchdog/vm-stop.json": "40340f3873a64157fad3fc1f8a284fd57008bb914ee36b8229f69b030795b4f9",
+    "daily-watchdog/watchdog-ready.json": "f55898089978b7e08578d3ac945a5a7d19207ae919b67b6606eff34e0cc99546",
+    "daily-watchdog/watchdog-verification.json": "d9eecb4961a76c7a43292cc06411bdfa243cca74936494387eabc700379989db",
+    "daily/vm-stop.json": "79443750e3a3bbcc3d1030463c353677200a738a65f69cc2f10792da40643b02"
+  },
+  "milestone": "Owner executed the cached SSD entry, saw the success and exit code, and opened the evidence directory in Finder.",
+  "scope": "One owner-operated stopped/recovery pair on the existing Mac ARM64/TCG setup; no new VM run performed while recording.",
+  "limitations": [
+    "Finder confirmation is user-reported; no independent UI observation.",
+    "No claim that all detailed evidence was reviewed by the owner.",
+    "Existing guest package 0.1.0 and host controller 0.2.1; not a cold install or newly built guest.",
+    "Not a four-VM acceptance or Linux host runtime check; prior KVM timeout root cause remains undetermined.",
+    "No usability timing, completion-rate, resource-saving or external-adoption measurement.",
+    "Tag/publication, third-party trial and k8s remain on hold."
+  ]
+}
