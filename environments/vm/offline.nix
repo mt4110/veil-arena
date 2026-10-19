@@ -268,8 +268,8 @@ let
     name = "arena-netns-volume";
     runtimeInputs = [ hostPkgs.coreutils hostPkgs.python314 ];
     text = ''
-      if [ "$#" -ne 4 ]; then echo "usage: arena-netns-volume VOLUME_ROOT GUEST_BUNDLE daily|acceptance NEW_OUTPUT_DIRECTORY" >&2; exit 2; fi
-      case "$3" in daily|acceptance) ;; *) echo "use daily or acceptance" >&2; exit 2;; esac
+      if [ "$#" -ne 4 ]; then echo "usage: arena-netns-volume VOLUME_ROOT GUEST_BUNDLE daily|acceptance|watchdog-daily NEW_OUTPUT_DIRECTORY" >&2; exit 2; fi
+      case "$3" in daily|acceptance|watchdog-daily) ;; *) echo "use daily, acceptance or watchdog-daily" >&2; exit 2;; esac
       if [ "$(id -u)" -ne ${toString hostUid} ]; then echo "host UID differs from VM definition" >&2; exit 3; fi
       export ARENA_VM_VOLUME_ROOT="$1" ARENA_VM_BOOT_BUNDLE="$2"
       python3 ${volumeTools}/volume_guest.py ${metadata} ${bundle} "$2" "$1" "$4" > /dev/null

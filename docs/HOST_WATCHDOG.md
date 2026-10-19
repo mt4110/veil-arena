@@ -18,7 +18,7 @@ guest内の一括runnerが終了処理を実行できないとき、ホストが
 
 ## 再実行と受け入れ
 
-準備は[既存の入口](NETNS_WORKFLOW.md)を使う。ソース変更に必要な新しいimageを準備した後、以下のコマンドからbuild・Nix・依存取得は呼ばない。
+準備は[既存の入口](NETNS_WORKFLOW.md)を使う。必要なホスト入口・guestを準備した後、以下のコマンドからbuild・Nix・依存取得は呼ばない。ホスト入口だけの変更なら検証済みguestを再利用できる。
 
 ```sh
 /nix/store/<returned-path>-arena-netns-prepared/bin/arena-netns watchdog-daily \
@@ -30,13 +30,15 @@ guest内の一括runnerが終了処理を実行できないとき、ホストが
 
 | モード | 起動順序 |
 |---|---|
-| `daily` / `acceptance` | 従来の正常一括試験。1 VM / 2 VM、各13ケース |
+| `daily` / `acceptance` | 従来の正常一括試験。1 VM / 2 VM、各16ケース |
 | `watchdog-daily` | 停止試験VM → 新規の正常再実行VM。計2 VM |
 | `watchdog-acceptance` | 停止試験VM → 正常再実行VM → 追加の新規停止試験VM → 正常再実行VM。計4 VM |
 
-4 VMのboot IDがすべて異なり、image/kernel/initrd checksumが一致することを照合する。停止試験は停止状態・部分対照・host期限・証拠同期・QEMU回収を確認できた場合だけ、期待する環境エラーの検出として外側の集計へ合格を記録する。単なる終了3では合格にしない。予期しない結果の場合は後続VMを起動しない。
+起動した全VM（`watchdog-daily`は2、`watchdog-acceptance`は4）のboot IDがすべて異なり、image/kernel/initrd checksumが一致することを照合する。停止試験は停止状態・部分対照・host期限・証拠同期・QEMU回収を確認できた場合だけ、期待する環境エラーの検出として外側の集計へ合格を記録する。単なる終了3では合格にしない。予期しない結果の場合は後続VMを起動しない。
 
-正常再実行VMはそれぞれ従来の13ケースを実行し、通過・カウント・限定UDP drop・対照通過・detach後の通信、異常入力、ロード故障、guestキャンセル・タイムアウトからの復帰も確認する。guest kernelの応答喪失やQEMUの停止不能を確認したことにはしない。
+正常再実行VMはそれぞれ現在の16ケースを実行し、通過・カウント・限定UDP drop・対照通過・detach後の通信、異常入力、ロード故障、guestキャンセル・タイムアウトからの復帰も確認する。guest kernelの応答喪失やQEMUの停止不能を確認したことにはしない。
+
+SSD上の既存bundleを使う場合は、[SSD正式入口の手順](MAC_SSD_VM.md#runner停止からの復帰確認)から `arena-netns-volume ... watchdog-daily ...` を実行できる。こちらは停止と正常再実行の2 VMに限定する。
 
 ## 証拠
 
