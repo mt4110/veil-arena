@@ -26,23 +26,31 @@
       "syntax_argv": [
         "apparmor_parser",
         "--skip-kernel-load",
-        "--skip-cache"
+        "--skip-cache",
+        "/inputs/m0-exec-check.profile"
       ],
       "syntax_pre_post_inventory_must_match": true,
       "syntax_target_must_remain_absent": true,
       "add_argv": [
         "apparmor_parser",
         "--skip-cache",
-        "--add"
+        "--add",
+        "/inputs/m0-exec-check.profile"
       ],
       "ownership_starts_only_on_successful_explicit_add": true,
       "remove_argv": [
         "apparmor_parser",
         "--skip-cache",
-        "--remove"
+        "--remove",
+        "/inputs/m0-exec-check.profile"
       ],
       "remove_requires_owned_add_success": true,
-      "scope": "future F3 contract; no parser invocation performed in F0"
+      "scope": "future F3 contract; no parser invocation performed in F0",
+      "profile_guest_path": "/inputs/m0-exec-check.profile",
+      "profile_source": "keeper.input_sha256[experiments/apparmor/m0-exec-check.profile]",
+      "profile_read_only_and_hash_verified_before_each_command": true,
+      "stdin": "DEVNULL",
+      "command_timeout_seconds": 20
     }
   },
   "nixpkgs": {

@@ -48,13 +48,18 @@ AppArmor有効なkernel、稼働LSM、securityfs、parser、profileのsyntax、�
 NixOSの `security.apparmor.enable` を新規guestで設定し、既存netns guestやホストのboot設定を変えない。
 AppArmor未対応／読取り不能／不足権限は環境エラーとし、BPF LSMや別方式へ黙って切り替えない。
 
-syntax確認は `apparmor_parser --skip-kernel-load --skip-cache`（`-Q -K`）で行い、kernelへloadしない。
+syntax確認は `apparmor_parser --skip-kernel-load --skip-cache /inputs/m0-exec-check.profile`（`-Q -K`）で行い、kernelへloadしない。
 syntax確認前後のprofile名・mode一覧が一致し、対象profileが不在であることを要求する。
 `--skip-cache` だけでは非loadにはならない。parserの既定動作はaddであるため、syntax成功を所有証拠にしない。
-その後に `apparmor_parser --skip-cache --add` を明示実行し、成功した時点だけを所有開始とする。
+その後に `apparmor_parser --skip-cache --add /inputs/m0-exec-check.profile` を明示実行し、成功した時点だけを所有開始とする。
 replace、profile全集合のreload、killallは使わない。
 根拠は [AppArmor 5.0 parserの仕様](https://www.apparmor.net/man/5.0/apparmor_parser/)。
 追加成功の所有証拠があるprofileだけを解除し、追加失敗時は他者profileを解除しない。
+解除にも `apparmor_parser --skip-cache --remove /inputs/m0-exec-check.profile` を用い、完全なprofile定義を渡す。
+3つの呼出しは同じread-only snapshotを使い、各呼出し前に固定hashを照合する。
+標準入力はDEVNULL、各コマンドは20秒上限。入力省略によるstdin待ちを許さない。
+JSONのargv先頭は論理名であり、準備時に固定Nix packageのparser絶対パスへ解決してmanifestへ保存する。
+
 変更前後のprofile名・mode一覧、対象profileの不在、所有子プロセス回収を確認する。
 一覧hash一致は他のpolicy本体すべての一致を証明するものではない。
 F0ではこれらを実行しない。F3の試験時に専用VM・対象profile・回収範囲を明示する。
