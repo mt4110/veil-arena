@@ -40,7 +40,13 @@ def check(root):
                 or not 0 < path.stat().st_size <= 8 * 1024**3 or sha(path) != row["sha256"]):
             raise ValueError(f"boot input differs: {name}")
     inputs = json.loads(bounded(root / "inputs.json"))
-    if any(inputs.get("limits", {}).get(k) != v for k, v in LIMITS.items()):
+    expected = dict(LIMITS)
+    if inputs.get("scenario") == "k3s-f2":
+        if inputs.get("role") not in {"server", "agent"}:
+            raise ValueError("invalid F2 node role")
+        if inputs["role"] == "agent":
+            expected.update(vcpus=2, memory_mib=4096)
+    if any(inputs.get("limits", {}).get(k) != v for k, v in expected.items()):
         raise ValueError("F0 resource or deadline contract mismatch")
     if inputs.get("versions") != VERSIONS:
         raise ValueError("fixed F0 versions differ")

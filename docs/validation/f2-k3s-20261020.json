@@ -1,0 +1,1014 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "milestone": "F2",
+  "status": "passed",
+  "base_commit": "0082ae727dfdbab481e9bd4a925eccbc79bd9c71",
+  "platform": "aarch64-darwin / aarch64-linux guest / native QEMU TCG",
+  "runner": "/nix/store/w2w1wqn9x4h3s1n6gc8w2vg6k2cmxzmf-arena-k3s-f2",
+  "prepared_guests": {
+    "server": "/nix/store/qqgl2rycpl39yf5wb5l5883y39sdcn94-arena-k3s-f2-server-bundle",
+    "agent": "/nix/store/ram2zrr3mhid31k57hy2bmh7gm2ahk7l-arena-k3s-f2-agent-bundle"
+  },
+  "evidence_root": "Linux/veil-arena/k3s-f2-20261020/acceptance-3",
+  "resources": {
+    "server": {
+      "vcpus": 4,
+      "memory_mib": 16384,
+      "disk_virtual_bytes": 34359738368
+    },
+    "agent": {
+      "vcpus": 2,
+      "memory_mib": 4096,
+      "disk_virtual_bytes": 34359738368
+    }
+  },
+  "deadlines": {
+    "node_ready_seconds": 300,
+    "pod_ready_seconds": 120,
+    "io_probe_seconds": 5,
+    "shared_workflow_seconds": 600,
+    "host_watchdog_seconds": 660
+  },
+  "boot_inputs": {
+    "server": {
+      "bundle_sha256": "81fbd6c7c840423d92ebd8d8c406884e539efd001a29675e01f13e77d09771c9",
+      "files": {
+        "store.img": {
+          "sha256": "2615ea2986108c44caa5d6ce9c5601029c2b57583c8bd67f2c4730fd404e1b3d",
+          "bytes": 2001072128
+        },
+        "Image": {
+          "sha256": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+          "bytes": 61114880
+        },
+        "initrd": {
+          "sha256": "2a4432f83f94e9aa226bc684da05a8359c3f9ff1f716037e1ad3e90a0b9d705b",
+          "bytes": 27429535
+        },
+        "kernel-params": {
+          "sha256": "18d86214f960717fa5a06a88a57fc65d0ca116a55cff4f7fc11e2083404304d3",
+          "bytes": 77
+        },
+        "inputs.json": {
+          "sha256": "5f56483e0c6d76853ac1e322db5c816e14bb175d21efbd173898e1c25d8d4b2e",
+          "bytes": 2098
+        },
+        "fixtures.json": {
+          "sha256": "0340f6fdc0941199bb215aeb40f91949c7d8b0a46b7ddd1c25b621df686949e2",
+          "bytes": 2284
+        },
+        "toplevel": {
+          "sha256": "3f7cc254761541dc2ddd616c10ad3c4dabaf5a04dd4628d21fc9f73d4d6e3a0a",
+          "bytes": 97
+        },
+        "run-base.qcow2": {
+          "sha256": "d540e67a60a1b940ac9dda21e516b9570e8db916d2fb1a12766d3d67453cc573",
+          "bytes": 197120
+        }
+      },
+      "inputs": {
+        "airgap_sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5",
+        "apparmor_parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+        "common_guest_sha256": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+        "compat_aa_exec": "/nix/store/gjfmhii7xa59vq7ga974gp44sj4gpgz8-apparmor-bin-utils-5.0.2/bin/aa-exec",
+        "compat_elf": {
+          "false": {
+            "destination": "/usr/bin/false",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/false"
+          },
+          "true": {
+            "destination": "/usr/bin/true",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/true"
+          }
+        },
+        "compat_python": "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+        "fixture_command": [
+          "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+          "/nix/store/42khvj0findczvm089imzg530fi6imwb-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+        ],
+        "fixture_config_digest": "sha256:4a51081830ce1f01fde4e60d61c86637c4444e70075534d6901b382301c5259d",
+        "fixture_script_sha256": "769e21fbef207ba8e544ebbe8d6c31d2d759c58e5c638929e80c72bf6b4a10f4",
+        "guest_runner_sha256": "ffed53af59d84c33594e88831758084c6e332fe6ff9100205e195805a04f15cb",
+        "hostUid": 501,
+        "imageName": "docker.io/veil-arena/fixture:f2-769e21fbef207ba8",
+        "keeper_child_gid": 1000,
+        "keeper_child_uid": 501,
+        "limits": {
+          "host_watchdog_seconds": 660,
+          "io_probe_seconds": 5,
+          "memory_mib": 16384,
+          "node_ready_seconds": 300,
+          "pod_ready_seconds": 120,
+          "vcpus": 4,
+          "workflow_seconds": 600,
+          "writable_run_disk_virtual_gib": 32
+        },
+        "manifest_sha256": "0340f6fdc0941199bb215aeb40f91949c7d8b0a46b7ddd1c25b621df686949e2",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "role": "server",
+        "scenario": "k3s-f2",
+        "schema_version": 1,
+        "system": "aarch64-linux",
+        "versions": {
+          "apparmor": "5.0.2",
+          "cargo_binary": "1.98.0",
+          "containerd": "2.3.4-k3s1.36",
+          "coreutils": "9.11",
+          "flannel": "v0.28.4",
+          "k3s": "1.36.4+k3s1",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "qemu": "11.1.1",
+          "rust": "1.98.1"
+        }
+      },
+      "fixture_archive_sha256": "253010684776c83d3fe84a3751b79f48f792e7d439fd4e2b6252f17823fce9dd"
+    },
+    "agent": {
+      "bundle_sha256": "8c1d2d13af135d2cf8ad03cc4f9763aa1931fedffd69db2921f57be1e135ebab",
+      "files": {
+        "store.img": {
+          "sha256": "3f8bf14c820e7f9188bd987b2ce884f51d9906ee183372ac852b01526ad30487",
+          "bytes": 2001076224
+        },
+        "Image": {
+          "sha256": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+          "bytes": 61114880
+        },
+        "initrd": {
+          "sha256": "fa0941e80c966214fe62010a62610c1bafcf0f8cf5bfaf0ccf019c945d91e60a",
+          "bytes": 27432471
+        },
+        "kernel-params": {
+          "sha256": "18d86214f960717fa5a06a88a57fc65d0ca116a55cff4f7fc11e2083404304d3",
+          "bytes": 77
+        },
+        "inputs.json": {
+          "sha256": "3772b51e1311189370f5b489e5256e8264917652f6e7a1ec0826776155dcc716",
+          "bytes": 2096
+        },
+        "fixtures.json": {
+          "sha256": "0340f6fdc0941199bb215aeb40f91949c7d8b0a46b7ddd1c25b621df686949e2",
+          "bytes": 2284
+        },
+        "toplevel": {
+          "sha256": "afe5159da6b977ed25ecd7eed1c24e7558469efc19d62a3dc17ac73829e064a1",
+          "bytes": 96
+        },
+        "run-base.qcow2": {
+          "sha256": "d540e67a60a1b940ac9dda21e516b9570e8db916d2fb1a12766d3d67453cc573",
+          "bytes": 197120
+        }
+      },
+      "inputs": {
+        "airgap_sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5",
+        "apparmor_parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+        "common_guest_sha256": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+        "compat_aa_exec": "/nix/store/gjfmhii7xa59vq7ga974gp44sj4gpgz8-apparmor-bin-utils-5.0.2/bin/aa-exec",
+        "compat_elf": {
+          "false": {
+            "destination": "/usr/bin/false",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/false"
+          },
+          "true": {
+            "destination": "/usr/bin/true",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/true"
+          }
+        },
+        "compat_python": "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+        "fixture_command": [
+          "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+          "/nix/store/42khvj0findczvm089imzg530fi6imwb-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+        ],
+        "fixture_config_digest": "sha256:4a51081830ce1f01fde4e60d61c86637c4444e70075534d6901b382301c5259d",
+        "fixture_script_sha256": "769e21fbef207ba8e544ebbe8d6c31d2d759c58e5c638929e80c72bf6b4a10f4",
+        "guest_runner_sha256": "ffed53af59d84c33594e88831758084c6e332fe6ff9100205e195805a04f15cb",
+        "hostUid": 501,
+        "imageName": "docker.io/veil-arena/fixture:f2-769e21fbef207ba8",
+        "keeper_child_gid": 1000,
+        "keeper_child_uid": 501,
+        "limits": {
+          "host_watchdog_seconds": 660,
+          "io_probe_seconds": 5,
+          "memory_mib": 4096,
+          "node_ready_seconds": 300,
+          "pod_ready_seconds": 120,
+          "vcpus": 2,
+          "workflow_seconds": 600,
+          "writable_run_disk_virtual_gib": 32
+        },
+        "manifest_sha256": "0340f6fdc0941199bb215aeb40f91949c7d8b0a46b7ddd1c25b621df686949e2",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "role": "agent",
+        "scenario": "k3s-f2",
+        "schema_version": 1,
+        "system": "aarch64-linux",
+        "versions": {
+          "apparmor": "5.0.2",
+          "cargo_binary": "1.98.0",
+          "containerd": "2.3.4-k3s1.36",
+          "coreutils": "9.11",
+          "flannel": "v0.28.4",
+          "k3s": "1.36.4+k3s1",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "qemu": "11.1.1",
+          "rust": "1.98.1"
+        }
+      },
+      "fixture_archive_sha256": "253010684776c83d3fe84a3751b79f48f792e7d439fd4e2b6252f17823fce9dd"
+    }
+  },
+  "runs": [
+    {
+      "directory": "fresh-1",
+      "status": "passed",
+      "nodes": {
+        "server": {
+          "boot_id": "f352a993-fa9d-484a-af43-cefd7fc4c550",
+          "guest_seconds": 164.750717,
+          "checks": [
+            {
+              "stage": "nodes",
+              "status": "passed",
+              "names": [
+                "arena-k3s-agent",
+                "arena-k3s-server"
+              ]
+            },
+            {
+              "stage": "pods",
+              "status": "passed",
+              "placement": {
+                "client": "arena-k3s-agent",
+                "control": "arena-k3s-agent",
+                "server": "arena-k3s-server"
+              }
+            },
+            {
+              "stage": "baseline",
+              "status": "passed",
+              "probes": [
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:tcp:19e2d7b6cb4e46c1ad199dd4342c9512",
+                    "received": "arena-f2:tcp:19e2d7b6cb4e46c1ad199dd4342c9512",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:udp:7b6480b6f56e48eaa118a48405180bea",
+                    "received": "arena-f2:udp:7b6480b6f56e48eaa118a48405180bea",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.111.42"
+                    ],
+                    "payload": "arena-f2:tcp:ca4778825ecd4eceb15e7026f34978aa",
+                    "received": "arena-f2:tcp:ca4778825ecd4eceb15e7026f34978aa",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.111.42"
+                    ],
+                    "payload": "arena-f2:udp:24cb2139eb5b40b980943e22801a8b4d",
+                    "received": "arena-f2:udp:24cb2139eb5b40b980943e22801a8b4d",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                }
+              ]
+            },
+            {
+              "stage": "deny",
+              "status": "passed",
+              "probes": [
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "10.42.0.3",
+                  "expected": "deny",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:tcp:9a1f40b9b6a048218c0c058a90be83b1",
+                    "outcome": "denied",
+                    "errno": 111
+                  },
+                  "receiver_count": 0
+                },
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "deny",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.111.42"
+                    ],
+                    "payload": "arena-f2:tcp:40ea3c7ebf344eb0bd7b2a19d33f10cd",
+                    "outcome": "denied",
+                    "errno": 111
+                  },
+                  "receiver_count": 0
+                },
+                {
+                  "client": "control",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.111.42"
+                    ],
+                    "payload": "arena-f2:tcp:f4d0ea1b8c0e43da8d162c80f1999b31",
+                    "received": "arena-f2:tcp:f4d0ea1b8c0e43da8d162c80f1999b31",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.111.42"
+                    ],
+                    "payload": "arena-f2:udp:422617b1a25c4ffd85b7afb8cf1aede4",
+                    "received": "arena-f2:udp:422617b1a25c4ffd85b7afb8cf1aede4",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                }
+              ],
+              "policy_uid": "ec334ae7-6fbb-4f53-a048-77859a467e31"
+            },
+            {
+              "stage": "recovery",
+              "status": "passed",
+              "probes": [
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:tcp:d486e29f03474e508d7350f293b5ae07",
+                    "received": "arena-f2:tcp:d486e29f03474e508d7350f293b5ae07",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:udp:11f18cf560d24528a3af83774fb7cc07",
+                    "received": "arena-f2:udp:11f18cf560d24528a3af83774fb7cc07",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.111.42"
+                    ],
+                    "payload": "arena-f2:tcp:4b95d473ff97414399c008fbf6da529e",
+                    "received": "arena-f2:tcp:4b95d473ff97414399c008fbf6da529e",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.111.42"
+                    ],
+                    "payload": "arena-f2:udp:7f8118bfbe9541f684e09e251a60fea3",
+                    "received": "arena-f2:udp:7f8118bfbe9541f684e09e251a60fea3",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                }
+              ]
+            }
+          ],
+          "qemu_duration_ms": 186579,
+          "lifecycle": {
+            "checkpoint_elapsed_ms": null,
+            "checkpoint_seen": false,
+            "controller_pid": 93227,
+            "duration_ms": 186579,
+            "escalated": false,
+            "evidence_synced": true,
+            "evidence_synced_before_stop": true,
+            "lifecycle_exit_code": 0,
+            "qemu_exit_code": 0,
+            "qemu_pid": 93230,
+            "qemu_reaped": true,
+            "qemu_signal": null,
+            "reason": "service_completed",
+            "schema_version": 2,
+            "startup_timeout_ms": 660000,
+            "status": "passed",
+            "sync_error": null,
+            "timeout_after_checkpoint_ms": null,
+            "watchdog_fixture": false
+          }
+        },
+        "agent": {
+          "boot_id": "876c7e33-3bd4-4876-8d2e-c4cebb1fd2b2",
+          "guest_seconds": 163.121693,
+          "checks": [
+            {
+              "stage": "agent_ready",
+              "status": "passed",
+              "image_config_digest": "sha256:4a51081830ce1f01fde4e60d61c86637c4444e70075534d6901b382301c5259d"
+            }
+          ],
+          "qemu_duration_ms": 185993,
+          "lifecycle": {
+            "checkpoint_elapsed_ms": null,
+            "checkpoint_seen": false,
+            "controller_pid": 93237,
+            "duration_ms": 185993,
+            "escalated": false,
+            "evidence_synced": true,
+            "evidence_synced_before_stop": true,
+            "lifecycle_exit_code": 0,
+            "qemu_exit_code": 0,
+            "qemu_pid": 93240,
+            "qemu_reaped": true,
+            "qemu_signal": null,
+            "reason": "service_completed",
+            "schema_version": 2,
+            "startup_timeout_ms": 660000,
+            "status": "passed",
+            "sync_error": null,
+            "timeout_after_checkpoint_ms": null,
+            "watchdog_fixture": false
+          }
+        }
+      },
+      "node_capacity": {
+        "arena-k3s-agent": {
+          "cpu": "2",
+          "ephemeral-storage": "32716560Ki",
+          "hugepages-1Gi": "0",
+          "hugepages-2Mi": "0",
+          "hugepages-32Mi": "0",
+          "hugepages-64Ki": "0",
+          "memory": "3985460Ki",
+          "pods": "110"
+        },
+        "arena-k3s-server": {
+          "cpu": "4",
+          "ephemeral-storage": "32716560Ki",
+          "hugepages-1Gi": "0",
+          "hugepages-2Mi": "0",
+          "hugepages-32Mi": "0",
+          "hugepages-64Ki": "0",
+          "memory": "16327988Ki",
+          "pods": "110"
+        }
+      }
+    },
+    {
+      "directory": "fresh-2",
+      "status": "passed",
+      "nodes": {
+        "server": {
+          "boot_id": "a8529191-2986-449e-b1a8-6ae70952fd59",
+          "guest_seconds": 176.644353,
+          "checks": [
+            {
+              "stage": "nodes",
+              "status": "passed",
+              "names": [
+                "arena-k3s-agent",
+                "arena-k3s-server"
+              ]
+            },
+            {
+              "stage": "pods",
+              "status": "passed",
+              "placement": {
+                "client": "arena-k3s-agent",
+                "control": "arena-k3s-agent",
+                "server": "arena-k3s-server"
+              }
+            },
+            {
+              "stage": "baseline",
+              "status": "passed",
+              "probes": [
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:tcp:7557001d4e2740e3a59753304809a692",
+                    "received": "arena-f2:tcp:7557001d4e2740e3a59753304809a692",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:udp:499ebf95376a42a7805bf9527ea0d862",
+                    "received": "arena-f2:udp:499ebf95376a42a7805bf9527ea0d862",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.229.233"
+                    ],
+                    "payload": "arena-f2:tcp:3f6709db67ea476b99ef6489a1a0e45c",
+                    "received": "arena-f2:tcp:3f6709db67ea476b99ef6489a1a0e45c",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.229.233"
+                    ],
+                    "payload": "arena-f2:udp:d250d5dc62214e03872cde964efdb4e0",
+                    "received": "arena-f2:udp:d250d5dc62214e03872cde964efdb4e0",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                }
+              ]
+            },
+            {
+              "stage": "deny",
+              "status": "passed",
+              "probes": [
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "10.42.0.3",
+                  "expected": "deny",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:tcp:9a506846236149079b5f76c26532f18c",
+                    "outcome": "denied",
+                    "errno": 111
+                  },
+                  "receiver_count": 0
+                },
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "deny",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.229.233"
+                    ],
+                    "payload": "arena-f2:tcp:bae5c04577f04bf3acc0df5ca90d408b",
+                    "outcome": "denied",
+                    "errno": 111
+                  },
+                  "receiver_count": 0
+                },
+                {
+                  "client": "control",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.229.233"
+                    ],
+                    "payload": "arena-f2:tcp:39d63b6174db4501bcc8d05608d8907c",
+                    "received": "arena-f2:tcp:39d63b6174db4501bcc8d05608d8907c",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.229.233"
+                    ],
+                    "payload": "arena-f2:udp:9c1fac8ad000425aa28268b8911bdb8c",
+                    "received": "arena-f2:udp:9c1fac8ad000425aa28268b8911bdb8c",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                }
+              ],
+              "policy_uid": "9ba25711-4462-439f-9708-608abb55fdfd"
+            },
+            {
+              "stage": "recovery",
+              "status": "passed",
+              "probes": [
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:tcp:70baf73b89df49c39ebc2e1b74564960",
+                    "received": "arena-f2:tcp:70baf73b89df49c39ebc2e1b74564960",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "10.42.0.3",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "10.42.0.3",
+                    "addresses": [
+                      "10.42.0.3"
+                    ],
+                    "payload": "arena-f2:udp:708cd61307ee48c297ae3b0b4d38b12c",
+                    "received": "arena-f2:udp:708cd61307ee48c297ae3b0b4d38b12c",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "tcp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "tcp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.229.233"
+                    ],
+                    "payload": "arena-f2:tcp:46b20e4318f24fad9b65f577d81552a9",
+                    "received": "arena-f2:tcp:46b20e4318f24fad9b65f577d81552a9",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                },
+                {
+                  "client": "client",
+                  "protocol": "udp",
+                  "destination": "echo.arena-f2.svc.cluster.local",
+                  "expected": "allow",
+                  "probe": {
+                    "protocol": "udp",
+                    "host": "echo.arena-f2.svc.cluster.local",
+                    "addresses": [
+                      "10.43.229.233"
+                    ],
+                    "payload": "arena-f2:udp:8560e3f4d3a24600af16c4efdee0ef22",
+                    "received": "arena-f2:udp:8560e3f4d3a24600af16c4efdee0ef22",
+                    "count": 1
+                  },
+                  "receiver_count": 1
+                }
+              ]
+            }
+          ],
+          "qemu_duration_ms": 199299,
+          "lifecycle": {
+            "checkpoint_elapsed_ms": null,
+            "checkpoint_seen": false,
+            "controller_pid": 94431,
+            "duration_ms": 199299,
+            "escalated": false,
+            "evidence_synced": true,
+            "evidence_synced_before_stop": true,
+            "lifecycle_exit_code": 0,
+            "qemu_exit_code": 0,
+            "qemu_pid": 94435,
+            "qemu_reaped": true,
+            "qemu_signal": null,
+            "reason": "service_completed",
+            "schema_version": 2,
+            "startup_timeout_ms": 660000,
+            "status": "passed",
+            "sync_error": null,
+            "timeout_after_checkpoint_ms": null,
+            "watchdog_fixture": false
+          }
+        },
+        "agent": {
+          "boot_id": "5a27f548-88ad-4937-bdd7-4a4efa519495",
+          "guest_seconds": 174.182139,
+          "checks": [
+            {
+              "stage": "agent_ready",
+              "status": "passed",
+              "image_config_digest": "sha256:4a51081830ce1f01fde4e60d61c86637c4444e70075534d6901b382301c5259d"
+            }
+          ],
+          "qemu_duration_ms": 200878,
+          "lifecycle": {
+            "checkpoint_elapsed_ms": null,
+            "checkpoint_seen": false,
+            "controller_pid": 94439,
+            "duration_ms": 200878,
+            "escalated": false,
+            "evidence_synced": true,
+            "evidence_synced_before_stop": true,
+            "lifecycle_exit_code": 0,
+            "qemu_exit_code": 0,
+            "qemu_pid": 94442,
+            "qemu_reaped": true,
+            "qemu_signal": null,
+            "reason": "service_completed",
+            "schema_version": 2,
+            "startup_timeout_ms": 660000,
+            "status": "passed",
+            "sync_error": null,
+            "timeout_after_checkpoint_ms": null,
+            "watchdog_fixture": false
+          }
+        }
+      },
+      "node_capacity": {
+        "arena-k3s-agent": {
+          "cpu": "2",
+          "ephemeral-storage": "32716560Ki",
+          "hugepages-1Gi": "0",
+          "hugepages-2Mi": "0",
+          "hugepages-32Mi": "0",
+          "hugepages-64Ki": "0",
+          "memory": "3985460Ki",
+          "pods": "110"
+        },
+        "arena-k3s-server": {
+          "cpu": "4",
+          "ephemeral-storage": "32716560Ki",
+          "hugepages-1Gi": "0",
+          "hugepages-2Mi": "0",
+          "hugepages-32Mi": "0",
+          "hugepages-64Ki": "0",
+          "memory": "16327988Ki",
+          "pods": "110"
+        }
+      }
+    }
+  ],
+  "regression": {
+    "mac_full_check": "passed",
+    "mac_python_tests": 97,
+    "linux_arm64_f1_f2_tests": 28,
+    "f2_unit_tests": 15
+  },
+  "builder": {
+    "profile": "veil-arena-mvp-arm64",
+    "disk_gib": 100,
+    "cache_preserved": true,
+    "final_state": "Stopped",
+    "free_gib_rounded": 6.1
+  },
+  "previous_trials": [
+    {
+      "directory": "acceptance-1",
+      "scope": "agent readiness prematurely bounded to 5 seconds; workflow cancelled after guest failure; evidence saved and both owned QEMU reaped"
+    },
+    {
+      "directory": "acceptance-2",
+      "scope": "two fresh clusters passed; before final probe-failure classification fix"
+    }
+  ],
+  "excluded": [
+    "physical environment",
+    "third-party trials",
+    "Keeper execution/profile loading",
+    "tag/release"
+  ],
+  "remaining": [
+    "F3 Keeper integration",
+    "F4 cross-host fresh acceptance, cancellation/timeout, owner operation"
+  ],
+  "owned_processes_absent_after_run": true,
+  "source_sha256": {
+    "environments/vm/k3s.nix": "03167565ac5cd9c76772d3add3e633afe65ba740cb096b09e0513ead141831af",
+    "scripts/k3s_bundle.py": "b47efee2d0c07f03010d2e58c856a2036e1d31eeb4dda7f204c61fe2f0ce07f8",
+    "scripts/k3s_f2_host.py": "28bf27f0f899d85f8fd62a4758138f50c4488e38e34c14e92f03c43e3de6635d",
+    "scripts/k3s_f2_guest.py": "ffed53af59d84c33594e88831758084c6e332fe6ff9100205e195805a04f15cb",
+    "scripts/k3s_guest.py": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+    "scripts/k3s_host.py": "44d06d67de96abbadf8f4e03874bda4dc4b7b9a0c3e11806c97c50a141036459",
+    "scripts/prepare-k3s.sh": "7e7d7a9c84f651ed4c1a6c87099e0628db99f903b678933226a5c5110cf04221",
+    "tests/k3s/f2_fixture.py": "769e21fbef207ba8e544ebbe8d6c31d2d759c58e5c638929e80c72bf6b4a10f4",
+    "tests/test_k3s_f2.py": "148e99afa952cf2649729a3ba488e41e0b5b47e20f61806cc2e3b768e9d9629a",
+    "docs/contracts/f0-inputs.json": "49cd0088a9c848bc2fc9ec0f42b970aee5489e2b2716f4e584b6b2f4725e02a4",
+    "flake.nix": "d042b4d19a7961163f4c18d888de138fe050fe235707f621a535cd212b8fd081"
+  },
+  "publication_state_at_acceptance": "uncommitted; PR preparation is a separately authorized follow-up; no tag/release",
+  "review_followup": {
+    "date": "2026-10-20",
+    "historical_runtime_acceptance_commit": "42ef42fdc6f4d66f6a424403ef4d577fe64c1c10",
+    "changes": [
+      "fixture-originated mismatch proof; exec infrastructure failure remains environment error 3",
+      "exec and receiver logs share one absolute five-second probe deadline",
+      "retain guest failure status/code/stage/detail per cluster and node; cleanup failure remains environment error"
+    ],
+    "regression": {
+      "mac_full_check": "passed",
+      "mac_python_tests": 111,
+      "mac_f2_tests": 29,
+      "linux_arm64_f1_f2_review_tests": 42,
+      "real_stalled_child_deadline_and_recovery": "passed on Mac and Linux ARM64",
+      "preserved_raw_clusters_reverified": 2
+    },
+    "fresh_vm_rerun": false,
+    "runtime_scope": "Prior four-VM acceptance is historical. Revised guest/fixture not booted in a new VM in this review follow-up.",
+    "cache_preserved": true,
+    "builder_final_state": "Stopped",
+    "source_sha256": {
+      "scripts/k3s_f2_guest.py": "110e4a589ad678abe51605893ca666bcc34da82272a5e52e499732fed29cc0a0",
+      "scripts/k3s_f2_host.py": "2023e23852ff941cee9606579f9a278435179f7f3543520fd68d3f58313a69b2",
+      "tests/k3s/f2_fixture.py": "79078df4704ff6418c660beb327a662efacb9d4694e63f7ce638acc822143b74",
+      "tests/test_k3s_f2.py": "83ce275b87478015a77d049cc5ffcda43845d8d6016168bbc512121e86dfa2af",
+      "tests/test_k3s_f2_review.py": "a1020ad78e7f595211eeffdbae993664644b7b005c12c8cc41683281e22e4ed3"
+    },
+    "review_commit": "49a2f31098fcface8048fde9bd7ee4337aa1bc39"
+  },
+  "review_followup_round2": {
+    "date": "2026-10-20",
+    "base_commit": "49a2f31098fcface8048fde9bd7ee4337aa1bc39",
+    "changes": [
+      "publish receiver record before echo and poll healthy log snapshots within unchanged absolute probe deadline without traffic retransmission",
+      "preserve SIGINT/SIGTERM/SIGHUP cancellation exit 130 while LAN socket is pending or becomes ready",
+      "retain host abort status/code/stage/detail on each run; cleanup failure stays environment error with original abort retained"
+    ],
+    "regression": {
+      "reproduced_before_fix": true,
+      "mac_full_check": "passed",
+      "mac_python_tests": 120,
+      "mac_f2_tests": 38,
+      "linux_arm64_f1_f2_review_tests": 51,
+      "preserved_clusters_reverified": 2
+    },
+    "fresh_vm_rerun": false,
+    "cache_preserved": true,
+    "builder_final_state": "Stopped",
+    "source_sha256": {
+      "scripts/k3s_f2_guest.py": "e4039e584141b1de1ce93c3cc9c3008bb03575a0cdd62c5fa0caa918d6b6269f",
+      "scripts/k3s_f2_host.py": "a7ba15ce2011b853a4250eaa759752fbd027f13cd1e8bb8c14655ae5eb82afa1",
+      "tests/k3s/f2_fixture.py": "bdd7f087ca54f43387bae86120f9164866a0a64df83dca4aabac668cab2948f1",
+      "tests/test_k3s_f2_review.py": "2290416a5dca121ff9a4ca0c6d1e93af58dc218126babeec928a617abda1f333",
+      "tests/test_k3s_f2_publication_abort.py": "1a7f88536a3d90e7e3618478b332d29a5f76b4c47fded6693badd0ee3ca35f1c"
+    }
+  },
+  "review_followup_round3": {
+    "date": "2026-10-20",
+    "base_commit": "d1457735ce5488f47599a4daef4f79cc104ad1ff",
+    "changes": [
+      "retain ordinary host errors per run with stage and detail before cleanup",
+      "cleanup failure keeps priority and original host_failure evidence"
+    ],
+    "regression": {
+      "reproduced_before_fix": true,
+      "mac_full_check": "passed",
+      "mac_python_tests": 123,
+      "mac_f2_tests": 41,
+      "linux_arm64_f1_f2_review_tests": 54,
+      "owned_mock_controller_cleanup_and_next_healthy_run": "passed"
+    },
+    "fresh_vm_rerun": false,
+    "cache_preserved": true,
+    "builder_final_state": "Stopped",
+    "source_sha256": {
+      "scripts/k3s_f2_host.py": "17df6739b54a9630837c92bd1135d60b3e7908aab09a2daea55b1cecf773fc15",
+      "tests/test_k3s_f2_host_errors.py": "97a9124fd58499b6d207413887ffb4a8a86ad083e90c53917e27d58d46c8c918"
+    }
+  }
+}

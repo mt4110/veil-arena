@@ -164,5 +164,22 @@
     "workflow_seconds": 600,
     "host_watchdog_seconds": 660,
     "meaning": "User-approved resource revision 2026-10-20; original deadlines and expectations retained; no automatic retry/extension"
+  },
+  "f2_limits": {
+    "server": {
+      "vcpus": 4,
+      "memory_mib": 16384,
+      "writable_run_disk_virtual_gib": 32
+    },
+    "agent": {
+      "vcpus": 2,
+      "memory_mib": 4096,
+      "writable_run_disk_virtual_gib": 32
+    },
+    "node_ready_seconds": 300,
+    "pod_ready_seconds": 120,
+    "io_probe_seconds": 5,
+    "workflow_seconds": 600,
+    "host_watchdog_seconds": 660
   }
 }

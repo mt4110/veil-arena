@@ -26,7 +26,8 @@ TCP追加後のARM64受け入れは [記録](TCP_SYN_VALIDATION.md) を参照す
 既存の固定版・VM停止・bundle照合を利用し、新しいシナリオを専用構成として追加する。
 
 F1は、F0の互換入口を含め、Mac ARM64／TCGの新規2 VMで[受け入れ完了](K3S_F1_VALIDATION.md)。
-2ノード通信とKeeperの新VM試験、両対応ホストの最終受け入れは未実施。
+F2もMac ARM64／TCGの新規2クラスタで[受け入れ完了](K3S_F2_VALIDATION.md)。
+Keeperの新VM試験、両対応ホストの最終受け入れは未実施。
 F0は [検証契約](F0_CONTRACT.md) と [入力固定表](contracts/f0-inputs.json) を作成・静的確認した状態。
 F0時点は定義評価まで。F1でARM64 packageのbuild・archive取得・実VM起動を確認した。
 
@@ -71,7 +72,9 @@ K3sは [Kubernetesディストリビューション](https://docs.k3s.io/) で�
 [Flannel仕様](https://docs.k3s.io/networking/basic-network-options) を採用根拠とする。
 現在の [M0〜M5文書](MILESTONES.md) は履歴として保持し、本書を今後の完成判断に使う。
 
-次の実装単位はF1だけ。「固定入力でK3s 1 VMを起動し、固定PodのDNS／TCP／UDPと停止・新規VMでの再成功を確認する」。
-Keeperのpolicy適用や2 VMの作成は、その次の段階まで実施しない。
+F1とF2は完了。次の実装単位はF3で、固定Keeper checker/profileのbaseline→限定exec拒否→解除後baselineをVM内で判定する。
+F3は別途着手判断を行い、今回のF2実装からKeeper policyの適用へ自動的に進めない。
 
 F1の専用入口と運用契約は [F1_K3S.md](F1_K3S.md)。実装・実行結果の判定はF0と分けて記録する。
+
+F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVMの実クラスタ受け入れはF4に残る。
