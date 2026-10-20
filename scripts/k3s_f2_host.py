@@ -57,6 +57,13 @@ def record_host_abort(item, error):
     item["host_abort"] = fields.copy()
 
 
+def record_host_failure(item, stage, error):
+    fields = {"status": "environment_error", "exit_code": 3,
+              "stage": stage, "detail": str(error)}
+    item.update(fields)
+    item["host_failure"] = fields.copy()
+
+
 def verify_cluster(root, inputs):
     results = {}
     for role in ROLES:
@@ -204,8 +211,10 @@ def workflow(uid, bundles, mode, root):
             raise HostAbort(4, stage, "600s shared workflow deadline")
     handlers={s:signal.signal(s,cancel) for s in [signal.SIGINT,signal.SIGTERM,signal.SIGHUP]}
     ids=set()
+    stage="cluster_setup"
     try:
         for index in range(count):
+            stage="cluster_setup"
             run=root/f"fresh-{index+1}"
             run.mkdir(mode=0o700)
             control=run/"private-control"; control.mkdir(mode=0o700)
@@ -216,8 +225,10 @@ def workflow(uid, bundles, mode, root):
             item={"output":str(run),"status":"environment_error","nodes":{},"network":"private UNIX stream; no host bridge/NAT/port"}
             summary["runs"].append(item)
             children={}
+            stage="node_startup"
             try:
                 for role,bundle in bundles.items():
+                    stage="node_startup"
                     check_abort("node_startup")
                     if check(bundle)!=(inputs[role],seals[role]):
                         raise ValueError("immutable node inputs changed")
@@ -229,6 +240,7 @@ def workflow(uid, bundles, mode, root):
                     check_abort("node_startup")
                     children[role]=subprocess.Popen(["timeout","--signal=TERM","--kill-after=5","670","veil-arena-vm-controller",str(out),*args],stdin=subprocess.DEVNULL,start_new_session=True)
                     if role=="server":
+                        stage="lan_startup"
                         end=min(deadline,time.monotonic()+5)
                         while not socket.exists():
                             check_abort("lan_startup")
@@ -236,6 +248,7 @@ def workflow(uid, bundles, mode, root):
                                 raise ValueError("owned server LAN socket not established")
                             time.sleep(.025)
                         check_abort("lan_startup")
+                stage="running"
                 while any(c.poll() is None for c in children.values()):
                     check_abort("running")
                     if children["server"].poll() is not None and not (control/"finish").exists():
@@ -248,6 +261,7 @@ def workflow(uid, bundles, mode, root):
                     if any(c.poll() not in {None,0} for c in children.values()):
                         raise ValueError("node lifecycle controller failed")
                     time.sleep(.1)
+                stage="verification"
                 check_abort("verification")
                 boot_ids=verify_cluster(run,inputs)
                 check_abort("verification")
@@ -261,6 +275,9 @@ def workflow(uid, bundles, mode, root):
             except HostAbort as error:
                 record_host_abort(item, error)
                 code = error.code
+                raise
+            except (OSError,ValueError,KeyError,TypeError,subprocess.SubprocessError) as error:
+                record_host_failure(item, stage, error)
                 raise
             finally:
                 errors=collect(children)
@@ -280,6 +297,7 @@ def workflow(uid, bundles, mode, root):
                     code=3
                     item.update(status="environment_error", exit_code=3, stage="cleanup", detail='; '.join(errors))
                     raise ValueError('; '.join(errors))
+        stage="final_verification"
         for role,bundle in bundles.items():
             check_abort("final_verification")
             if check(bundle)!=(inputs[role],seals[role]):
@@ -290,6 +308,11 @@ def workflow(uid, bundles, mode, root):
         if isinstance(error, (GuestFailure, HostAbort)): code=error.code
         if isinstance(error, HostAbort) and summary["runs"]:
             record_host_abort(summary["runs"][-1], error)
+        elif not isinstance(error, GuestFailure) and summary["runs"] and stage=="final_verification":
+            item=summary["runs"][-1]
+            # Cleanup has priority; keep the original host failure recorded before it.
+            if item.get("stage") != "cleanup" and "host_failure" not in item:
+                record_host_failure(item, stage, error)
         summary.update(detail=str(error),status="cancelled" if code==130 else "timeout" if code==4 else "failed" if code==1 else "environment_error")
     finally:
         for s,h in handlers.items():signal.signal(s,h)

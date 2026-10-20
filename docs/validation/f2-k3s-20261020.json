@@ -987,5 +987,28 @@
       "tests/test_k3s_f2_review.py": "2290416a5dca121ff9a4ca0c6d1e93af58dc218126babeec928a617abda1f333",
       "tests/test_k3s_f2_publication_abort.py": "1a7f88536a3d90e7e3618478b332d29a5f76b4c47fded6693badd0ee3ca35f1c"
     }
+  },
+  "review_followup_round3": {
+    "date": "2026-10-20",
+    "base_commit": "d1457735ce5488f47599a4daef4f79cc104ad1ff",
+    "changes": [
+      "retain ordinary host errors per run with stage and detail before cleanup",
+      "cleanup failure keeps priority and original host_failure evidence"
+    ],
+    "regression": {
+      "reproduced_before_fix": true,
+      "mac_full_check": "passed",
+      "mac_python_tests": 123,
+      "mac_f2_tests": 41,
+      "linux_arm64_f1_f2_review_tests": 54,
+      "owned_mock_controller_cleanup_and_next_healthy_run": "passed"
+    },
+    "fresh_vm_rerun": false,
+    "cache_preserved": true,
+    "builder_final_state": "Stopped",
+    "source_sha256": {
+      "scripts/k3s_f2_host.py": "17df6739b54a9630837c92bd1135d60b3e7908aab09a2daea55b1cecf773fc15",
+      "tests/test_k3s_f2_host_errors.py": "97a9124fd58499b6d207413887ffb4a8a86ad083e90c53917e27d58d46c8c918"
+    }
   }
 }

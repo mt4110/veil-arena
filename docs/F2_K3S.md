@@ -97,3 +97,6 @@ F1のMac ARM64成功やCI評価を、F2実VMの成功やLinux x86_64/KVMの受�
 
 LAN socket起動待ち中を含むhost中断は130、共有期限超過は4としてrunにもstage/detailを保存する。
 回収失敗があれば3を優先し、元のhost_abortは保持する。
+
+通常のホスト側エラー（disk準備・controller起動・LAN待ち・実行・検証）もrunのstatus/exit_code/stage/detailへ保存する。
+回収失敗はstage=cleanup・終了3を優先し、回収前の原因はhost_failureへ保持する。

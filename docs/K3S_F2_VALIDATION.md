@@ -116,3 +116,17 @@ Mac全チェックは成功（Python回帰120件）。F2対象38件、Linux ARM6
 
 今回も新しいguest/fixtureの実VM再受け入れは行っていない。4 VMの受け入れは従来入力の履歴として保持し、
 今回のsource hashと回帰範囲はJSONの`review_followup_round2`へ分けて記録する。
+
+## PR #23通常ホストエラーの回帰
+
+2026-10-20。基点`d145773`。追加された未解決レビュー1件について、修正前にrunのexit_code・原因欠落を再現した。
+
+- qemu-img失敗、agent Popen失敗、LAN socketのローカル5秒期限切れ、controller異常終了、cluster検証・最終入力検証の失敗を環境エラー3としてrunにも保存する。
+- 起動・LAN・実行・検証のstage/detailを保持し、回収が成功した場合は上位summaryとの一致を確認した。
+- 回収が不成立ならstage=cleanup・環境エラー3を優先し、元の通常ホストエラーはhost_failureに保持する。
+- 所有controllerだけを回収し、次の正常なmock実行が成功することを確認した。実VMの新規起動試験ではない。
+- 既存の中断130・全体期限4・guest失敗の回帰を維持。期限・通信の期待値、依存関係は変更していない。
+
+Mac全チェック成功（Python123件、F2集中回帰41件）。既存キャッシュを再利用したLinux ARM64のF1/F2/レビュー回帰54件も成功した。
+専用builderとcontainerは停止へ戻し、旧bundle・受け入れ証拠・キャッシュを保持した。
+GitHub Linux x86_64 CIはpush後の対象コミットで確認する。新規VM再受け入れ・Linux x86_64/KVM実クラスタ受け入れは今回実施していない。
