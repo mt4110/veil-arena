@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "status": "contract_ready_runtime_not_run",
+  "arena_base_commit": "5f0c0a3330f2ed9bf37a634af92402a477356b7b",
+  "keeper": {
+    "git_head": "ffaec36644941e8700c4ffe0a896f999a8c0cf1c",
+    "source_state": "selected inputs are untracked in owner checkout; git HEAD alone is not the pin",
+    "input_root": "../veil-keeper",
+    "input_sha256": {
+      "tools/m0_exec_check.py": "108372f8dbe35f354c2fae7dc8708353a02324e186ae611b59afc639ef760eed",
+      "experiments/apparmor/m0-exec-check.profile": "e56379b741145cf8caa07f2e2bff9e47a8dbd00f2c781e95af1af53e006d3cc6"
+    },
+    "audit_only_sha256": {
+      "experiments/apparmor/m0-trial.py": "9f8c15c39e4636953fdeb6ba337c3ec969eed43de189d4fd83531d8fadedc944",
+      "tools/m0_preflight.py": "40029da11ce57b1532861c87e5a0252a6fcbfe93755ac2bb47ae0c4f902b7072",
+      "tests/test_m0_preflight.py": "0c92cdae7de065f50dbf62d8c8cb17c40ff5152c85fbc169979b33c0afdca03f"
+    },
+    "test": "m0 exec smoke: baseline true=0 false=1; confined true=EACCES/EPERM false=1; remove and repeat baseline",
+    "profile_name": "veil_keeper_m0_exec_check_20261016",
+    "child_uid": 501,
+    "child_gid": 1000,
+    "reuse_driver": false,
+    "driver_reason": "Colima-specific /usr paths and SUDO_UID contract; Arena owns VM orchestration without editing Keeper",
+    "apparmor_lifecycle": {
+      "syntax_argv": [
+        "apparmor_parser",
+        "--skip-kernel-load",
+        "--skip-cache",
+        "/inputs/m0-exec-check.profile"
+      ],
+      "syntax_pre_post_inventory_must_match": true,
+      "syntax_target_must_remain_absent": true,
+      "add_argv": [
+        "apparmor_parser",
+        "--skip-cache",
+        "--add",
+        "/inputs/m0-exec-check.profile"
+      ],
+      "ownership_starts_only_on_successful_explicit_add": true,
+      "remove_argv": [
+        "apparmor_parser",
+        "--skip-cache",
+        "--remove",
+        "/inputs/m0-exec-check.profile"
+      ],
+      "remove_requires_owned_add_success": true,
+      "scope": "future F3 contract; no parser invocation performed in F0",
+      "profile_guest_path": "/inputs/m0-exec-check.profile",
+      "profile_source": "keeper.input_sha256[experiments/apparmor/m0-exec-check.profile]",
+      "profile_read_only_and_hash_verified_before_each_command": true,
+      "stdin": "DEVNULL",
+      "command_timeout_seconds": 20
+    }
+  },
+  "nixpkgs": {
+    "revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+    "flake_lock_sha256": "f7c1fdb4c746bd2314b4f394483589a2b359e647c12c345379d4069b0a5a4f3f",
+    "package_recipe_sha256": {
+      "pkgs/applications/networking/cluster/k3s/builder.nix": "3a594487341b8932f7a9bf878ed622a3341b4351ef51a43ca98d58cab4c73a33",
+      "pkgs/applications/networking/cluster/k3s/1_36/versions.nix": "4c1bed13eac448bad35153c74f565c76d8bac9ddb0982f248832265afaf5ae40",
+      "pkgs/applications/networking/cluster/k3s/1_36/images-versions.json": "0770f515c44243a69766c7fefc954ab93c7ff072dd2e84c6e418081283543791",
+      "nixos/modules/security/apparmor.nix": "b28677957dcacf4e17e4df65c2a22aa6a03aaaca881ca9e7e7e2219ecd3513d8"
+    }
+  },
+  "versions": {
+    "rust": "1.98.1",
+    "cargo_binary": "1.98.0",
+    "python": "3.14.7",
+    "kernel": "6.12.112",
+    "qemu": "11.1.1",
+    "k3s": "1.36.4+k3s1",
+    "containerd": "2.3.4-k3s1.36",
+    "flannel": "v0.28.4",
+    "apparmor": "5.0.2",
+    "coreutils": "9.11"
+  },
+  "airgap_archives": {
+    "aarch64-linux": {
+      "url": "https://github.com/k3s-io/k3s/releases/download/v1.36.4%2Bk3s1/k3s-airgap-images-arm64.tar.zst",
+      "sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5"
+    },
+    "x86_64-linux": {
+      "url": "https://github.com/k3s-io/k3s/releases/download/v1.36.4%2Bk3s1/k3s-airgap-images-amd64.tar.zst",
+      "sha256": "9024613e2d468c51ba0e5ba21898604c41339354449fb3338cc6a7931189eb6a"
+    }
+  },
+  "package_evaluation": {
+    "aarch64": {
+      "airgapDrv": "/nix/store/2k0zafcd4rv3xa7yfnsy60605wbsilfk-k3s-airgap-images-arm64.tar.zst.drv",
+      "apparmor": "5.0.2",
+      "apparmorDrv": "/nix/store/yr6xr7d7j519rbsg4a249lz2579hdkkl-apparmor-utils-5.0.2.drv",
+      "coreutils": "9.11",
+      "k3s": "1.36.4+k3s1",
+      "k3sDrv": "/nix/store/9yzq5ngkg7c33wqnfannnrb0fb08k80w-k3s-1.36.4+k3s1.drv",
+      "qemu": "11.1.1",
+      "system": "aarch64-linux"
+    },
+    "x86_64": {
+      "airgapDrv": "/nix/store/hm8yff87cnjvqdci31knq56mill2fmf8-k3s-airgap-images-amd64.tar.zst.drv",
+      "apparmor": "5.0.2",
+      "apparmorDrv": "/nix/store/bkzn5nd4bcwglik226584kl0slm3rjw3-apparmor-utils-5.0.2.drv",
+      "coreutils": "9.11",
+      "k3s": "1.36.4+k3s1",
+      "k3sDrv": "/nix/store/1vnp9wriq0g4i095c0dwsabkwlg27sgn-k3s-1.36.4+k3s1.drv",
+      "qemu": "11.1.1",
+      "system": "x86_64-linux"
+    }
+  },
+  "host_targets": [
+    {
+      "host": "aarch64-darwin",
+      "guest": "aarch64-linux",
+      "accelerator": "tcg",
+      "phase": "F1 first run; F4 fresh acceptance",
+      "current_observation": "Darwin arm64, 64 GiB physical RAM; no K3s VM executed"
+    },
+    {
+      "host": "x86_64-linux",
+      "guest": "x86_64-linux",
+      "accelerator": "kvm",
+      "phase": "F4 acceptance",
+      "current_observation": "pi-node: /dev/kvm exists mode 660 group 993; SSH user has no direct read/write permission; Docker available; device access in dedicated runtime not yet verified"
+    }
+  ],
+  "initial_f1_limits": {
+    "vcpus": 2,
+    "memory_mib": 6144,
+    "writable_run_disk_virtual_gib": 24,
+    "node_ready_seconds": 300,
+    "pod_ready_seconds": 120,
+    "io_probe_seconds": 5,
+    "workflow_seconds": 600,
+    "host_watchdog_seconds": 660,
+    "meaning": "engineering caps for first bounded trial, not measured performance or SLO; no automatic retry/extension"
+  },
+  "validation": {
+    "keeper_preflight_unit_tests": 10,
+    "unit_scope": "pure decision logic, not AppArmor enforcement",
+    "guest_policy_load": false,
+    "cluster_boot": false,
+    "downloaded_archives": false,
+    "packages_built": false
+  },
+  "f1_preparation_must_produce": [
+    "kernel/initrd/store/run-disk-base content hashes",
+    "architecture-matched airgap archive hash verification",
+    "generated fixture OCI manifest/config digests and command hashes",
+    "per-run manifest including resource limits and owner IDs"
+  ],
+  "boundaries": [
+    "No physical network, no third-party trial or release",
+    "No host sudo or host policy/route/DNS changes",
+    "No edits or commits to Keeper; source mismatch stops preparation",
+    "No station-api/SQLite or BPF LSM claim; fixed AppArmor exec smoke only"
+  ]
+}
