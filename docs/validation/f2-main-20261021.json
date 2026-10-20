@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "arena_commit": "cb021adefab00067a77d9b1d8defac6092bd480b",
+  "result": "environment_error",
+  "exit_code": 3,
+  "stage": "deny",
+  "detail": "server: deny: command exceeded absolute deadline",
+  "fresh_clusters_completed": 0,
+  "fresh_clusters_started": 1,
+  "requested_clusters": 2,
+  "keeper_connection_started": false,
+  "ssd_evidence_root": "/Volumes/Elecom-1TB/Linux/veil-arena/f2-main-20261021",
+  "source_sha256": {
+    "scripts/k3s_f2_host.py": "17df6739b54a9630837c92bd1135d60b3e7908aab09a2daea55b1cecf773fc15",
+    "scripts/k3s_f2_guest.py": "e4039e584141b1de1ce93c3cc9c3008bb03575a0cdd62c5fa0caa918d6b6269f",
+    "scripts/k3s_guest.py": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+    "tests/k3s/f2_fixture.py": "bdd7f087ca54f43387bae86120f9164866a0a64df83dca4aabac668cab2948f1",
+    "environments/vm/k3s.nix": "03167565ac5cd9c76772d3add3e633afe65ba740cb096b09e0513ead141831af",
+    "flake.nix": "d042b4d19a7961163f4c18d888de138fe050fe235707f621a535cd212b8fd081"
+  },
+  "builder_disk_gib": 256,
+  "builder_stopped_before_runtime": true,
+  "cache_and_previous_evidence_preserved": true,
+  "deadlines_and_expectations_changed": false,
+  "guest_results": {
+    "server": {
+      "boot_id": "8443fa8b-f7ee-495f-880b-ff1dd15ff552",
+      "status": "environment_error",
+      "exit_code": 3,
+      "stage": "deny",
+      "detail": "command exceeded absolute deadline",
+      "completed_stages": [
+        "nodes",
+        "pods",
+        "baseline"
+      ]
+    },
+    "agent": {
+      "boot_id": "8836967f-97da-4d19-980c-dfc9d1b6e90c",
+      "status": "environment_error",
+      "exit_code": 3,
+      "stage": null,
+      "detail": null,
+      "completed_stages": [
+        "agent_ready"
+      ]
+    }
+  },
+  "recovery": {
+    "server": {
+      "checkpoint_elapsed_ms": null,
+      "checkpoint_seen": false,
+      "controller_pid": 14212,
+      "duration_ms": 153676,
+      "escalated": false,
+      "evidence_synced": true,
+      "evidence_synced_before_stop": true,
+      "lifecycle_exit_code": 0,
+      "qemu_exit_code": 0,
+      "qemu_pid": 14215,
+      "qemu_reaped": true,
+      "qemu_signal": null,
+      "reason": "service_completed",
+      "schema_version": 2,
+      "startup_timeout_ms": 660000,
+      "status": "passed",
+      "sync_error": null,
+      "timeout_after_checkpoint_ms": null,
+      "watchdog_fixture": false
+    },
+    "agent": {
+      "checkpoint_elapsed_ms": null,
+      "checkpoint_seen": false,
+      "controller_pid": 14222,
+      "duration_ms": 152675,
+      "escalated": false,
+      "evidence_synced": true,
+      "evidence_synced_before_stop": true,
+      "lifecycle_exit_code": 3,
+      "qemu_exit_code": 0,
+      "qemu_pid": 14225,
+      "qemu_reaped": true,
+      "qemu_signal": null,
+      "reason": "cancelled",
+      "schema_version": 2,
+      "startup_timeout_ms": 660000,
+      "status": "environment_error",
+      "sync_error": null,
+      "timeout_after_checkpoint_ms": null,
+      "watchdog_fixture": false
+    }
+  },
+  "diagnosis": {
+    "policy_api_and_dataplane_published": true,
+    "timed_out_argv": "not recorded by current runner; exact exec vs logs remains undetermined",
+    "synthetic_receiver_poll_budget_reproduction": {
+      "log_latency_seconds": 0.33,
+      "last_call_remaining_seconds": 0.32,
+      "exit_code": 3,
+      "meaning": "demonstrates a healthy-log scheduling failure path, not proof of actual failing argv"
+    },
+    "automatic_runtime_retry": false
+  }
+}

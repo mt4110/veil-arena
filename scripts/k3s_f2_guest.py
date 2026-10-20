@@ -3,6 +3,9 @@
 import errno
 import ipaddress
 import json
+import os
+import re
+import stat
 from pathlib import Path
 import subprocess
 import sys
@@ -50,6 +53,82 @@ def probe_output(cp, stage, *, action, protocol, address, nonce):
     if row.get("kind") == "arena-f2-probe-mismatch":
         raise Failure(stage, "fixture mismatch contradicts successful exec status", 3)
     return row
+
+
+def timed_command(args, end, workflow_end, stage, out, data=None):
+    """Only fixed public operations call this; never persist stdin or process output."""
+    started = time.monotonic()
+    effective_end = min(end, workflow_end)
+    remaining = effective_end - started
+    def timeout_evidence(reason):
+        now = time.monotonic()
+        row = {"stage": stage, "argv": args, "reason": reason,
+               "budget_seconds": max(0, remaining), "elapsed_seconds": now-started,
+               "remaining_seconds": effective_end-now,
+               "workflow_remaining_seconds": workflow_end-now}
+        (out / "last-command-timeout.json").write_text(json.dumps(row, indent=2)+'\n')
+        raise Failure(stage, reason, 4 if now >= workflow_end else 3)
+    if remaining <= 0:
+        timeout_evidence("absolute deadline expired before command")
+    try:
+        cp = subprocess.run(args, input=data, capture_output=True, timeout=remaining)
+    except subprocess.TimeoutExpired:
+        timeout_evidence("command exceeded absolute deadline")
+    if time.monotonic() >= effective_end:
+        timeout_evidence("command returned after absolute deadline")
+    return cp
+
+
+class ReceiverLog:
+    """Read the pinned server container's CRI log locally, without per-poll API calls."""
+    def __init__(self, path):
+        self.path = path
+        self.identity = None
+        self.previous = b""
+
+    def rows(self, stage):
+        try:
+            with os.fdopen(os.open(self.path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb") as stream:
+                info = os.fstat(stream.fileno())
+                identity = (info.st_dev, info.st_ino)
+                if not stat.S_ISREG(info.st_mode) or (self.identity is not None and identity != self.identity):
+                    raise ValueError("receiver log rotated or is not regular")
+                data = stream.read(65537)
+            if len(data) > 65536 or not data.startswith(self.previous):
+                raise ValueError("receiver log truncated, rewritten or oversized")
+            if data and not data.endswith(b"\n"):
+                raise ValueError("incomplete CRI log record")
+            rows = []
+            for line in data.splitlines():
+                timestamp, channel, flag, payload = line.split(b" ", 3)
+                if not timestamp or channel != b"stdout" or flag != b"F":
+                    raise ValueError("unexpected CRI record framing")
+                row = json.loads(payload)
+                if (not isinstance(row, dict) or set(row) != {"protocol", "payload"}
+                        or row["protocol"] not in {"tcp", "udp"} or not isinstance(row["payload"], str)):
+                    raise ValueError("unexpected receiver record")
+                rows.append(row)
+            self.identity, self.previous = identity, data
+            return rows
+        except (OSError, ValueError, TypeError) as error:
+            raise Failure(stage, "receiver CRI evidence unavailable: " + str(error), 3) from error
+
+
+def receiver_log_source(pod, inspected):
+    """Bind runtime logPath to the exact Ready Pod/container; reject fallback paths."""
+    uid = pod["metadata"]["uid"]
+    container = pod["status"]["containerStatuses"][0]["containerID"]
+    status = inspected["status"]
+    if (not re.fullmatch(r"[0-9a-f-]{36}", uid)
+            or not re.fullmatch(r"containerd://[0-9a-f]{64}", container)
+            or status.get("id") != container.removeprefix("containerd://")
+            or status.get("state") != "CONTAINER_RUNNING"
+            or status.get("metadata", {}).get("name") != "server"):
+        raise ValueError("receiver Pod/runtime identity mismatch")
+    expected = Path(f"/var/log/pods/{NAMESPACE}_server_{uid}/server/0.log")
+    if status.get("logPath") != str(expected):
+        raise ValueError("receiver runtime logPath mismatch")
+    return expected
 
 
 def receiver_count_until_published(log_rows, protocol, payload, end, workflow_end, stage):
@@ -120,13 +199,7 @@ def run(inputs, manifest_path, out=Path("/out"), control=Path("/control")):
         (out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
 
     def cmd(args, end, data=None):
-        remaining = min(end, deadline) - time.monotonic()
-        if remaining <= 0:
-            raise Failure(stage, "absolute deadline expired", 4 if time.monotonic() >= deadline else 3)
-        try:
-            return subprocess.run(args, input=data, capture_output=True, timeout=remaining)
-        except subprocess.TimeoutExpired:
-            raise Failure(stage, "command exceeded absolute deadline", 4 if time.monotonic() >= deadline else 3) from None
+        return timed_command(args, end, deadline, stage, out, data)
 
     def kube(args, end, data=None, required=True):
         cp = cmd(["k3s", "kubectl", "--request-timeout=" + request_timeout(end, deadline, time.monotonic()), *args], end, data)
@@ -148,9 +221,11 @@ def run(inputs, manifest_path, out=Path("/out"), control=Path("/control")):
             time.sleep(min(.25, max(0, end - time.monotonic())))
         raise Failure(stage, f"{kind} not Ready before absolute deadline")
 
+    receiver = None
     def log_rows(end):
-        cp = kube(["-n", NAMESPACE, "logs", "server", "--limit-bytes=65536"], end)
-        return [json.loads(line) for line in cp.stdout.splitlines()]
+        rows = receiver.rows(stage)
+        (out / "receiver-log.cri").write_bytes(receiver.previous)
+        return rows
 
     def probe(client, protocol, address, deny=False):
         return traffic_probe(kube, log_rows, inputs["fixture_command"], stage, deadline,
@@ -213,6 +288,19 @@ def run(inputs, manifest_path, out=Path("/out"), control=Path("/control")):
                         or pod["spec"]["containers"][0]["image"] != inputs["imageName"]
                         or not image_matches(image, inputs["fixture_config_digest"], status[0].get("imageID"))):
                     raise Failure(stage, "fixed fixture image identity differs", 1)
+            server_pod = next(p for p in pods if p["metadata"]["name"] == "server")
+            container_id = server_pod["status"]["containerStatuses"][0]["containerID"]
+            if not re.fullmatch(r"containerd://[0-9a-f]{64}", container_id):
+                raise Failure(stage, "invalid receiver container ID")
+            inspected = cmd(["k3s", "crictl", "inspect", container_id.removeprefix("containerd://")], end)
+            if inspected.returncode:
+                raise Failure(stage, "receiver runtime inspection failed")
+            receiver = ReceiverLog(receiver_log_source(server_pod, json.loads(inspected.stdout)))
+            receiver.rows(stage)
+            (out / "receiver-log-source.json").write_text(json.dumps({
+                "kind": "local-cri-v1", "pod_uid": server_pod["metadata"]["uid"],
+                "container_id": container_id, "path": str(receiver.path),
+                "device": receiver.identity[0], "inode": receiver.identity[1]}, indent=2)+'\n')
             mark(stage, placement={p["metadata"]["name"]:p["spec"]["nodeName"] for p in pods})
             pod_ip = next(p["status"]["podIP"] for p in pods if p["metadata"]["name"] == "server")
             svc = json.loads(kube(["-n", NAMESPACE, "get", "svc", "echo", "-o", "json"], end).stdout)

@@ -100,3 +100,21 @@ LAN socket起動待ち中を含むhost中断は130、共有期限超過は4と�
 
 通常のホスト側エラー（disk準備・controller起動・LAN待ち・実行・検証）もrunのstatus/exit_code/stage/detailへ保存する。
 回収失敗はstage=cleanup・終了3を優先し、回収前の原因はhost_failureへ保持する。
+
+## probeの受信観測と期限超過の診断
+
+Pod Ready確認後、固定server Podのcontainer IDをCRIでinspectし、稼働中のcontainer・Pod UID・
+`/var/log/pods/arena-f2_server_<UID>/server/0.log`の一致を要求する。
+probe中は同じログ実体を直接読み、`kubectl logs`を繰り返し起動しない。
+Kubernetesの[CRIログ仕様とnode側保存](https://kubernetes.io/docs/concepts/cluster-administration/logging/)に沿う、
+この専用server VMの固定fixtureだけを対象とする。任意Pod・別runtime・別logPathへのfallbackはない。
+
+execと受信観測の絶対5秒は共有したまま。送信は1回、allowの受信nonceは1件、denyは0件、
+遅延公開・重複・対照通信の判定を維持する。欠損・不正CRI/JSON・不完全行・過大ログ・
+inode切替・履歴の切詰め/書換えは環境エラー3。部分証拠を受信0件へ読み替えない。
+`receiver-log-source.json`にPod/container・path・inode、`receiver-log.cri`に観測した固定fixtureログを保持する。
+
+コマンド期限超過時は`last-command-timeout.json`を確認する。失敗stage・argv・起動時budget・
+実行時間・失敗時の残り時間・workflow残り時間を保存する。stdinとコマンド出力は保存しない。
+コマンド起動前に期限切れなら起動せず記録し、遅れて成功応答が返っても成功へ読み替えない。
+workflow期限超過4と、短い段階期限による環境エラー3は区別する。
