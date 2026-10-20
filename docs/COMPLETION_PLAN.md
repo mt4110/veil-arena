@@ -25,11 +25,12 @@ TCP追加後のARM64受け入れは [記録](TCP_SYN_VALIDATION.md) を参照す
 既存のVMは `-nic none`、試験serviceはPrivateNetworkであり、K3s用VMへそのまま流用しない。
 既存の固定版・VM停止・bundle照合を利用し、新しいシナリオを専用構成として追加する。
 
-K3sのVM起動、2ノード通信、Keeperの新VM試験は未実施。
+F1は、F0の互換入口を含め、Mac ARM64／TCGの新規2 VMで[受け入れ完了](K3S_F1_VALIDATION.md)。
+2ノード通信とKeeperの新VM試験、両対応ホストの最終受け入れは未実施。
 F0は [検証契約](F0_CONTRACT.md) と [入力固定表](contracts/f0-inputs.json) を作成・静的確認した状態。
-パッケージの定義評価は実施したが、build・archive取得・起動に成功したという意味ではない。
+F0時点は定義評価まで。F1でARM64 packageのbuild・archive取得・実VM起動を確認した。
 
-## 残るマイルストーン
+## マイルストーンと残件
 
 | 段階 | 作業 | 完了証拠 |
 | --- | --- | --- |
@@ -72,3 +73,5 @@ K3sは [Kubernetesディストリビューション](https://docs.k3s.io/) で�
 
 次の実装単位はF1だけ。「固定入力でK3s 1 VMを起動し、固定PodのDNS／TCP／UDPと停止・新規VMでの再成功を確認する」。
 Keeperのpolicy適用や2 VMの作成は、その次の段階まで実施しない。
+
+F1の専用入口と運用契約は [F1_K3S.md](F1_K3S.md)。実装・実行結果の判定はF0と分けて記録する。

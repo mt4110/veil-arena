@@ -1,0 +1,170 @@
+# Dedicated F1 guest; no host NIC, host store, credentials or Keeper profile.
+{ nixpkgs, hostUid }:
+assert builtins.isInt hostUid && hostUid > 0;
+let
+  lib = nixpkgs.lib;
+  system = builtins.currentSystem;
+  pkgs = import nixpkgs { inherit system; };
+  contract = builtins.fromJSON (builtins.readFile ../../docs/contracts/f0-inputs.json);
+  limits = contract.f1_limits;
+  fixture = pkgs.writeTextDir "bin/arena-k3s-fixture.py" (builtins.readFile ../../tests/k3s/fixture.py);
+  fixtureCommand = [ "${pkgs.python314}/bin/python3" "${fixture}/bin/arena-k3s-fixture.py" ];
+  imageTag = "f1-${builtins.substring 0 16 (builtins.hashString "sha256" (builtins.readFile ../../tests/k3s/fixture.py))}";
+  imageName = "docker.io/veil-arena/fixture:${imageTag}";
+  fixtureImage = pkgs.dockerTools.buildLayeredImage {
+    name = "veil-arena/fixture";
+    tag = imageTag;
+    maxLayers = 2;
+    contents = [ pkgs.python314 fixture ];
+    config = { Cmd = fixtureCommand; Env = [ "PYTHONUNBUFFERED=1" ]; };
+  };
+  identity = pkgs.runCommand "arena-fixture-identity.json" { nativeBuildInputs = [ pkgs.python314 ]; } ''
+    python3 - ${fixtureImage} > $out <<'PYCODE'
+    import hashlib, json, sys, tarfile
+    with tarfile.open(sys.argv[1]) as image:
+        manifest = json.load(image.extractfile("manifest.json"))[0]
+        config = image.extractfile(manifest["Config"]).read()
+    print(json.dumps({"config_digest": "sha256:" + hashlib.sha256(config).hexdigest()}))
+    PYCODE
+  '';
+  manifest = pkgs.writeText "arena-k3s-fixtures.json" (builtins.toJSON {
+    apiVersion = "v1"; kind = "List";
+    items = [
+      { apiVersion = "v1"; kind = "Namespace"; metadata.name = "arena-f1"; }
+      { apiVersion = "v1"; kind = "Service";
+        metadata = { name = "echo"; namespace = "arena-f1"; };
+        spec = { selector.app = "echo"; ports = [
+          { name = "tcp"; port = 18080; targetPort = 18080; protocol = "TCP"; }
+          { name = "udp"; port = 18080; targetPort = 18080; protocol = "UDP"; }
+        ]; }; }
+    ] ++ map (role: {
+      apiVersion = "v1"; kind = "Pod";
+      metadata = { name = role; namespace = "arena-f1"; labels.app = if role == "server" then "echo" else "client"; };
+      spec = { restartPolicy = "Never"; automountServiceAccountToken = false;
+        containers = [({ name = role; image = imageName; imagePullPolicy = "Never";
+          command = fixtureCommand ++ [ (if role == "server" then "server" else "idle") ];
+          resources = { requests = { cpu = "10m"; memory = "32Mi"; }; limits = { cpu = "500m"; memory = "128Mi"; }; };
+        } // lib.optionalAttrs (role == "server") {
+          readinessProbe = { tcpSocket.port = 18080; periodSeconds = 1; timeoutSeconds = 1; };
+        })];
+      };
+    }) [ "server" "client" ];
+  });
+  compatElf = lib.genAttrs [ "true" "false" ] (name: {
+    source = "${pkgs.coreutils}/bin/${name}";
+    destination = "/usr/bin/${name}";
+    sha256 = builtins.hashFile "sha256" "${pkgs.coreutils}/bin/${name}";
+  });
+  inputs = pkgs.writeText "k3s-inputs.json" (builtins.toJSON {
+    schema_version = 1; inherit limits hostUid system imageName;
+    versions = contract.versions;
+    fixture_command = fixtureCommand;
+    compat_elf = compatElf;
+    keeper_child_uid = contract.keeper.child_uid;
+    keeper_child_gid = contract.keeper.child_gid;
+    compat_python = "${pkgs.python314}/bin/python3";
+    compat_aa_exec = "${pkgs.apparmor-bin-utils}/bin/aa-exec";
+    apparmor_parser = "${pkgs.apparmor-parser}/bin/apparmor_parser";
+    fixture_config_digest = (builtins.fromJSON (builtins.readFile identity)).config_digest;
+    nixpkgs_revision = contract.nixpkgs.revision;
+    airgap_sha256 = contract.airgap_archives.${system}.sha256;
+    fixture_script_sha256 = builtins.hashString "sha256" (builtins.readFile ../../tests/k3s/fixture.py);
+    guest_runner_sha256 = builtins.hashString "sha256" (builtins.readFile ../../scripts/k3s_guest.py);
+    manifest_sha256 = builtins.hashString "sha256" (builtins.readFile manifest);
+  });
+  guest = lib.nixosSystem {
+    inherit system;
+    modules = [ ({ modulesPath, ... }: {
+      imports = [ (modulesPath + "/virtualisation/qemu-vm.nix") ];
+      system.stateVersion = "26.05";
+      networking.hostName = "arena-k3s-server";
+      networking.useDHCP = false;
+      networking.firewall.enable = false; # Dedicated VM without a NIC; CNI owns guest rules.
+      services.openssh.enable = false;
+      services.resolved.enable = false;
+      nix.enable = false;
+      boot.kernelPackages = pkgs.linuxPackages_6_12;
+      boot.kernelModules = [ "dummy" "br_netfilter" "overlay" "vxlan" ];
+      boot.initrd.availableKernelModules = [ "virtio_blk" "virtio_pci" "9p" "9pnet_virtio" "erofs" "ext4" ];
+      security.apparmor.enable = true;
+      boot.kernel.sysctl = { "net.ipv4.ip_forward" = 1; "net.bridge.bridge-nf-call-iptables" = 1; };
+      virtualisation = {
+        diskImage = null; graphics = false;
+        memorySize = limits.memory_mib; cores = limits.vcpus;
+        useNixStoreImage = true; mountHostNixStore = false; writableStore = false;
+        useHostCerts = false;
+        sharedDirectories = lib.mkForce { out = { source = "$ARENA_VM_OUT"; target = "/out"; writable = true; }; };
+        qemu.networkingOptions = lib.mkForce [ "-nic none" ];
+      };
+      virtualisation.fileSystems."/out" = { fsType = lib.mkForce "9p";
+        options = lib.mkForce [ "trans=virtio" "version=9p2000.L" "msize=1048576" "x-systemd.requires=modprobe@9pnet_virtio.service" "rw" ]; };
+      virtualisation.fileSystems."/var" = { device = "/dev/disk/by-id/virtio-arena-run-state"; fsType = "ext4"; autoFormat = true; };
+      services.k3s = {
+        enable = true; package = pkgs.k3s; role = "server";
+        disable = [ "traefik" "servicelb" "local-storage" "metrics-server" ];
+        images = [ pkgs.k3s.airgap-images fixtureImage ];
+        extraFlags = [ "--node-ip=10.77.10.1" "--advertise-address=10.77.10.1"
+          "--flannel-iface=arena0" "--flannel-backend=vxlan" "--cluster-cidr=10.42.0.0/16"
+          "--service-cidr=10.43.0.0/16" "--resolv-conf=/etc/arena-resolv.conf" ];
+      };
+      environment.etc."arena-resolv.conf".text = "nameserver 10.77.10.254\n";
+      systemd.services.k3s = { wantedBy = lib.mkForce [ ]; after = [ "arena-link.service" ]; requires = [ "arena-link.service" ]; serviceConfig.Restart = lib.mkForce "no"; };
+      systemd.services.arena-link = {
+        serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+        path = [ pkgs.iproute2 ];
+        script = ''
+          ip link add arena0 type dummy
+          ip addr add 10.77.10.1/24 dev arena0
+          ip link set arena0 up
+          ip route add default via 10.77.10.254 dev arena0 metric 1000
+        '';
+      };
+      systemd.services.arena-k3s = {
+        wantedBy = [ "multi-user.target" ];
+        after = [ "out.mount" "var.mount" "apparmor.service" ];
+        requires = [ "out.mount" "var.mount" ];
+        path = [ pkgs.k3s pkgs.systemd pkgs.coreutils ];
+        preStart = ''
+          mkdir -p /usr/bin
+          test ! -e /usr/bin/true
+          test ! -e /usr/bin/false
+          install -m 0555 ${pkgs.coreutils}/bin/true /usr/bin/true
+          install -m 0555 ${pkgs.coreutils}/bin/false /usr/bin/false
+          test ! -e /usr/bin/python3
+          test ! -e /usr/bin/aa-exec
+          ln -s ${pkgs.python314}/bin/python3 /usr/bin/python3
+          ln -s ${pkgs.apparmor-bin-utils}/bin/aa-exec /usr/bin/aa-exec
+        '';
+        serviceConfig = { Type = "oneshot"; TimeoutStartSec = limits.workflow_seconds; TimeoutStopSec = 5; };
+        script = ''exec ${pkgs.python314}/bin/python3 ${../../scripts/k3s_guest.py} ${inputs} ${manifest}'';
+        postStop = ''printf '%s\n' "$SERVICE_RESULT" > /out/service-result.txt'';
+        unitConfig = { OnSuccess = "arena-poweroff.service"; OnFailure = "arena-poweroff.service"; };
+      };
+      systemd.services.arena-poweroff = { serviceConfig.Type = "oneshot"; script = "${pkgs.systemd}/bin/systemctl poweroff"; };
+    }) ];
+  };
+  cfg = guest.config;
+  closure = pkgs.closureInfo { rootPaths = [ cfg.system.build.toplevel ]; };
+  image = pkgs.runCommand "arena-k3s-store-image" {} (''
+    mkdir -p $out
+  '' + import (nixpkgs + "/nixos/lib/erofs-store-image.nix") {
+    hostPkgs = pkgs; storePaths = "${closure}/store-paths"; label = "nix-store"; destination = "$out/store.img";
+  });
+in assert builtins.elem system [ "aarch64-linux" "x86_64-linux" ];
+   assert pkgs.k3s.version == contract.versions.k3s;
+   assert pkgs.python314.version == contract.versions.python;
+   assert pkgs.coreutils.version == contract.versions.coreutils;
+   assert pkgs.apparmor-parser.version == contract.versions.apparmor;
+   assert cfg.boot.kernelPackages.kernel.version == contract.versions.kernel;
+pkgs.runCommand "arena-k3s-guest-bundle" { nativeBuildInputs = [ pkgs.python314 pkgs.qemu pkgs.zstd ]; } ''
+  mkdir -p $out
+  cp ${image}/store.img $out/store.img
+  cp ${cfg.system.build.kernel}/${cfg.system.boot.loader.kernelFile} $out/Image
+  cp ${cfg.system.build.initialRamdisk}/${cfg.system.boot.loader.initrdFile} $out/initrd
+  cp ${cfg.system.build.toplevel}/kernel-params $out/kernel-params
+  cp ${inputs} $out/inputs.json
+  cp ${manifest} $out/fixtures.json
+  echo '${cfg.system.build.toplevel}' > $out/toplevel
+  qemu-img create -f qcow2 $out/run-base.qcow2 ${toString limits.writable_run_disk_virtual_gib}G
+  python3 ${../../scripts/k3s_bundle.py} seal $out ${pkgs.k3s.airgap-images} ${fixtureImage}
+''

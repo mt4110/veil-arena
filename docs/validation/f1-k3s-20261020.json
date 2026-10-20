@@ -1,0 +1,462 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "milestone": "F1",
+  "status": "passed",
+  "base_commit": "f0e5bdab583b22143c6acd23f0b592ebe3f0f4e9",
+  "base_ci": "https://github.com/mt4110/veil-arena/actions/runs/39353311408",
+  "platform": "aarch64-darwin / aarch64-linux guest / native QEMU TCG",
+  "prepared_guest": "/nix/store/7g9ifvh777nmlwmmf03lrbr08hnsgwsj-arena-k3s-guest-bundle",
+  "tested_runner": "/nix/store/i8m70yhmd88qy63yn947rrrv5kmss615-arena-k3s",
+  "tested_bundle_sha256": "18a4891497be0132255b6e4581b2c4a418860a123020afe50139f3c4b191a627",
+  "tested_boot_inputs": {
+    "store.img": {
+      "sha256": "14cfeb761fbdb306262a247901995a8dd91022a4f495eb9030ae925ea647e3b2",
+      "bytes": 2001059840
+    },
+    "Image": {
+      "sha256": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+      "bytes": 61114880
+    },
+    "initrd": {
+      "sha256": "2a4432f83f94e9aa226bc684da05a8359c3f9ff1f716037e1ad3e90a0b9d705b",
+      "bytes": 27429535
+    },
+    "kernel-params": {
+      "sha256": "18d86214f960717fa5a06a88a57fc65d0ca116a55cff4f7fc11e2083404304d3",
+      "bytes": 77
+    },
+    "inputs.json": {
+      "sha256": "6d77b7ca0b6eea96261bf377e91d67468fdac723100a4658037637debbde244f",
+      "bytes": 2104
+    },
+    "fixtures.json": {
+      "sha256": "684cf62213f146eef692e5849123e9a7455a56d14320124445e210e10dd79d20",
+      "bytes": 1614
+    },
+    "toplevel": {
+      "sha256": "cbe3baea78fbf0da9523c058d4def9ccaf7a814b4d73c5667244e39d04dfbbb2",
+      "bytes": 97
+    },
+    "run-base.qcow2": {
+      "sha256": "d540e67a60a1b940ac9dda21e516b9570e8db916d2fb1a12766d3d67453cc573",
+      "bytes": 197120
+    }
+  },
+  "tested_fixture_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+  "tested_inputs": {
+    "airgap_sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5",
+    "apparmor_parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+    "compat_aa_exec": "/nix/store/gjfmhii7xa59vq7ga974gp44sj4gpgz8-apparmor-bin-utils-5.0.2/bin/aa-exec",
+    "compat_elf": {
+      "false": {
+        "destination": "/usr/bin/false",
+        "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+        "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/false"
+      },
+      "true": {
+        "destination": "/usr/bin/true",
+        "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+        "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/true"
+      }
+    },
+    "compat_python": "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+    "fixture_command": [
+      "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+      "/nix/store/nws4d5in8a6kcf7m0d7rk74jhcd4n5g5-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+    ],
+    "fixture_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+    "fixture_script_sha256": "f00f14b3e67877feea1aaa05f6f27ec2f4a218d51858f3e334fa91d857a94c23",
+    "guest_runner_sha256": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+    "hostUid": 501,
+    "imageName": "docker.io/veil-arena/fixture:f1-f00f14b3e67877fe",
+    "keeper_child_gid": 1000,
+    "keeper_child_uid": 501,
+    "limits": {
+      "host_watchdog_seconds": 660,
+      "io_probe_seconds": 5,
+      "meaning": "User-approved resource revision 2026-10-20; original deadlines and expectations retained; no automatic retry/extension",
+      "memory_mib": 16384,
+      "node_ready_seconds": 300,
+      "pod_ready_seconds": 120,
+      "vcpus": 4,
+      "workflow_seconds": 600,
+      "writable_run_disk_virtual_gib": 32
+    },
+    "manifest_sha256": "684cf62213f146eef692e5849123e9a7455a56d14320124445e210e10dd79d20",
+    "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+    "schema_version": 1,
+    "system": "aarch64-linux",
+    "versions": {
+      "apparmor": "5.0.2",
+      "cargo_binary": "1.98.0",
+      "containerd": "2.3.4-k3s1.36",
+      "coreutils": "9.11",
+      "flannel": "v0.28.4",
+      "k3s": "1.36.4+k3s1",
+      "kernel": "6.12.112",
+      "python": "3.14.7",
+      "qemu": "11.1.1",
+      "rust": "1.98.1"
+    }
+  },
+  "base_virtual_size_bytes": 34359738368,
+  "runs": [
+    {
+      "directory": "acceptance-6-4cpu16g32g/fresh-1",
+      "status": "passed",
+      "exit_code": 0,
+      "boot_id": "27a2534f-f3d2-4ccb-819d-809f10915409",
+      "checks": [
+        {
+          "stage": "node_ready",
+          "status": "passed",
+          "count": 1
+        },
+        {
+          "stage": "pod_ready",
+          "status": "passed",
+          "count": 2,
+          "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+          "node": "arena-k3s-server"
+        },
+        {
+          "stage": "dns_tcp",
+          "status": "passed",
+          "probe": {
+            "protocol": "tcp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.168.80"
+            ],
+            "payload": "arena-f1:tcp:091cbd0d5f94433ebbff74c955b214d5",
+            "received": "arena-f1:tcp:091cbd0d5f94433ebbff74c955b214d5",
+            "count": 1
+          },
+          "receiver_count": 1
+        },
+        {
+          "stage": "dns_udp",
+          "status": "passed",
+          "probe": {
+            "protocol": "udp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.168.80"
+            ],
+            "payload": "arena-f1:udp:dec1e33c1d6847cea07fdc30384f5180",
+            "received": "arena-f1:udp:dec1e33c1d6847cea07fdc30384f5180",
+            "count": 1
+          },
+          "receiver_count": 1
+        }
+      ],
+      "guest_seconds": 90.369872,
+      "node_capacity": {
+        "cpu": "4",
+        "ephemeral-storage": "32716560Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "hugepages-32Mi": "0",
+        "hugepages-64Ki": "0",
+        "memory": "16327988Ki",
+        "pods": "110"
+      },
+      "compatibility": {
+        "elf": {
+          "false": {
+            "path": "/usr/bin/false",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "regular_elf": true
+          },
+          "true": {
+            "path": "/usr/bin/true",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "regular_elf": true
+          }
+        },
+        "lsm": [
+          "capability",
+          "landlock",
+          "yama",
+          "apparmor",
+          "bpf",
+          "ima"
+        ],
+        "keeper_child_uid": 501,
+        "keeper_child_gid": 1000,
+        "host_uid": 501,
+        "parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+        "keeper_profile_loaded_by_f1": false
+      },
+      "qemu_duration_ms": 113900,
+      "qemu_exit_code": 0,
+      "qemu_reaped": true,
+      "escalated": false,
+      "evidence_synced": true,
+      "evidence_synced_before_stop": true
+    },
+    {
+      "directory": "acceptance-6-4cpu16g32g/fresh-2",
+      "status": "passed",
+      "exit_code": 0,
+      "boot_id": "dab3fc5e-ac8b-42d7-8af5-0c89d8ca7c4d",
+      "checks": [
+        {
+          "stage": "node_ready",
+          "status": "passed",
+          "count": 1
+        },
+        {
+          "stage": "pod_ready",
+          "status": "passed",
+          "count": 2,
+          "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+          "node": "arena-k3s-server"
+        },
+        {
+          "stage": "dns_tcp",
+          "status": "passed",
+          "probe": {
+            "protocol": "tcp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.101.26"
+            ],
+            "payload": "arena-f1:tcp:6fdb33fc0c9c49d69d65a4e3473a1252",
+            "received": "arena-f1:tcp:6fdb33fc0c9c49d69d65a4e3473a1252",
+            "count": 1
+          },
+          "receiver_count": 1
+        },
+        {
+          "stage": "dns_udp",
+          "status": "passed",
+          "probe": {
+            "protocol": "udp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.101.26"
+            ],
+            "payload": "arena-f1:udp:b730d6a630574c5683e40d087311ab48",
+            "received": "arena-f1:udp:b730d6a630574c5683e40d087311ab48",
+            "count": 1
+          },
+          "receiver_count": 1
+        }
+      ],
+      "guest_seconds": 85.41089,
+      "node_capacity": {
+        "cpu": "4",
+        "ephemeral-storage": "32716560Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "hugepages-32Mi": "0",
+        "hugepages-64Ki": "0",
+        "memory": "16327988Ki",
+        "pods": "110"
+      },
+      "compatibility": {
+        "elf": {
+          "false": {
+            "path": "/usr/bin/false",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "regular_elf": true
+          },
+          "true": {
+            "path": "/usr/bin/true",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "regular_elf": true
+          }
+        },
+        "lsm": [
+          "capability",
+          "landlock",
+          "yama",
+          "apparmor",
+          "bpf",
+          "ima"
+        ],
+        "keeper_child_uid": 501,
+        "keeper_child_gid": 1000,
+        "host_uid": 501,
+        "parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+        "keeper_profile_loaded_by_f1": false
+      },
+      "qemu_duration_ms": 105419,
+      "qemu_exit_code": 0,
+      "qemu_reaped": true,
+      "escalated": false,
+      "evidence_synced": true,
+      "evidence_synced_before_stop": true
+    }
+  ],
+  "unit_validation": {
+    "mac_f1_cases": 13,
+    "linux_arm64_f1_cases": 13,
+    "mac_full_check": "passed"
+  },
+  "builder": {
+    "profile": "veil-arena-mvp-arm64",
+    "previous_disk_gib": 60,
+    "approved_disk_gib": 100,
+    "expanded_filesystem_gib_rounded": 99,
+    "cache_preserved": true,
+    "final_state": "Stopped"
+  },
+  "source_sha256": {
+    "environments/vm/k3s.nix": "7a4de7f548598c4719876566761b4ce42f61780f0966a6c0ecc7157fa1d35284",
+    "scripts/k3s_bundle.py": "93b01b2d6928f8688a889f32324f82f9cceb777e8161da93f41c92c969fa5f78",
+    "scripts/k3s_guest.py": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+    "scripts/k3s_host.py": "44d06d67de96abbadf8f4e03874bda4dc4b7b9a0c3e11806c97c50a141036459",
+    "scripts/prepare-k3s.sh": "36f5a36e285fe407516c8866ed25a35e5ba19e33babc2a923a7bb39ba708f9e9",
+    "tests/k3s/fixture.py": "f00f14b3e67877feea1aaa05f6f27ec2f4a218d51858f3e334fa91d857a94c23",
+    "tests/test_k3s_f1.py": "5a17eef79b11161385270008532563061e301764e72a62cc114350587b9bdae9",
+    "docs/contracts/f0-inputs.json": "c7415dbec1798acebb462f801090f2b18d6b325d708ed88f41c0710536122be2"
+  },
+  "preliminary_network_acceptance": {
+    "evidence_root": "Linux/veil-arena/k3s-f1-20261020/acceptance-5",
+    "bundle_sha256": "04fab0082a99ac043227470c0e1082d25dde98f8b3498896484d3d010bf1ba52",
+    "resources": {
+      "vcpus": 2,
+      "memory_mib": 6144,
+      "disk_gib": 24
+    },
+    "runs": [
+      {
+        "directory": "acceptance-5/fresh-1",
+        "status": "passed",
+        "exit_code": 0,
+        "boot_id": "82e503d8-7f9c-47d1-a5de-6f393ade0f9d",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "pod_ready",
+            "status": "passed",
+            "count": 2,
+            "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+            "node": "arena-k3s-server"
+          },
+          {
+            "stage": "dns_tcp",
+            "status": "passed",
+            "probe": {
+              "protocol": "tcp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.209.53"
+              ],
+              "payload": "arena-f1:tcp:8140ea1483e444d3856bc3fd68dc4b42",
+              "received": "arena-f1:tcp:8140ea1483e444d3856bc3fd68dc4b42",
+              "count": 1
+            },
+            "receiver_count": 1
+          },
+          {
+            "stage": "dns_udp",
+            "status": "passed",
+            "probe": {
+              "protocol": "udp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.209.53"
+              ],
+              "payload": "arena-f1:udp:545efabfe46649229c366b5bad4c5767",
+              "received": "arena-f1:udp:545efabfe46649229c366b5bad4c5767",
+              "count": 1
+            },
+            "receiver_count": 1
+          }
+        ],
+        "guest_seconds": 134.67602,
+        "qemu_duration_ms": 155614,
+        "qemu_exit_code": 0,
+        "qemu_reaped": true,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true
+      },
+      {
+        "directory": "acceptance-5/fresh-2",
+        "status": "passed",
+        "exit_code": 0,
+        "boot_id": "2046bf76-15fc-4a2f-916a-d0a9806ba116",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "pod_ready",
+            "status": "passed",
+            "count": 2,
+            "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+            "node": "arena-k3s-server"
+          },
+          {
+            "stage": "dns_tcp",
+            "status": "passed",
+            "probe": {
+              "protocol": "tcp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.46.248"
+              ],
+              "payload": "arena-f1:tcp:11742f765bea47b98253ef628ef734ad",
+              "received": "arena-f1:tcp:11742f765bea47b98253ef628ef734ad",
+              "count": 1
+            },
+            "receiver_count": 1
+          },
+          {
+            "stage": "dns_udp",
+            "status": "passed",
+            "probe": {
+              "protocol": "udp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.46.248"
+              ],
+              "payload": "arena-f1:udp:17d93a569ca84b3ea8f6311068835ac0",
+              "received": "arena-f1:udp:17d93a569ca84b3ea8f6311068835ac0",
+              "count": 1
+            },
+            "receiver_count": 1
+          }
+        ],
+        "guest_seconds": 134.175688,
+        "qemu_duration_ms": 154718,
+        "qemu_exit_code": 0,
+        "qemu_reaped": true,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true
+      }
+    ]
+  },
+  "remaining_milestones": [
+    "F2 two-node cluster",
+    "F3 Keeper integration",
+    "F4 cross-host acceptance and owner operation"
+  ],
+  "excluded": [
+    "physical environment",
+    "third-party trials",
+    "Keeper profile loading",
+    "tag/release"
+  ],
+  "evidence_root": "Linux/veil-arena/k3s-f1-20261020/acceptance-6-4cpu16g32g",
+  "publication_state_at_acceptance": "uncommitted; PR preparation is a separately authorized follow-up; no tag/release",
+  "pr_followup": {
+    "change": "Mock CPU count only in existing-output preservation unit test; runtime inputs unchanged",
+    "reproduced_with_host_cpu_count": 3,
+    "source_sha256": {
+      "tests/test_k3s_f1.py": "ef0665870dc954573e77d898d7912d2c57d6f6eac6d98c3dae1ecc8ea22c2c72"
+    }
+  }
+}

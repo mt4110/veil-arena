@@ -153,5 +153,16 @@
     "No host sudo or host policy/route/DNS changes",
     "No edits or commits to Keeper; source mismatch stops preparation",
     "No station-api/SQLite or BPF LSM claim; fixed AppArmor exec smoke only"
-  ]
+  ],
+  "f1_limits": {
+    "vcpus": 4,
+    "memory_mib": 16384,
+    "writable_run_disk_virtual_gib": 32,
+    "node_ready_seconds": 300,
+    "pod_ready_seconds": 120,
+    "io_probe_seconds": 5,
+    "workflow_seconds": 600,
+    "host_watchdog_seconds": 660,
+    "meaning": "User-approved resource revision 2026-10-20; original deadlines and expectations retained; no automatic retry/extension"
+  }
 }
