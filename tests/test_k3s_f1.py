@@ -125,6 +125,7 @@ class F1Evidence(unittest.TestCase):
         marker.write_text("keep")
         with patch.object(host, "check", return_value=({"hostUid": 501, "system": "aarch64-linux", "limits": bundle.LIMITS}, {})), \
                 patch.object(host.os, "getuid", return_value=501), \
+                patch.object(host.os, "cpu_count", return_value=bundle.LIMITS["vcpus"]), \
                 patch.object(host.platform, "machine", return_value="arm64"), \
                 patch.object(host.shutil, "disk_usage", return_value=type("Usage", (), {"free": 40 * 1024**3})()), \
                 patch.object(host, "available_memory_mib", return_value=20000), \

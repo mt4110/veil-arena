@@ -451,5 +451,12 @@
     "tag/release"
   ],
   "evidence_root": "Linux/veil-arena/k3s-f1-20261020/acceptance-6-4cpu16g32g",
-  "publication_state_at_acceptance": "uncommitted; PR preparation is a separately authorized follow-up; no tag/release"
+  "publication_state_at_acceptance": "uncommitted; PR preparation is a separately authorized follow-up; no tag/release",
+  "pr_followup": {
+    "change": "Mock CPU count only in existing-output preservation unit test; runtime inputs unchanged",
+    "reproduced_with_host_cpu_count": 3,
+    "source_sha256": {
+      "tests/test_k3s_f1.py": "ef0665870dc954573e77d898d7912d2c57d6f6eac6d98c3dae1ecc8ea22c2c72"
+    }
+  }
 }
