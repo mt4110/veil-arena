@@ -54,7 +54,7 @@ printf '終了コード: %s\n証拠: %s\n' "$arena_exit" "$arena_out"
 ```
 
 `daily`は2 VMの1クラスタ、`acceptance`は追加の新規2 VMを含む2クラスタ。
-Node 300秒・Pod段階120秒・probe各5秒・一括全体600秒・controller watchdog 660秒は維持する。
+Node 300秒・Pod段階120秒・exec＋受信ログ取得を合わせたprobe各5秒・一括全体600秒・controller watchdog 660秒は維持する。
 各クラスタへ600秒ずつを割り当てず、2クラスタで共有する。失敗したprobeの自動retryや上限延長はしない。
 
 ## 判定
@@ -88,3 +88,8 @@ F1のMac ARM64成功やCI評価を、F2実VMの成功やLinux x86_64/KVMの受�
 
 参照: [QEMU UNIX stream backend](https://www.qemu.org/docs/master/system/qemu-manpage.html)、
 [K3s NetworkPolicy controller](https://docs.k3s.io/networking/networking-services)。
+
+失敗したexecの終了コードだけではfixture実行を証明しない。期待違反はfixture由来の構造化証拠と
+呼出しaction/protocol/host/nonceの一致がある場合だけ不一致1とし、exec基盤障害や証拠欠損は環境エラー3にする。
+失敗時のsummaryにはcluster/node単位のstatus・exit_code・stage・detailも残す。
+レビュー修正後の検証範囲と旧prepared bundleとの区別は[検証記録](K3S_F2_VALIDATION.md)を参照する。

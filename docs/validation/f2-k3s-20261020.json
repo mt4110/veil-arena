@@ -931,5 +931,33 @@
     "docs/contracts/f0-inputs.json": "49cd0088a9c848bc2fc9ec0f42b970aee5489e2b2716f4e584b6b2f4725e02a4",
     "flake.nix": "d042b4d19a7961163f4c18d888de138fe050fe235707f621a535cd212b8fd081"
   },
-  "publication_state_at_acceptance": "uncommitted; PR preparation is a separately authorized follow-up; no tag/release"
+  "publication_state_at_acceptance": "uncommitted; PR preparation is a separately authorized follow-up; no tag/release",
+  "review_followup": {
+    "date": "2026-10-20",
+    "historical_runtime_acceptance_commit": "42ef42fdc6f4d66f6a424403ef4d577fe64c1c10",
+    "changes": [
+      "fixture-originated mismatch proof; exec infrastructure failure remains environment error 3",
+      "exec and receiver logs share one absolute five-second probe deadline",
+      "retain guest failure status/code/stage/detail per cluster and node; cleanup failure remains environment error"
+    ],
+    "regression": {
+      "mac_full_check": "passed",
+      "mac_python_tests": 111,
+      "mac_f2_tests": 29,
+      "linux_arm64_f1_f2_review_tests": 42,
+      "real_stalled_child_deadline_and_recovery": "passed on Mac and Linux ARM64",
+      "preserved_raw_clusters_reverified": 2
+    },
+    "fresh_vm_rerun": false,
+    "runtime_scope": "Prior four-VM acceptance is historical. Revised guest/fixture not booted in a new VM in this review follow-up.",
+    "cache_preserved": true,
+    "builder_final_state": "Stopped",
+    "source_sha256": {
+      "scripts/k3s_f2_guest.py": "110e4a589ad678abe51605893ca666bcc34da82272a5e52e499732fed29cc0a0",
+      "scripts/k3s_f2_host.py": "2023e23852ff941cee9606579f9a278435179f7f3543520fd68d3f58313a69b2",
+      "tests/k3s/f2_fixture.py": "79078df4704ff6418c660beb327a662efacb9d4694e63f7ce638acc822143b74",
+      "tests/test_k3s_f2.py": "83ce275b87478015a77d049cc5ffcda43845d8d6016168bbc512121e86dfa2af",
+      "tests/test_k3s_f2_review.py": "a1020ad78e7f595211eeffdbae993664644b7b005c12c8cc41683281e22e4ed3"
+    }
+  }
 }

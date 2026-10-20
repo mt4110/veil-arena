@@ -174,10 +174,10 @@ class F2(unittest.TestCase):
 
     def test_fixed_probe_failure_is_not_a_pass_or_environment_success(self):
         with self.assertRaises(guest.Failure) as raised:
-            guest.probe_output(Mock(returncode=1,stdout=b''),'deny')
-        self.assertEqual(raised.exception.code,1)
+            guest.probe_output(Mock(returncode=1,stdout=b''),'deny',action='deny',protocol='tcp',address='fixed',nonce='a'*32)
+        self.assertEqual(raised.exception.code,3)
         self.assertEqual(raised.exception.stage,'deny')
-        with self.assertRaises(ValueError):guest.probe_output(Mock(returncode=0,stdout=b'{partial'),'baseline')
+        with self.assertRaises(guest.Failure):guest.probe_output(Mock(returncode=0,stdout=b'{partial'),'baseline',action='probe',protocol='tcp',address='fixed',nonce='a'*32)
 
     def test_policy_is_selective_and_ingress_only(self):
         p=guest.policy()['spec'];self.assertEqual(p['policyTypes'],['Ingress'])

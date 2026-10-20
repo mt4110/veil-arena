@@ -21,9 +21,24 @@ ROLES = {"server": (4, 16384), "agent": (2, 4096)}
 
 
 class GuestFailure(ValueError):
-    def __init__(self, message, code):
-        super().__init__(message)
+    def __init__(self, role, result):
+        code = result.get("exit_code")
+        if type(code) is not int or code not in {1, 3, 4, 130}:
+            raise ValueError(role + ": invalid guest failure exit")
         self.code = code
+        self.role = role
+        self.stage = result.get("stage")
+        self.detail = result.get("detail")
+        self.status = {1: "failed", 3: "environment_error", 4: "timeout", 130: "cancelled"}[code]
+        super().__init__(f"{role}: {self.stage}: {self.detail}")
+
+
+def record_guest_failure(item, error):
+    fields = {"status": error.status, "exit_code": error.code,
+              "stage": error.stage, "detail": error.detail}
+    item.update(fields, failed_node=error.role)
+    item["guest_failure"] = {"role": error.role, **fields}
+    item["nodes"][error.role] = fields.copy()
 
 
 def verify_cluster(root, inputs):
@@ -41,10 +56,7 @@ def verify_cluster(root, inputs):
                 or not re.fullmatch(r"[0-9a-f-]{36}", row.get("boot_id", ""))):
             raise ValueError(f"{role}: guest identity/completion proof invalid")
         if row.get("status") != "passed" or row.get("exit_code") != 0:
-            code = row.get("exit_code")
-            if type(code) is not int or code not in {1,3,4,130}:
-                raise ValueError("guest failure exit code invalid")
-            raise GuestFailure(f"{role}: guest {row.get('stage')}: {row.get('detail')}", code)
+            raise GuestFailure(role, row)
         if bounded(out / "service-result.txt").strip() != b"success":
             raise ValueError(f"{role}: service completion marker differs")
         results[role] = row
@@ -212,10 +224,7 @@ def workflow(uid, bundles, mode, root):
                         if child.poll() == 0:
                             completed=json.loads(bounded(run/role/"result.json"))
                             if completed.get("status") != "passed":
-                                failure_code=completed.get("exit_code")
-                                if type(failure_code) is not int or failure_code not in {1,3,4,130}:
-                                    raise ValueError(role+": invalid guest failure exit")
-                                raise GuestFailure(f"{role}: {completed.get('stage')}: {completed.get('detail')}",failure_code)
+                                raise GuestFailure(role, completed)
                     if any(c.poll() not in {None,0} for c in children.values()):
                         raise ValueError("node lifecycle controller failed")
                     time.sleep(.1)
@@ -224,6 +233,9 @@ def workflow(uid, bundles, mode, root):
                     raise ValueError("fresh cluster reused boot identity")
                 ids.update(boot_ids.values())
                 item.update(status="passed",boot_ids=boot_ids)
+            except GuestFailure as error:
+                record_guest_failure(item, error)
+                raise
             finally:
                 errors=collect(children)
                 item["controller_exits"]={r:c.returncode for r,c in children.items()}
@@ -240,6 +252,7 @@ def workflow(uid, bundles, mode, root):
                 item["cleanup_errors"]=errors
                 if errors:
                     code=3
+                    item.update(status="environment_error", exit_code=3, stage="cleanup", detail='; '.join(errors))
                     raise ValueError('; '.join(errors))
         for role,bundle in bundles.items():
             if check(bundle)!=(inputs[role],seals[role]):

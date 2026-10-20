@@ -9,6 +9,10 @@ import time
 PORT = 18080
 
 
+class ProbeMismatch(ValueError):
+    """The fixed fixture ran but its traffic expectation did not hold."""
+
+
 def serve():
     def tcp():
         with socket.socket() as listener:
@@ -36,7 +40,7 @@ def probe(protocol, host, nonce, deny=False):
     # Called in a separately deadline-bounded exec; DNS cannot extend its 5 s limit.
     addresses = sorted({row[4][0] for row in socket.getaddrinfo(host, PORT, socket.AF_INET)})
     if len(addresses) != 1:
-        raise ValueError("expected exactly one IPv4 Service address")
+        raise ProbeMismatch("expected exactly one IPv4 Service address")
     payload = f"arena-f2:{protocol}:{nonce}".encode()
     kind = socket.SOCK_STREAM if protocol == "tcp" else socket.SOCK_DGRAM
     with socket.socket(socket.AF_INET, kind) as client:
@@ -51,13 +55,26 @@ def probe(protocol, host, nonce, deny=False):
                 print(json.dumps({"protocol": protocol, "host": host, "addresses": addresses,
                                   "payload": payload.decode(), "outcome": "denied", "errno": code}), flush=True)
                 return
+            if not deny and code in {errno.ETIMEDOUT, errno.ECONNREFUSED, errno.EHOSTUNREACH, errno.EACCES}:
+                raise ProbeMismatch("expected echo was refused or timed out") from None
             raise
         if deny:
-            raise ValueError("target TCP unexpectedly passed")
+            raise ProbeMismatch("target TCP unexpectedly passed")
     if received != payload:
-        raise ValueError("echo payload mismatch")
+        raise ProbeMismatch("echo payload mismatch")
     print(json.dumps({"protocol": protocol, "host": host, "addresses": addresses,
                       "payload": payload.decode(), "received": received.decode(), "count": 1}), flush=True)
+
+
+def probe_main(action, protocol, host, nonce):
+    try:
+        probe(protocol, host, nonce, deny=action == "deny")
+    except ProbeMismatch as error:
+        print(json.dumps({"schema_version": 1, "kind": "arena-f2-probe-mismatch",
+                          "action": action, "protocol": protocol, "host": host,
+                          "nonce": nonce, "detail": str(error)}), flush=True)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
@@ -66,6 +83,6 @@ if __name__ == "__main__":
     elif sys.argv[1:] == ["idle"]:
         threading.Event().wait()
     elif len(sys.argv) == 5 and sys.argv[1] in {"probe", "deny"} and sys.argv[2] in {"tcp", "udp"}:
-        probe(*sys.argv[2:], deny=sys.argv[1] == "deny")
+        sys.exit(probe_main(*sys.argv[1:]))
     else:
         raise SystemExit("usage: fixture.py server|idle|probe tcp|udp HOST NONCE")

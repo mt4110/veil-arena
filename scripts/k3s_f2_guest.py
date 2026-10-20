@@ -31,12 +31,54 @@ def policy():
                                   "ports": [{"protocol": "TCP", "port": 18080}]}]}}
 
 
-def probe_output(cp, stage):
-    # A completed fixed fixture rejecting the expected traffic is a test failure,
-    # while malformed/missing evidence still remains an environment error.
+def probe_output(cp, stage, *, action, protocol, address, nonce):
+    # kubectl's exit alone cannot prove that the container fixture executed.
+    try:
+        row = json.loads(cp.stdout)
+    except (ValueError, TypeError):
+        raise Failure(stage, "exec/fixture evidence missing or malformed", 3) from None
+    if not isinstance(row, dict):
+        raise Failure(stage, "exec/fixture evidence is not an object", 3)
     if cp.returncode:
-        raise Failure(stage, "bounded fixture probe did not meet its expectation", 1)
-    return json.loads(cp.stdout)
+        if (cp.returncode == 1 and row.get("schema_version") == 1
+                and row.get("kind") == "arena-f2-probe-mismatch"
+                and row.get("action") == action and row.get("protocol") == protocol
+                and row.get("host") == address and row.get("nonce") == nonce
+                and isinstance(row.get("detail"), str) and 0 < len(row["detail"]) <= 1024):
+            raise Failure(stage, row["detail"], 1)
+        raise Failure(stage, "exec failed without matching fixture-originated evidence", 3)
+    if row.get("kind") == "arena-f2-probe-mismatch":
+        raise Failure(stage, "fixture mismatch contradicts successful exec status", 3)
+    return row
+
+
+def traffic_probe(kube, log_rows, fixture_command, stage, deadline, client, protocol, address, deny=False):
+    probe_end = min(deadline, time.monotonic() + 5)
+    nonce = uuid.uuid4().hex
+    action = "deny" if deny else "probe"
+    cp = kube(["-n", NAMESPACE, "exec", client, "--", *fixture_command,
+               action, protocol, address, nonce], probe_end, required=False)
+    row = probe_output(cp, stage, action=action, protocol=protocol, address=address, nonce=nonce)
+    expected = f"arena-f2:{protocol}:{nonce}"
+    ipaddress.IPv4Address(row["addresses"][0])
+    if (row.get("protocol") != protocol or row.get("host") != address or len(row["addresses"]) != 1
+            or row.get("payload") != expected):
+        raise Failure(stage, "probe identity/address mismatch", 1)
+    if deny:
+        if row.get("outcome") != "denied" or row.get("errno") not in {errno.ETIMEDOUT, errno.ECONNREFUSED, errno.EHOSTUNREACH, errno.EACCES}:
+            raise Failure(stage, "target TCP was not refused/timed out", 1)
+    elif row.get("received") != expected or row.get("count") != 1:
+        raise Failure(stage, "echo mismatch", 1)
+    if time.monotonic() >= probe_end:
+        raise Failure(stage, "five-second probe deadline expired", 4 if time.monotonic() >= deadline else 3)
+    receiver_count = sum(r == {"protocol": protocol, "payload": expected} for r in log_rows(probe_end))
+    if time.monotonic() >= probe_end:
+        raise Failure(stage, "five-second probe deadline expired", 4 if time.monotonic() >= deadline else 3)
+    if receiver_count != (0 if deny else 1):
+        raise Failure(stage, "receiver nonce count mismatch", 1)
+    return {"client": client, "protocol": protocol, "destination": address,
+            "expected": "deny" if deny else "allow", "probe": row, "receiver_count": receiver_count}
+
 
 
 def run(inputs, manifest_path, out=Path("/out"), control=Path("/control")):
@@ -84,26 +126,8 @@ def run(inputs, manifest_path, out=Path("/out"), control=Path("/control")):
         return [json.loads(line) for line in cp.stdout.splitlines()]
 
     def probe(client, protocol, address, deny=False):
-        nonce = uuid.uuid4().hex
-        action = "deny" if deny else "probe"
-        cp = kube(["-n", NAMESPACE, "exec", client, "--", *inputs["fixture_command"],
-                   action, protocol, address, nonce], min(deadline, time.monotonic() + 5), required=False)
-        row = probe_output(cp, stage)
-        expected = f"arena-f2:{protocol}:{nonce}"
-        ipaddress.IPv4Address(row["addresses"][0])
-        if (row.get("protocol") != protocol or row.get("host") != address or len(row["addresses"]) != 1
-                or row.get("payload") != expected):
-            raise Failure(stage, "probe identity/address mismatch", 1)
-        if deny:
-            if row.get("outcome") != "denied" or row.get("errno") not in {errno.ETIMEDOUT, errno.ECONNREFUSED, errno.EHOSTUNREACH, errno.EACCES}:
-                raise Failure(stage, "target TCP was not refused/timed out", 1)
-        elif row.get("received") != expected or row.get("count") != 1:
-            raise Failure(stage, "echo mismatch", 1)
-        receiver_count = sum(r == {"protocol": protocol, "payload": expected} for r in log_rows(deadline))
-        if receiver_count != (0 if deny else 1):
-            raise Failure(stage, "receiver nonce count mismatch", 1)
-        return {"client": client, "protocol": protocol, "destination": address,
-                "expected": "deny" if deny else "allow", "probe": row, "receiver_count": receiver_count}
+        return traffic_probe(kube, log_rows, inputs["fixture_command"], stage, deadline,
+                             client, protocol, address, deny)
 
     def mark(name, **fields):
         result["checks"].append({"stage": name, "status": "passed", **fields})
