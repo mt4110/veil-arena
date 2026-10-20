@@ -119,7 +119,9 @@ Nix定義・準備入口・Rust controllerの既存の役割を使い、汎用pl
 | 停止・新規VM | 証拠保存と所有QEMU回収後、別boot ID・同一入力の新規VMで同じ結果 |
 | 収集不能・起動不成立 | passedにしない。reason・期限・取得できた証拠・回収状態を保存 |
 
-初回の工程上限は2 vCPU・6 GiB RAM・run disk仮想容量24 GiB、Node待機300秒・Pod待機120秒・
+初回の工程上限は2 vCPU・6 GiB RAM・run disk仮想容量24 GiBだった（JSONの`initial_f1_limits`に保持）。
+2026-10-20のユーザー承認で、現行は4 vCPU・16 GiB RAM・run disk仮想容量32 GiBへ変更した
+（JSONの`f1_limits`）。Node待機300秒・Pod待機120秒・
 通信probe各5秒・workflow全体600秒・host watchdog660秒とする。F1の最初の試行を有限にする設計値であり、実測SLOではない。
 起動前にhost余力と実disk空きを確認する。期限は共有の絶対deadlineで制限し、各待機で再設定しない。
 期限内に成立しなければ証拠を残して終了し、自動延長・retryは追加しない。既存18ケースの期限は変更しない。

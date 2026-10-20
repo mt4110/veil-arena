@@ -52,6 +52,13 @@
     in {
       lib = {
         inherit versions;
+        mkK3sGuest = { hostUid }: import ./environments/vm/k3s.nix { inherit nixpkgs hostUid; };
+        mkK3sRunner = { hostSystem, hostUid }:
+          let pkgs = pkgsFor hostSystem; in assert pkgs.qemu.version == "11.1.1"; pkgs.writeShellApplication {
+            name = "arena-k3s";
+            runtimeInputs = [ pkgs.python314 pkgs.coreutils pkgs.qemu (vmControllerFor pkgs) ];
+            text = ''exec python3 ${./scripts}/k3s_host.py ${toString hostUid} "$@"'';
+          };
         mkNetnsBundleVm = { hostSystem, hostUid, guestBundle }:
           import ./environments/vm/offline.nix {
             inherit nixpkgs versions toolsFor arenaFor vmControllerFor tcReferenceFor hostSystem hostUid guestBundle;

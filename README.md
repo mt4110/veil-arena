@@ -4,7 +4,7 @@ Veilプロジェクトの検証を実行し、結果と証拠を保存するRust
 
 最終ゴールは、他のVeilシリーズを試験できるLinux VM・仮想ネットワーク・K3s（Kubernetes）環境の完成です。
 現在の完成計画は [F0〜F4](docs/COMPLETION_PLAN.md)、最初のKeeper接続と固定版・権限・対応ホストは
-[F0検証契約](docs/F0_CONTRACT.md) に定めます。F0の文書化・静的確認までで、K3s VMの実装・実起動は未着手です。
+[F0検証契約](docs/F0_CONTRACT.md) に定めます。F0の検証契約と、[F1の1 VM試験](docs/F1_K3S.md)を完了しました（Mac ARM64／TCG、新規2 VM）。F2〜F4は残っています。
 既存netns 18ケースとBlackholeオフライン入口を維持し、第三者試用・販売を完成の前提にしません。
 物理ネットワークは別のphysical-veil-arenaへ分離し、署名タグ・公開は引き続き保留します。
 
