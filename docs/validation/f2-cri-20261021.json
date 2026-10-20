@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "base_commit": "cb021adefab00067a77d9b1d8defac6092bd480b",
+  "result": "passed",
+  "exit_code": 0,
+  "host": "aarch64-darwin",
+  "accelerator": "tcg",
+  "evidence_root": "/Volumes/Elecom-1TB/Linux/veil-arena/f2-cri-20261021",
+  "source_sha256": {
+    "scripts/k3s_f2_guest.py": "b49eb173e0fbc337847db057733233778c7e4c4519d3314ce909ce075abf469b",
+    "scripts/k3s_f2_host.py": "17df6739b54a9630837c92bd1135d60b3e7908aab09a2daea55b1cecf773fc15",
+    "scripts/k3s_guest.py": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+    "tests/k3s/f2_fixture.py": "bdd7f087ca54f43387bae86120f9164866a0a64df83dca4aabac668cab2948f1",
+    "tests/test_k3s_f2_observation.py": "4713492f031695a9e49704d5a8a8f0fe386ee62f3c78e05f02b781ebb42609fa",
+    "environments/vm/k3s.nix": "03167565ac5cd9c76772d3add3e633afe65ba740cb096b09e0513ead141831af",
+    "flake.nix": "d042b4d19a7961163f4c18d888de138fe050fe235707f621a535cd212b8fd081"
+  },
+  "runner": "/nix/store/7ry20pwr51iqnbvsfcyay8abbh9miacm-arena-k3s-f2",
+  "limits_unchanged": true,
+  "builder_disk_gib": 256,
+  "cache_and_previous_evidence_preserved": true,
+  "owned_pids_absent": true,
+  "clusters": [
+    {
+      "name": "fresh-1",
+      "boot_ids": {
+        "server": "f9c7f1d9-1049-43cc-8374-361a3491e9f4",
+        "agent": "e720950b-0292-495d-af36-d0b8a8cd1214"
+      },
+      "probes_recounted": 12,
+      "receiver_source_bound": true,
+      "qemu_duration_ms": {
+        "server": 167192,
+        "agent": 167047
+      },
+      "recovery": {
+        "server": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 51948,
+          "duration_ms": 167192,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 51951,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        },
+        "agent": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 51994,
+          "duration_ms": 167047,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 51997,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        }
+      }
+    },
+    {
+      "name": "fresh-2",
+      "boot_ids": {
+        "server": "b42eea65-e3f6-44cd-ba47-9652983a5870",
+        "agent": "a2375ca2-618c-4618-9c3a-28dcaf83004f"
+      },
+      "probes_recounted": 12,
+      "receiver_source_bound": true,
+      "qemu_duration_ms": {
+        "server": 171534,
+        "agent": 170846
+      },
+      "recovery": {
+        "server": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 53012,
+          "duration_ms": 171534,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 53015,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        },
+        "agent": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 53024,
+          "duration_ms": 170846,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 53027,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        }
+      }
+    }
+  ],
+  "regression": {
+    "mac_full_check": "passed",
+    "mac_python_tests": 131,
+    "mac_f2_tests": 49,
+    "linux_arm64_f1_f2_tests": 62
+  },
+  "remaining_scope": [
+    "Keeper connection not yet executed",
+    "Linux x86_64/KVM actual cluster acceptance remains F4"
+  ],
+  "source_state_at_acceptance": "uncommitted; no PR or push"
+}

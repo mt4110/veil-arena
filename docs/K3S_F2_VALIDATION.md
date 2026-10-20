@@ -130,3 +130,60 @@ Mac全チェックは成功（Python回帰120件）。F2対象38件、Linux ARM6
 Mac全チェック成功（Python123件、F2集中回帰41件）。既存キャッシュを再利用したLinux ARM64のF1/F2/レビュー回帰54件も成功した。
 専用builderとcontainerは停止へ戻し、旧bundle・受け入れ証拠・キャッシュを保持した。
 GitHub Linux x86_64 CIはpush後の対象コミットで確認する。新規VM再受け入れ・Linux x86_64/KVM実クラスタ受け入れは今回実施していない。
+
+## マージ後mainの新規VM再受け入れ（2026-10-21）
+
+基点`cb021ad`から、レビュー修正後のguest/fixtureを含む両bundleとrunnerを準備した。
+専用builderは明示承認された256 GiBへ拡張し、キャッシュ・旧bundle・旧証拠を保持した。
+試験前にbuilder/containerを停止し、既存資源・期限・期待値のまま新規VMを起動した。
+
+結果はfresh-1のdeny段階で環境エラー3。Node Ready・別ノードPod配置と正常TCP/UDP（Pod IP/Service DNS）は成功。
+policy APIと実ルール公開の証拠は存在するが、その後の通信probeで`command exceeded absolute deadline`になった。
+fresh-2は未起動。server/agentとも証拠同期・同期後停止・QEMU exit 0・reaped・非escalationを確認し、所有PID残存なし。
+agentのcontroller終了3は、server失敗後の所有停止によるcancelledであり、正常なクラスタ成功とは扱わない。
+
+現行guestはタイムアウトしたargvを保存しないため、execとlogsのどちらが期限を超えたかは未確定。
+限定したダミー時刻確認では、健康なlogs応答が0.33秒かかる場合、残り0.32秒で次のAPIを起動して
+環境エラー3になる経路を再現した。これは実VMの失敗原因の断定ではない。
+期限を延ばす、失敗を成功へ変える、根拠なくVMを再試行する変更は行っていない。
+
+合意したF2成功ゲートを満たさないため、Keeperの入力照合・最小接続は未着手で停止した。
+次はtimeout argv/残りbudgetの証拠を残し、同じ5秒内でのreceiver観測方式を検証する。
+記録：[f2-main-20261021.json](validation/f2-main-20261021.json)。raw証拠はSSDの
+`Linux/veil-arena/f2-main-20261021/acceptance/`、ダミー再現はローカル`artifacts/f3-preparation-20261021/`に保持する。
+
+## 受信観測修正後の新規VM再受け入れ（2026-10-21）
+
+`cb021ad`を基点とする未commitの修正。F2成功後のKeeper接続を前提に、まず受信観測と期限超過診断だけを変更した。
+失敗時のargv・budget・経過時間・残り時間・workflow残り時間を`last-command-timeout.json`へ保存する。
+起動前期限切れと遅延応答も検出し、短い期限の環境エラー3／全体期限超過4を維持した。
+stdinとプロセス出力はこの診断へ保存しない。実子のtimeout・回収・次の正常実行も回帰確認した。
+
+受信観測は、Readyなserver Podのcontainer IDをCRI inspectし、稼働state・Pod UID・固定logPathとの一致を要求する。
+同じ受信ログをVM内で直接読み、probe末尾に`kubectl logs`プロセスを再起動する経路をなくした。
+元の絶対5秒・1回の送信・allowの受信nonce 1件／denyの0件と、既存の末尾待機条件は変更していない。
+欠損・不正形式・不完全行・過大ログ・inode切替・履歴書換えを成功へ読み替えない。
+旧失敗のタイムアウトargvは過去の証拠から復元できず、当時のexec/logsのどちらが超過したかは未確定のまま。
+
+Mac全チェック成功（Python131件、F2対象49件）。Linux ARM64のF1/F2/レビュー回帰62件成功。
+キャッシュを保持した256 GiBの専用builderで新bundleを準備し、SSDの新規directoryへ転送した。
+試験前にbuilder/containerを停止し、server 4 CPU/16 GiB/32 GiB、agent 2 CPU/4 GiB/32 GiBの資源を維持した。
+Node 300秒・Pod 120秒・probe 5秒・共有workflow600秒・watchdog660秒、期待値は変更していない。
+
+**修正後の新規2 VM×2クラスタが成功し、一括終了0。** 両クラスタでReady・別ノードPod配置・
+Pod IP/Service DNS経由のTCP/UDP・client TCP限定deny・control TCP/client UDP通過・解除後復帰を確認。
+全4 boot IDは異なり、同じ役割の固定入力は一致。保存したCRIログを別途再集計し、24 probeの受信件数と一致した。
+全4 VMの証拠同期・同期後停止・QEMU exit 0・reaped・非escalationと、終了後の所有PID不在を確認。
+
+| クラスタ | server QEMU生存時間 | agent QEMU生存時間 |
+| --- | ---: | ---: |
+| fresh-1 | 167.192秒 | 167.047秒 |
+| fresh-2 | 171.534秒 | 170.846秒 |
+
+各QEMUのcontroller実測であり、並行する時間を合算してworkflow時間とは扱わない。
+機械可読記録：[f2-cri-20261021.json](validation/f2-cri-20261021.json)。
+raw証拠・新bundle・source pinはSSDの`Linux/veil-arena/f2-cri-20261021/`へ保持した。
+旧失敗・旧bundle・cacheは削除していない。新規VMの根拠のない自動retryは追加していない。
+
+Keeperの選定2入力はF0のSHA-256と一致したが、profile適用・Keeper実行は今回未実施。
+Linux x86_64/KVM実クラスタ受け入れはF4に残る。この受け入れ実施時点ではPR/pushは未実施。物理環境・第三者試用・署名タグ・公開は行っていない。
