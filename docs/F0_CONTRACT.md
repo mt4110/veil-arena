@@ -126,6 +126,9 @@ Nix定義・準備入口・Rust controllerの既存の役割を使い、汎用pl
 起動前にhost余力と実disk空きを確認する。期限は共有の絶対deadlineで制限し、各待機で再設定しない。
 期限内に成立しなければ証拠を残して終了し、自動延長・retryは追加しない。既存18ケースの期限は変更しない。
 
+F2の承認資源はserver 4 CPU・16 GiB・32 GiB、agent 2 CPU・4 GiB・32 GiB、同時合計6 CPU・20 GiB・64 GiB（`f2_limits`）。
+Node／Pod／probe／workflow／watchdogの期限はF1から変更しない。追加の新規2 VMを含むacceptanceも、2クラスタでworkflow全体600秒を共有する。
+
 結果は成功0、不一致1、引数不正2、環境・保存・回収エラー3、workflow期限超過4、中断130を基本にする。
 Node／Podが準備できない場合は環境エラー3、host watchdogでのVM停止も既存同様3として別理由を残す。
 nonce不一致等の検証失敗を環境成功へ読み替えない。独立したguest判定とVM lifecycleを両方要求する。

@@ -1,0 +1,73 @@
+# F2の検証状況（2026-10-20）
+
+最終ゴールは他のVeilシリーズが試験できるVM・仮想ネットワーク基盤。
+F2は1 server＋1 agentの専用クラスタ、ノード間通信・限定deny・解除後復帰まで。
+Keeperの実行はF3、両対応ホスト・中断/期限超過の最終受け入れと本人操作はF4。
+
+## 条件
+
+基点mainはPR #22のマージコミット`0082ae727dfdbab481e9bd4a925eccbc79bd9c71`。
+受け入れ試験時点は未commit・未push。対象コミットのGitHub CIはPRで別途確認し、ローカル検証と区別する。
+Mac ARM64／native QEMU TCG、server 4 CPU・16 GiB・32 GiB、agent 2 CPU・4 GiB・32 GiB。
+合計6 CPU・20 GiB・64 GiBの仮想run disk。2クラスタは直列に実行する。
+固定版とairgap archive・fixture入力を準備時に照合し、試験中にdownloadしない。
+ホストbridge・NAT・公開TCP portを作らず、専用UNIX streamでVM同士だけを接続する。
+
+Node 300秒・Pod段階120秒・probe各5秒・一括全体600秒・watchdog660秒を維持。
+全体600秒をクラスタごとにリセットせず、追加の新規2 VMと共有する。
+
+## 回帰試験
+
+- 最終ソースのMac全チェック成功。fmt/clippy、Rust回帰、Python回帰97件、Nix全system評価。
+- Linux ARM64でF1＋F2の単体28件成功。F2は15件。
+- 同一ノードへの誤配置、boot ID再利用、欠けた対照通信、DNS/nonce/受信件数の矛盾、policy不成立を拒否する。
+- ローカル実行エラーを正常denyへ変換しない。固定probeの期待違反は不一致1、破損した証拠は環境エラー。
+- 既存出力を保全。agent起動失敗の模擬試験では、先に起動した所有server controllerを回収し、環境エラーを保持する。
+
+## 開発中の失敗と先行証拠
+
+`acceptance-1`では、agentのruntime準備をprobe用5秒で切っていた。
+その呼出しをNode段階の残り絶対期限へ直し、通信probeの5秒を維持した。
+agent失敗後にserverを不要に待たないよう、片側完了時にguest失敗を検出する。
+最初の試験は所有workflowへTERMを送り、両VMの証拠同期・非escalation・QEMU回収を確認した。
+raw証拠・旧bundle・cacheは保持している。
+
+`acceptance-2`では新規2 VM×2クラスタの通信・限定deny・解除後復帰が成功し、4台の回収も成立した。
+その後、固定probeの期待違反を環境エラーへ寄せていた分類を修正した。
+成功条件は変更していないが、先行版の成功を最終ソースの受け入れとは扱わない。
+
+## 最終版の新規クラスタ受け入れ
+
+**F2完了：Mac ARM64／TCGの最終ソースで、新規2 VM×2クラスタが成功した。**
+最終入口は`/nix/store/w2w1wqn9x4h3s1n6gc8w2vg6k2cmxzmf-arena-k3s-f2/bin/arena-k3s-f2`。
+SSD bundleは`Linux/veil-arena/k3s-f2-20261020/images/server-3`と`agent-3`。
+raw証拠は同じrootの`acceptance-3/summary.json`と各`fresh-N/server|agent/`に保持した。
+[機械可読記録](validation/f2-k3s-20261020.json)に起動入力hash・実Node容量・boot ID・各判定を残す。
+
+| クラスタ | server QEMU生存時間 | agent QEMU生存時間 | 結果 |
+| --- | ---: | ---: | --- |
+| fresh-1 | 186.579秒 | 185.993秒 | passed / exit 0 |
+| fresh-2 | 199.299秒 | 200.878秒 | passed / exit 0 |
+
+上記は同時起動する各QEMUのcontroller実測であり、時間を合算してworkflow時間とは呼ばない。
+一括全体600秒を延長せず終了0。4台のboot IDはすべて異なり、各役割の入力hashはクラスタ間で同一。
+両クラスタともclient/controlをagent node、serverをserver nodeへ配置した。
+Pod IP直接とService DNS経由の正常TCP/UDP、client TCPの限定deny、control TCP/client UDPの通過、
+policy解除後のTCP/UDP復帰を確認。deny時は実際にECONNREFUSED（Linux errno 111）で、対象nonceの受信件数0。
+allow時はecho一致・受信件数1。policy API specと実iptablesルールの成立/解除を別途保存した。
+
+全4 VMで証拠同期・同期後停止・QEMU exit 0・reaped・非escalationが成立した。
+終了後の所有QEMU/controller PIDが残っていないことも確認した。
+最終bundleとprepared runnerが現行runtimeソースに一致すること、各base diskが34359738368 bytesであることを確認した。
+専用builderは既存Nix store/Cargo cacheを保持してStoppedへ戻した。100 GiBの内部disk空きは約6.1 GiB。
+次の追加build前に容量判断が必要だが、今回の準備と受け入れは完了した。
+
+## 保持する境界
+
+実Veilの防御を認定する試験ではなく、K3s内蔵NetworkPolicy controllerの参照試験。
+TCPの拒否は必ずしも無応答dropではなく、観測された接続拒否も含む。
+Linux x86_64/KVMの実クラスタ、F3のKeeper、F4の本人操作は未実施。
+受け入れ試験時点ではコミット・push・PRは未実施。取り込みはPRで判断する。
+物理環境・第三者試用・署名タグ・公開は対象外のままとする。
+
+[実行手順](F2_K3S.md)を参照する。

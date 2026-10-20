@@ -11,7 +11,7 @@ K3sをKubernetesの実装として採用し、kind／kubeadmの二重対応や�
 | --- | --- | --- |
 | F0 | Keeperの最小exec試験、入力hash、固定版、権限、対応ホスト、F1の上限・停止条件を固定 | 文書化・静的確認済み（F0時点）。実VM結果はF1参照 |
 | F1 | air-gapのK3s 1 VMと固定PodのDNS／TCP／UDP・停止・新規VM再成功 | 完了。Mac ARM64／TCGの最終新規2 VMで[受け入れ成功](K3S_F1_VALIDATION.md) |
-| F2 | 2 VM・2 nodeのPod／Service／DNS、限定通信拒否と解除後復帰 | 未着手 |
+| F2 | 2 VM・2 nodeのPod／Service／DNS、限定通信拒否と解除後復帰 | 完了。Mac ARM64／TCGの新規2クラスタで[受け入れ成功](K3S_F2_VALIDATION.md) |
 | F3 | 実Keeperの既存checker・profileを使う正常／拒否／復帰 | 未着手 |
 | F4 | Mac ARM64／TCGとLinux x86_64／KVMで最終受け入れ、本人操作確認 | 未着手 |
 
