@@ -21,7 +21,29 @@
     "child_uid": 501,
     "child_gid": 1000,
     "reuse_driver": false,
-    "driver_reason": "Colima-specific /usr paths and SUDO_UID contract; Arena owns VM orchestration without editing Keeper"
+    "driver_reason": "Colima-specific /usr paths and SUDO_UID contract; Arena owns VM orchestration without editing Keeper",
+    "apparmor_lifecycle": {
+      "syntax_argv": [
+        "apparmor_parser",
+        "--skip-kernel-load",
+        "--skip-cache"
+      ],
+      "syntax_pre_post_inventory_must_match": true,
+      "syntax_target_must_remain_absent": true,
+      "add_argv": [
+        "apparmor_parser",
+        "--skip-cache",
+        "--add"
+      ],
+      "ownership_starts_only_on_successful_explicit_add": true,
+      "remove_argv": [
+        "apparmor_parser",
+        "--skip-cache",
+        "--remove"
+      ],
+      "remove_requires_owned_add_success": true,
+      "scope": "future F3 contract; no parser invocation performed in F0"
+    }
   },
   "nixpkgs": {
     "revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",

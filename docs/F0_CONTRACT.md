@@ -48,7 +48,12 @@ AppArmor有効なkernel、稼働LSM、securityfs、parser、profileのsyntax、�
 NixOSの `security.apparmor.enable` を新規guestで設定し、既存netns guestやホストのboot設定を変えない。
 AppArmor未対応／読取り不能／不足権限は環境エラーとし、BPF LSMや別方式へ黙って切り替えない。
 
-profileは `--skip-cache` でsyntax確認後に `--add`。replace、profile全集合のreload、killallは使わない。
+syntax確認は `apparmor_parser --skip-kernel-load --skip-cache`（`-Q -K`）で行い、kernelへloadしない。
+syntax確認前後のprofile名・mode一覧が一致し、対象profileが不在であることを要求する。
+`--skip-cache` だけでは非loadにはならない。parserの既定動作はaddであるため、syntax成功を所有証拠にしない。
+その後に `apparmor_parser --skip-cache --add` を明示実行し、成功した時点だけを所有開始とする。
+replace、profile全集合のreload、killallは使わない。
+根拠は [AppArmor 5.0 parserの仕様](https://www.apparmor.net/man/5.0/apparmor_parser/)。
 追加成功の所有証拠があるprofileだけを解除し、追加失敗時は他者profileを解除しない。
 変更前後のprofile名・mode一覧、対象profileの不在、所有子プロセス回収を確認する。
 一覧hash一致は他のpolicy本体すべての一致を証明するものではない。
