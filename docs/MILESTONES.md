@@ -1,4 +1,28 @@
-# Veil Arena の初期MVPと製品化マイルストーン
+# Veil Arenaの完成計画と実装履歴
+
+## 現行の完成範囲（2026-10-20）
+
+最終ゴールを、他のVeilシリーズを試験できるVM・仮想ネットワーク・K3s環境の完成に定めた。
+現行の正本は [完成計画 F0〜F4](COMPLETION_PLAN.md)、最初の接続は [F0検証契約](F0_CONTRACT.md)。
+K3sをKubernetesの実装として採用し、kind／kubeadmの二重対応や複数CNIは完成範囲に含めない。
+物理環境は別のphysical-veil-arenaに分け、第三者試用・販売・公開を完成の前提から外す。
+
+| 段階 | 現行のゴール | 状態 |
+| --- | --- | --- |
+| F0 | Keeperの最小exec試験、入力hash、固定版、権限、対応ホスト、F1の上限・停止条件を固定 | 文書化・静的確認済み。kernel試験・K3s起動は未実施 |
+| F1 | air-gapのK3s 1 VMと固定PodのDNS／TCP／UDP・停止・新規VM再成功 | 未着手 |
+| F2 | 2 VM・2 nodeのPod／Service／DNS、限定通信拒否と解除後復帰 | 未着手 |
+| F3 | 実Keeperの既存checker・profileを使う正常／拒否／復帰 | 未着手 |
+| F4 | Mac ARM64／TCGとLinux x86_64／KVMで最終受け入れ、本人操作確認 | 未着手 |
+
+F4完了で機能開発を一区切りとし、保守と他Veilの具体的な試験要求への対応へ移る。
+既存の初期MVP・自己利用・netns・SSD運用の結果は保持する。
+旧M4の第三者試用とk8sを組み合わせる条件、旧M5の販売判断・v1化は現行F0〜F4の前提にしない。
+
+## 旧計画と実装履歴（2026-10-11〜19）
+
+以下は当時の計画・判断・検証の履歴である。「現在」「保留」「最終到達点」等は当時を指す。
+今後の範囲・着手判断は上のF0〜F4を優先し、過去の保留を一括で解除したり、販売・第三者試用を再開したりしない。
 
 2026年10月11日 JST。計画と確認状態。ブラックホールのオフライン接続、固定Nix環境、専用Linux VM、ホストのRust停止コントローラーを追加した。Linux x86_64／KVMゲストで成功、不具合検出、新規VMでの再成功を確認済み。続けてapp/router/serverの正常ICMP/TCP/UDP、転送停止・回復、経路故障の検出、新規VMでの再成功と後片付けを確認した。[netnsの検証記録](NETNS_VALIDATION.md)を参照する。Rust/Ayaによる[TC ingressの固定UDP比較](TC_INGRESS.md)と、drop無効化・誤ったhook・受信helper停止の[故障検出](TC_FAULT_VALIDATION.md)を一括試験へ追加した。固定異常・短縮入力の[BPF_PROG_TEST_RUN](BPF_TEST_RUN_VALIDATION.md)もLinux x86_64の新規2 VMで確認した。さらに[ロード失敗と正常試験への復帰](BPF_LOAD_FAILURE_VALIDATION.md)を新規2 VMで確認した。[一括試験のキャンセル・タイムアウトと復帰](BATCH_INTERRUPTION_VALIDATION.md)もLinux x86_64の新規2 VMで確認した。さらに[guest runner停止・ホストwatchdogと正常再実行](HOST_WATCHDOG_VALIDATION.md)を、停止VM→正常VMの新規2組で確認した。Linux ARM64／TCGとmacOS ARM64／TCGでも、それぞれ新規2 VM・各13ケースの受け入れ検証を完了した。固定fixtureと確認した組合せに限り、M1/M2の初期MVP条件を満たした。公開用の[受け入れ集計](validation/v0.1.0.json)に範囲と未検証事項を記録する。
 
