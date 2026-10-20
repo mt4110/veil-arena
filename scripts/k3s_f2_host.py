@@ -41,6 +41,22 @@ def record_guest_failure(item, error):
     item["nodes"][error.role] = fields.copy()
 
 
+class HostAbort(ValueError):
+    def __init__(self, code, stage, detail):
+        self.code = code
+        self.stage = stage
+        self.detail = detail
+        self.status = "cancelled" if code == 130 else "timeout"
+        super().__init__(detail)
+
+
+def record_host_abort(item, error):
+    fields = {"status": error.status, "exit_code": error.code,
+              "stage": error.stage, "detail": error.detail}
+    item.update(fields)
+    item["host_abort"] = fields.copy()
+
+
 def verify_cluster(root, inputs):
     results = {}
     for role in ROLES:
@@ -181,6 +197,11 @@ def workflow(uid, bundles, mode, root):
     def cancel(signum,frame):
         nonlocal cancelled
         cancelled=True
+    def check_abort(stage):
+        if cancelled:
+            raise HostAbort(130, stage, "workflow cancelled")
+        if time.monotonic() >= deadline:
+            raise HostAbort(4, stage, "600s shared workflow deadline")
     handlers={s:signal.signal(s,cancel) for s in [signal.SIGINT,signal.SIGTERM,signal.SIGHUP]}
     ids=set()
     try:
@@ -197,9 +218,7 @@ def workflow(uid, bundles, mode, root):
             children={}
             try:
                 for role,bundle in bundles.items():
-                    if cancelled or time.monotonic()>=deadline:
-                        code=130 if cancelled else 4
-                        raise ValueError("cancelled/workflow deadline before node launch")
+                    check_abort("node_startup")
                     if check(bundle)!=(inputs[role],seals[role]):
                         raise ValueError("immutable node inputs changed")
                     out=run/role;out.mkdir(mode=0o700)
@@ -207,17 +226,18 @@ def workflow(uid, bundles, mode, root):
                     args=qemu_args(arch,bundle,out,control,socket,role,inputs[role])
                     (out/"qemu-argv.json").write_text(json.dumps(args,indent=2)+'\n')
                     (out/"vm-manifest.json").write_text(json.dumps({"scenario":"k3s-f2","role":role,"owner_uid":uid,"owner_pid":os.getpid(),"inputs":inputs[role],"boot_inputs":seals[role]["files"],"bundle_sha256":sha(bundle/"bundle.json")},indent=2)+'\n')
+                    check_abort("node_startup")
                     children[role]=subprocess.Popen(["timeout","--signal=TERM","--kill-after=5","670","veil-arena-vm-controller",str(out),*args],stdin=subprocess.DEVNULL,start_new_session=True)
                     if role=="server":
                         end=min(deadline,time.monotonic()+5)
                         while not socket.exists():
-                            if children[role].poll() is not None or cancelled or time.monotonic()>=end:
+                            check_abort("lan_startup")
+                            if children[role].poll() is not None or time.monotonic()>=end:
                                 raise ValueError("owned server LAN socket not established")
                             time.sleep(.025)
+                        check_abort("lan_startup")
                 while any(c.poll() is None for c in children.values()):
-                    if cancelled or time.monotonic()>=deadline:
-                        code=130 if cancelled else 4
-                        raise ValueError("workflow cancelled" if cancelled else "600s shared workflow deadline")
+                    check_abort("running")
                     if children["server"].poll() is not None and not (control/"finish").exists():
                         (control/"finish").write_text("server controller completed\n")
                     for role, child in children.items():
@@ -228,13 +248,19 @@ def workflow(uid, bundles, mode, root):
                     if any(c.poll() not in {None,0} for c in children.values()):
                         raise ValueError("node lifecycle controller failed")
                     time.sleep(.1)
+                check_abort("verification")
                 boot_ids=verify_cluster(run,inputs)
+                check_abort("verification")
                 if ids.intersection(boot_ids.values()):
                     raise ValueError("fresh cluster reused boot identity")
                 ids.update(boot_ids.values())
                 item.update(status="passed",boot_ids=boot_ids)
             except GuestFailure as error:
                 record_guest_failure(item, error)
+                raise
+            except HostAbort as error:
+                record_host_abort(item, error)
+                code = error.code
                 raise
             finally:
                 errors=collect(children)
@@ -255,14 +281,15 @@ def workflow(uid, bundles, mode, root):
                     item.update(status="environment_error", exit_code=3, stage="cleanup", detail='; '.join(errors))
                     raise ValueError('; '.join(errors))
         for role,bundle in bundles.items():
+            check_abort("final_verification")
             if check(bundle)!=(inputs[role],seals[role]):
                 raise ValueError("immutable inputs changed during workflow")
-        if time.monotonic()>=deadline:
-            code=4
-            raise ValueError("600s shared workflow expired during verification")
+        check_abort("final_verification")
         code=0;summary["status"]="passed"
     except (OSError,ValueError,KeyError,TypeError,subprocess.SubprocessError) as error:
-        if isinstance(error, GuestFailure): code=error.code
+        if isinstance(error, (GuestFailure, HostAbort)): code=error.code
+        if isinstance(error, HostAbort) and summary["runs"]:
+            record_host_abort(summary["runs"][-1], error)
         summary.update(detail=str(error),status="cancelled" if code==130 else "timeout" if code==4 else "failed" if code==1 else "environment_error")
     finally:
         for s,h in handlers.items():signal.signal(s,h)

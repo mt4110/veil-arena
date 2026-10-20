@@ -86,7 +86,7 @@ Linux x86_64/KVMの実クラスタ、F3のKeeper、F4の本人操作は未実施
 - Mac全チェック成功：fmt/clippy、Rust回帰、Python回帰111件、Nix全system評価。
 - MacのF2対象回帰29件成功。Linux ARM64はF1＋F2＋レビュー回帰42件成功。
 - 実子プロセスで、exec相当の部分が完了した後にログ取得相当の子を停止させ、同じ絶対5秒で打切り・所有子回収を確認。次の正常子実行も成功。
-- 決定的な時刻試験で、ログ取得が残り3秒を受け取ること、全体期限が先ならそちらを守ること、API再試行がないことを確認。
+- 決定的な時刻試験で、ログ取得が残り3秒を受け取ること、全体期限が先ならそちらを守ること、トラフィック再送やAPIエラーの再試行がないことを確認。
 - server/agent双方、guest終了1/3/4/130、monitor/verification両経路について、上位・cluster・nodeの失敗情報と所有controller回収を確認。
 - 保存済み`acceptance-3`の2クラスタは現行verifierで再判定して成功した。旧証拠・bundle・cacheは保持した。
 
@@ -95,3 +95,24 @@ Linux x86_64/KVMの実クラスタ、F3のKeeper、F4の本人操作は未実施
 実VM初期受け入れのhashは変更せず、レビュー後のsource hashと検証範囲をJSONの`review_followup`へ分ける。
 Linux x86_64のGitHub CIは対象コミットごとにPRで確認する。Linux x86_64/KVMの実クラスタ受け入れとは区別する。
 専用builderは既存cacheを再利用して停止へ戻し、容量変更やcache削除は行っていない。
+
+## PR #23追加レビュー3件の回帰
+
+2026-10-20。基点は`49a2f31`。修正前に追加回帰で公開待ちの誤失敗・deny受信証拠の見逃し、
+LAN起動待ち中の中断コード、host abortのrun summary不整合を再現した。
+
+- TCP/UDPともfixtureが受信記録をflushしてからechoする。CRI側の公開遅延も考慮し、正常なログsnapshotを既存probe deadline内でpollする。
+- 通信は1回だけ送信する。allowは受信nonce 1件の公開を待ち、重複や欠損を成功にしない。
+  denyは同じ期限まで観測し、遅れて受信nonceが現れたら失敗。API障害・期限後応答も成功にしない。
+- LAN socket待ち・socket準備と中断の競合・両VM実行中で、SIGINT/SIGTERM/SIGHUPをcancelled/130として保存する。
+  全体600秒到達はtimeout/4。ローカルLAN起動上限5秒との取り違えを防ぐ。
+- host abortをrunのstatus/exit_code/stage/detailにも保存する。回収失敗は環境エラー3を優先し、元のhost_abortを別欄に保持する。
+- Node 300秒・Pod 120秒・probe 5秒・共有workflow600秒・watchdog660秒と通信の期待値は変更していない。
+
+Mac全チェックは成功（Python回帰120件）。F2対象38件、Linux ARM64のF1/F2/レビュー回帰51件が成功した。
+所有controllerの回収、旧受け入れ2クラスタの現行verifierによる再判定も確認した。
+実子プロセスの期限・回収・次の正常起動は前回の回帰と合わせて再実行した。
+キャッシュと旧証拠を保持し、専用builderは停止へ戻した。容量変更・削除は行っていない。
+
+今回も新しいguest/fixtureの実VM再受け入れは行っていない。4 VMの受け入れは従来入力の履歴として保持し、
+今回のsource hashと回帰範囲はJSONの`review_followup_round2`へ分けて記録する。

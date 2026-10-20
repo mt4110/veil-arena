@@ -61,7 +61,7 @@ Node 300秒・Pod段階120秒・exec＋受信ログ取得を合わせたprobe各
 
 1. 正しい版の2 NodeがReady。server Podはserver node、client/control Podはagent nodeに固定。
 2. 実Pod配置・固定image configとの実参照の対応を確認。
-3. 別ノードのPod IP直接とService DNS経由でTCP/UDPを送り、nonce echoと受信件数1を確認。
+3. 別ノードのPod IP直接とService DNS経由でTCP/UDPを送り、nonce echoと受信件数1を確認。受信記録はecho前にflushし、公開遅延は同じprobe期限内のログ読取pollで待つ。
 4. server Podだけを選ぶIngress policyを適用。UDPをallowし、TCPはcontrol labelだけをallowする。
 5. APIのpolicy specと実ルールの公開を確認した上で、clientのTCPをPod IP/Service両方でdeny。
    同じ宛先へcontrol TCPとclient UDPが通り、拒否nonceがserverログに現れないことを確認する。
@@ -70,6 +70,7 @@ Node 300秒・Pod段階120秒・exec＋受信ログ取得を合わせたprobe各
 
 NetworkPolicyはPodへのIngressだけを対象にする。nodeホスト自体や任意のVeil防御機能の認定ではない。
 ルール出版/解除の待機は各5秒以内。通信試験の再試行へ置き換えない。
+受信ログの公開待ちは同じprobe期限を共有し、トラフィックを再送しない。deny中に遅れて受信証拠が現れた場合も失敗にする。
 
 正常表示は`k3s-f2 acceptance: passed — .../summary.json`、exit 0。
 失敗時は最初の`Failure:`とsummary/detail、各nodeのresultのstage/detailを確認する。
@@ -93,3 +94,6 @@ F1のMac ARM64成功やCI評価を、F2実VMの成功やLinux x86_64/KVMの受�
 呼出しaction/protocol/host/nonceの一致がある場合だけ不一致1とし、exec基盤障害や証拠欠損は環境エラー3にする。
 失敗時のsummaryにはcluster/node単位のstatus・exit_code・stage・detailも残す。
 レビュー修正後の検証範囲と旧prepared bundleとの区別は[検証記録](K3S_F2_VALIDATION.md)を参照する。
+
+LAN socket起動待ち中を含むhost中断は130、共有期限超過は4としてrunにもstage/detailを保存する。
+回収失敗があれば3を優先し、元のhost_abortは保持する。

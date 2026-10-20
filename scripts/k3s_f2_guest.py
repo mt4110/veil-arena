@@ -52,6 +52,36 @@ def probe_output(cp, stage, *, action, protocol, address, nonce):
     return row
 
 
+def receiver_count_until_published(log_rows, protocol, payload, end, workflow_end, stage):
+    observed = False
+    while True:
+        now = time.monotonic()
+        if now >= end:
+            if now >= workflow_end:
+                raise Failure(stage, "workflow expired during receiver observation", 4)
+            if not observed:
+                raise Failure(stage, "five-second probe deadline expired before receiver evidence", 3)
+            # A healthy zero snapshot is not enough for an immediate deny pass:
+            # observe through the original deadline, without sending more traffic.
+            return 0
+        if observed and end - now <= .05:
+            # Finish the existing observation window rather than starting an API
+            # request with less than one polling interval remaining.
+            time.sleep(max(0, end - now))
+            if time.monotonic() >= workflow_end:
+                raise Failure(stage, "workflow expired during receiver observation", 4)
+            return 0
+        rows = log_rows(end)
+        now = time.monotonic()
+        if now >= end:
+            raise Failure(stage, "receiver API exceeded probe deadline", 4 if now >= workflow_end else 3)
+        count = sum(r == {"protocol": protocol, "payload": payload} for r in rows)
+        if count:
+            return count  # Caller rejects duplicates and any matching deny record.
+        observed = True
+        time.sleep(min(.05, max(0, end - now)))
+
+
 def traffic_probe(kube, log_rows, fixture_command, stage, deadline, client, protocol, address, deny=False):
     probe_end = min(deadline, time.monotonic() + 5)
     nonce = uuid.uuid4().hex
@@ -69,11 +99,8 @@ def traffic_probe(kube, log_rows, fixture_command, stage, deadline, client, prot
             raise Failure(stage, "target TCP was not refused/timed out", 1)
     elif row.get("received") != expected or row.get("count") != 1:
         raise Failure(stage, "echo mismatch", 1)
-    if time.monotonic() >= probe_end:
-        raise Failure(stage, "five-second probe deadline expired", 4 if time.monotonic() >= deadline else 3)
-    receiver_count = sum(r == {"protocol": protocol, "payload": expected} for r in log_rows(probe_end))
-    if time.monotonic() >= probe_end:
-        raise Failure(stage, "five-second probe deadline expired", 4 if time.monotonic() >= deadline else 3)
+    receiver_count = receiver_count_until_published(log_rows, protocol, expected, probe_end,
+                                                     deadline, stage)
     if receiver_count != (0 if deny else 1):
         raise Failure(stage, "receiver nonce count mismatch", 1)
     return {"client": client, "protocol": protocol, "destination": address,

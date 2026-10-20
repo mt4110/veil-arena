@@ -89,9 +89,10 @@ class ProbeDeadline(unittest.TestCase):
             if stalled:
                 clock[0] = end
                 raise guest.Failure("baseline", "log API exceeded deadline", 4 if end == workflow_end else 3)
-            clock[0] += logs_elapsed
+            clock[0] += min(logs_elapsed, .01) if deny else logs_elapsed
             return [] if deny else [{"protocol": "tcp", "payload": payload[0]}]
-        with patch.object(guest.time, "monotonic", side_effect=lambda: clock[0]):
+        with patch.object(guest.time, "monotonic", side_effect=lambda: clock[0]), \
+                patch.object(guest.time, "sleep", side_effect=lambda seconds: clock.__setitem__(0, clock[0]+seconds)):
             try:
                 row = guest.traffic_probe(kube, logs, ["python", "fixture"], "baseline", workflow_end,
                                           "client", "tcp", "10.42.0.9", deny)
@@ -168,7 +169,9 @@ class ProbeDeadline(unittest.TestCase):
         row, ends, error = self.exercise(deny=True)
         self.assertIsNone(error)
         self.assertEqual(row["receiver_count"], 0)
-        self.assertEqual(ends, [("exec", 5, 5), ("logs", 5, 3)])
+        self.assertEqual(ends[0], ("exec", 5, 5))
+        self.assertGreater(len(ends), 2)
+        self.assertTrue(all(kind == "logs" and end == 5 for kind, end, remaining in ends[1:]))
 
 
 class RunSummary(unittest.TestCase):

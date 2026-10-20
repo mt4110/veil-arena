@@ -24,15 +24,15 @@ def serve():
                 with conn:
                     conn.settimeout(5)
                     payload = conn.recv(512)
-                    conn.sendall(payload)
                     print(json.dumps({"protocol": "tcp", "payload": payload.decode()}), flush=True)
+                    conn.sendall(payload)
     threading.Thread(target=tcp, daemon=True).start()
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as listener:
         listener.bind(("0.0.0.0", PORT))
         while True:
             payload, peer = listener.recvfrom(512)
-            listener.sendto(payload, peer)
             print(json.dumps({"protocol": "udp", "payload": payload.decode()}), flush=True)
+            listener.sendto(payload, peer)
 
 
 def probe(protocol, host, nonce, deny=False):
