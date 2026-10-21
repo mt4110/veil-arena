@@ -2,6 +2,8 @@
 
 Veilプロジェクトの検証を実行し、結果と証拠を保存するRustのCLIです。最初に、veil-blackholeの既存オフライン回帰試験と人工パケット再生を接続しました。
 
+[Wardenの最小接続試験](docs/WARDEN_POLICY.md)を追加しました。隔離VM内で実Wardenの正常通信・observe・拒否・解除・停止後復帰と、既存接続/UDP等の対象外を確認する入口です。PHP/CVE対策や本番保護の認定は含めません。[Audit案](docs/WARDEN_AUDIT_DESIGN.md)は設計メモに留め、今回実装していません。
+
 最終ゴールは、他のVeilシリーズを試験できるLinux VM・仮想ネットワーク・K3s（Kubernetes）環境の完成です。
 現在の完成計画は [F0〜F4](docs/COMPLETION_PLAN.md)、最初のKeeper接続と固定版・権限・対応ホストは
 [F0検証契約](docs/F0_CONTRACT.md) に定めます。F0の検証契約と、[F1の1 VM試験](docs/F1_K3S.md)を完了しました（Mac ARM64／TCG、新規2 VM）。

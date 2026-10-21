@@ -52,6 +52,14 @@
     in {
       lib = {
         inherit versions;
+        mkWardenGuest = { hostUid, wardenInputs, guestSystem ? "aarch64-linux" }:
+          import ./environments/vm/warden.nix { inherit nixpkgs hostUid wardenInputs guestSystem; };
+        mkWardenRunner = { hostSystem, hostUid }:
+          let pkgs = pkgsFor hostSystem; in pkgs.writeShellApplication {
+            name = "arena-warden";
+            runtimeInputs = [ pkgs.python314 pkgs.coreutils pkgs.qemu (vmControllerFor pkgs) ];
+            text = ''exec python3 ${./scripts}/warden_host.py ${toString hostUid} "$@"'';
+          };
         mkK3sGuest = { hostUid, f2Role ? null, keeperSource ? null }: import ./environments/vm/k3s.nix { inherit nixpkgs hostUid f2Role keeperSource; };
         mkF4Runner = { hostSystem, hostUid }:
           let pkgs = pkgsFor hostSystem; in assert pkgs.qemu.version == "11.1.1"; pkgs.writeShellApplication {

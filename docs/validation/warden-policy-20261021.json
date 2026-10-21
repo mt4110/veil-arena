@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21 JST",
+  "scenario": "warden-policy",
+  "status": "passed",
+  "arena_base_revision": "14288d1",
+  "arena_changes": "local uncommitted adapter; existing documentation branch preserved",
+  "warden_revision": "7589858ee0df2ae9609f62bafc32fe8e1a251891",
+  "source_archive_sha256": "3291e4d187067253eb2e531ad5519d2e0e5a7d826f8b072521d579f135171b6e",
+  "original_cli_sha256": "8fe01ca9e80f943ed4bba54f5f482964140cb3096a1afb13760c7752e206a3f0",
+  "boot_inputs": {
+    "store.img": "142c6a241ebd560441962641444892e45eec41a46ffdce9a0c133e18f719d7a8",
+    "Image": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+    "initrd": "1ce64a4b4b368b4a02052067a1703910946950828fae2b610962640d15dfe612",
+    "kernel-params": "4dc737473e00cb95da6e0a858a670b1acb847a60968032da95fdaab0899e0bf5",
+    "toplevel": "ff21fdf8c8f020b35f9dd31c82623e542e53addcb88b97405b7c577636c10ca8",
+    "inputs.json": "9412cd1209ca63461fc32f6e8c245a1e4a0c50525c046882d03e88524f7d82d9"
+  },
+  "execution": {
+    "arch": "aarch64",
+    "accelerator": "tcg",
+    "cpu": "max"
+  },
+  "memory_mib": 4096,
+  "vcpus": 2,
+  "network": "no NIC; synthetic loopback only",
+  "raw_evidence": "/Volumes/Elecom-1TB/Linux/veil-arena/warden-20261021/acceptance-3",
+  "runs": [
+    {
+      "run": "fresh-1",
+      "status": "passed",
+      "boot_id": "77d0c916-2623-4fbd-9752-a2ca2dcd39ef",
+      "kernel": "6.12.112",
+      "steps": [
+        "baseline",
+        "observe",
+        "deny",
+        "existing-connection-bypasses-deny",
+        "udp-not-blocked",
+        "outside-cgroup-not-blocked",
+        "unlisted-destination-not-blocked",
+        "remove-restores",
+        "stop-term-restores",
+        "stop-kill-restores"
+      ],
+      "denied": [
+        {
+          "client": {
+            "pid": 747,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-4.service",
+            "errno": 1,
+            "family": 2,
+            "address": "127.0.0.1",
+            "port": 39889
+          },
+          "event": {
+            "family": "4",
+            "tgid": "747",
+            "tid": "747",
+            "cgroup": "3744",
+            "timestamp_ns": "23717834000",
+            "destination": "127.0.0.1:39889",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "1",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        },
+        {
+          "client": {
+            "pid": 758,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-5.service",
+            "errno": 1,
+            "family": 10,
+            "address": "::1",
+            "port": 45013
+          },
+          "event": {
+            "family": "6",
+            "tgid": "758",
+            "tid": "758",
+            "cgroup": "3840",
+            "timestamp_ns": "24403849000",
+            "destination": "[::1]:45013",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "2",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        }
+      ],
+      "monitor_returncodes": [
+        0,
+        0,
+        -9
+      ],
+      "patched_cli_sha256": "f3ed5fbbd24ff4fdda6a711161b295201a77668856495a366b926e7fbf9651fb",
+      "bpf_sha256": "6fdb18c9463e851c98f6b10fa26284963e8fc813fece61f208adbd3dbfaea73e",
+      "lifecycle": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 80136,
+        "duration_ms": 33476,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 80139,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      }
+    },
+    {
+      "run": "fresh-2",
+      "status": "passed",
+      "boot_id": "a653579a-c3a3-45c6-a6df-6155e71bd96f",
+      "kernel": "6.12.112",
+      "steps": [
+        "baseline",
+        "observe",
+        "deny",
+        "existing-connection-bypasses-deny",
+        "udp-not-blocked",
+        "outside-cgroup-not-blocked",
+        "unlisted-destination-not-blocked",
+        "remove-restores",
+        "stop-term-restores",
+        "stop-kill-restores"
+      ],
+      "denied": [
+        {
+          "client": {
+            "pid": 748,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-4.service",
+            "errno": 1,
+            "family": 2,
+            "address": "127.0.0.1",
+            "port": 40275
+          },
+          "event": {
+            "family": "4",
+            "tgid": "748",
+            "tid": "748",
+            "cgroup": "3744",
+            "timestamp_ns": "24934395000",
+            "destination": "127.0.0.1:40275",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "1",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        },
+        {
+          "client": {
+            "pid": 753,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-5.service",
+            "errno": 1,
+            "family": 10,
+            "address": "::1",
+            "port": 45463
+          },
+          "event": {
+            "family": "6",
+            "tgid": "753",
+            "tid": "753",
+            "cgroup": "3792",
+            "timestamp_ns": "25747583000",
+            "destination": "[::1]:45463",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "2",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        }
+      ],
+      "monitor_returncodes": [
+        0,
+        0,
+        -9
+      ],
+      "patched_cli_sha256": "f3ed5fbbd24ff4fdda6a711161b295201a77668856495a366b926e7fbf9651fb",
+      "bpf_sha256": "6fdb18c9463e851c98f6b10fa26284963e8fc813fece61f208adbd3dbfaea73e",
+      "lifecycle": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 80305,
+        "duration_ms": 35732,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 80308,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      }
+    }
+  ],
+  "limitations": [
+    "No PHP or CVE exploit test",
+    "IPv4/IPv6 loopback only, not routed wire traffic",
+    "Existing connection, UDP, outside cgroup and unlisted IP pass as demonstrated",
+    "No production, load, reboot persistence, audit-mode or dynamic-mode acceptance",
+    "Cached owned CLI ELF rebased to Arena runtime; not a fresh source build or arbitrary binary compatibility proof"
+  ],
+  "failed_attempts_preserved": [
+    "guest preparation: Nix feature flags and missing OpenSSL dependencies corrected",
+    "first directory transfer rejected by read-only directory mode; new file-wise transfer used",
+    "acceptance-1 preflight missing hash manifest: no VM started",
+    "acceptance-2 boot failed due to missing /init suffix; cancelled with evidence synced and owned QEMU reaped"
+  ],
+  "audit_proposal": "docs/WARDEN_AUDIT_DESIGN.md; design only, not implemented"
+}
