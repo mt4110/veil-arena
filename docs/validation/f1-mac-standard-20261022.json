@@ -1,0 +1,240 @@
+{
+  "date_jst": "2026-10-22",
+  "base_main_commit": "a8512cb21564d404149436e2337ba24edd3ba98e",
+  "source_state_at_validation": "Main plus same two uncommitted fixes as Linux; no Warden source included",
+  "source_sha256": {
+    "environments/vm/k3s.nix": "6d466cff42b1ed10765265eda8cd7cba0204221047bf78addc4dadf2ddc23299",
+    "scripts/k3s_guest.py": "b0a6ff10ac7fd4d6ed855a82bf4bc1f44ad0a21b46602f5f27f19140a946af31",
+    "tests/test_k3s_f1_serviceaccount.py": "3d3eaa965cc3b2eae3499da9b69953bb4801750e5c9c32d27800ceea89834ede"
+  },
+  "linux_source_hashes_match": true,
+  "execution": {
+    "host": "macOS ARM64",
+    "accelerator": "tcg",
+    "cpu": "max",
+    "uid": 501,
+    "concurrent_guests": 1,
+    "guest_vcpus": 4,
+    "guest_memory_mib": 16384,
+    "guest_virtual_disk_gib": 32
+  },
+  "status": "passed",
+  "exit_code": 0,
+  "runs": [
+    {
+      "run": "fresh-1",
+      "boot_id": "d701e0c0-e91c-4a46-93b1-56c642f0639f",
+      "status": "passed",
+      "checks": [
+        {
+          "stage": "node_ready",
+          "status": "passed",
+          "count": 1
+        },
+        {
+          "stage": "pod_ready",
+          "status": "passed",
+          "count": 2,
+          "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+          "node": "arena-k3s-server"
+        },
+        {
+          "stage": "dns_tcp",
+          "status": "passed",
+          "probe": {
+            "protocol": "tcp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.145.139"
+            ],
+            "payload": "arena-f1:tcp:ef1176aa27f44e639d4149781066e9ae",
+            "received": "arena-f1:tcp:ef1176aa27f44e639d4149781066e9ae",
+            "count": 1
+          },
+          "receiver_count": 1
+        },
+        {
+          "stage": "dns_udp",
+          "status": "passed",
+          "probe": {
+            "protocol": "udp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.145.139"
+            ],
+            "payload": "arena-f1:udp:b94aaf9d2945441ba2e0cd775888d609",
+            "received": "arena-f1:udp:b94aaf9d2945441ba2e0cd775888d609",
+            "count": 1
+          },
+          "receiver_count": 1
+        }
+      ],
+      "stop": {
+        "reason": "service_completed",
+        "duration_ms": 115402,
+        "qemu_reaped": true,
+        "qemu_exit_code": 0,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0
+      }
+    },
+    {
+      "run": "fresh-2",
+      "boot_id": "59731bb0-67a8-4e6f-884f-a10daa21498e",
+      "status": "passed",
+      "checks": [
+        {
+          "stage": "node_ready",
+          "status": "passed",
+          "count": 1
+        },
+        {
+          "stage": "pod_ready",
+          "status": "passed",
+          "count": 2,
+          "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+          "node": "arena-k3s-server"
+        },
+        {
+          "stage": "dns_tcp",
+          "status": "passed",
+          "probe": {
+            "protocol": "tcp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.189.124"
+            ],
+            "payload": "arena-f1:tcp:b3230d8175bf4c2baf69008073ebb10f",
+            "received": "arena-f1:tcp:b3230d8175bf4c2baf69008073ebb10f",
+            "count": 1
+          },
+          "receiver_count": 1
+        },
+        {
+          "stage": "dns_udp",
+          "status": "passed",
+          "probe": {
+            "protocol": "udp",
+            "host": "echo.arena-f1.svc.cluster.local",
+            "addresses": [
+              "10.43.189.124"
+            ],
+            "payload": "arena-f1:udp:4e27b2cccf464afa8af13d53f32d26aa",
+            "received": "arena-f1:udp:4e27b2cccf464afa8af13d53f32d26aa",
+            "count": 1
+          },
+          "receiver_count": 1
+        }
+      ],
+      "stop": {
+        "reason": "service_completed",
+        "duration_ms": 118582,
+        "qemu_reaped": true,
+        "qemu_exit_code": 0,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0
+      }
+    }
+  ],
+  "evidence_root": "/Volumes/Elecom-1TB/Linux/veil-arena/f1-linux-mac-final-20261022",
+  "runner": "/nix/store/ksppnmk56sm941pjf63sl2bgx1k62bqf-arena-k3s",
+  "guest": "/nix/store/s1b8q9wkakl8f8rxnyy2ki8qfgzrchki-arena-k3s-guest-bundle",
+  "bundle_sha256": "ab6f20a6b30a49923ee5f1e770f11de33cbd3758bc57dd57b4f84dd35e6f3e60",
+  "inputs": {
+    "airgap_sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5",
+    "apparmor_parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+    "common_guest_sha256": "b0a6ff10ac7fd4d6ed855a82bf4bc1f44ad0a21b46602f5f27f19140a946af31",
+    "compat_aa_exec": "/nix/store/gjfmhii7xa59vq7ga974gp44sj4gpgz8-apparmor-bin-utils-5.0.2/bin/aa-exec",
+    "compat_elf": {
+      "false": {
+        "destination": "/usr/bin/false",
+        "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+        "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/false"
+      },
+      "true": {
+        "destination": "/usr/bin/true",
+        "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+        "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/true"
+      }
+    },
+    "compat_python": "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+    "fixture_command": [
+      "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+      "/nix/store/nws4d5in8a6kcf7m0d7rk74jhcd4n5g5-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+    ],
+    "fixture_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+    "fixture_script_sha256": "f00f14b3e67877feea1aaa05f6f27ec2f4a218d51858f3e334fa91d857a94c23",
+    "guest_runner_sha256": "b0a6ff10ac7fd4d6ed855a82bf4bc1f44ad0a21b46602f5f27f19140a946af31",
+    "hostUid": 501,
+    "imageName": "docker.io/veil-arena/fixture:f1-f00f14b3e67877fe",
+    "keeper_child_gid": 1000,
+    "keeper_child_uid": 501,
+    "limits": {
+      "host_watchdog_seconds": 660,
+      "io_probe_seconds": 5,
+      "meaning": "User-approved resource revision 2026-10-20; original deadlines and expectations retained; no automatic retry/extension",
+      "memory_mib": 16384,
+      "node_ready_seconds": 300,
+      "pod_ready_seconds": 120,
+      "vcpus": 4,
+      "workflow_seconds": 600,
+      "writable_run_disk_virtual_gib": 32
+    },
+    "manifest_sha256": "684cf62213f146eef692e5849123e9a7455a56d14320124445e210e10dd79d20",
+    "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+    "role": "server",
+    "scenario": "k3s-f1",
+    "schema_version": 1,
+    "system": "aarch64-linux",
+    "versions": {
+      "apparmor": "5.0.2",
+      "cargo_binary": "1.98.0",
+      "containerd": "2.3.4-k3s1.36",
+      "coreutils": "9.11",
+      "flannel": "v0.28.4",
+      "k3s": "1.36.4+k3s1",
+      "kernel": "6.12.112",
+      "python": "3.14.7",
+      "qemu": "11.1.1",
+      "rust": "1.98.1"
+    }
+  },
+  "deadlines": {
+    "node_seconds": 300,
+    "pod_seconds": 120,
+    "probe_seconds": 5,
+    "workflow_seconds_shared_by_two_runs": 600,
+    "watchdog_seconds": 660,
+    "changed": false
+  },
+  "independent_verifier": "passed",
+  "owned_controller_qemu_pids_absent": true,
+  "guest_source_closure": {
+    "guest_source_in_closure": true,
+    "guest_toplevel": "/nix/store/m0jwfcjcrvlhhxqwx70z5frg4br5q3ji-nixos-system-arena-k3s-server-26.11.20261008.8edc0c7",
+    "guest_runner_path": "/nix/store/68vkygmc5sgbbsy393s3sjjkfpj6h3a6-k3s_guest.py",
+    "guest": "/nix/store/s1b8q9wkakl8f8rxnyy2ki8qfgzrchki-arena-k3s-guest-bundle"
+  },
+  "cache_reused": true,
+  "guest_offline_build": true,
+  "builder_restored_to_stopped": true,
+  "other_colima_kept_running": true,
+  "memory_request_needed": false,
+  "available_memory_mib_before_preparation": 23961,
+  "regression": {
+    "mac": {
+      "passed": 84,
+      "skipped": 1,
+      "skip_reason": "Linux procfs observer test"
+    },
+    "linux": {
+      "passed": 85,
+      "skipped": 0
+    }
+  },
+  "publication_state_at_validation": "No commit/push/PR at acceptance time; CI belongs to subsequent PR commit"
+}

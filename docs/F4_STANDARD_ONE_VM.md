@@ -61,10 +61,10 @@ kind/kubeadm別実装、複数CNI、IPv6、HA、物理環境は標準完成へ�
 Linux本人4 runの成功は別の[記録](validation/f4-owner-lifecycle-20261021.json)へ保持する。
 次は文書・証拠のレビューと取り込み判断。標準範囲を越える機能追加は再開しない。
 
-**標準F4全体は未完了。Linux x86_64/KVMでF1のPod・Service/DNS・TCP/UDP通信を確認した証拠はまだない。**
-Linux本人4 runはKeeper/F3・lifecycleの成功であり、Linux F1通信へ一般化しない。
-Linux F1の1 VM正常通信・証拠同期・回収・追加新規VMでの再成功を標準TODOとして残し、成功後に完成を判断する。
-これは2 VMの追加検証とは別の残件。過去の [F1検証記録](K3S_F1_VALIDATION.md)にあるLinux未実施を保持する。
+Linux x86_64/KVMのF1通信は[2026-10-22の修正後ソースで新規2 VM成功](F1_LINUX_STANDARD_VALIDATION.md)。
+Linux本人4 runとは別に、Pod・Service/DNS・TCP/UDP・証拠同期・回収・再成功の証拠を確認した。
+同じ2修正のMac新規2 VMも[再受け入れ成功](F1_MAC_STANDARD_VALIDATION.md)。未修正mainの成功ではなく、今回の2修正のレビュー・取り込み・対象コミットCIを残す。以前のMac証拠へ一般化せず、新しい記録を用いる。
+以前のLinux未実施の[F1記録](K3S_F1_VALIDATION.md)と失敗証拠は履歴として保持する。2 VM追加検証のTODOは別のまま。
 Macの本人再実行は任意で、Linux本人実行済みの操作条件を重複して必須にしない。
 
 ## Macで同じ入力を再利用する入口

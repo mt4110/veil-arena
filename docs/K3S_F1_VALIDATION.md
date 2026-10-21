@@ -70,3 +70,9 @@ CPU数3の模擬条件で、既存出力確認より先に資源不足となる�
 試験内のCPU数だけを契約の4へ固定し、実行ホストのCPU数に依存せず保全を確認する。
 実VMの資源判定・guest・host runnerは変更していない。受け入れ時source hashは当時の値を保持し、
 試験修正後のhashをJSONの`pr_followup`に分けて記録する。
+
+## 2026-10-22追記: Linux標準1 VM
+
+以前のLinux未実施の記述は上記検証時点の履歴。今回の[Linux受け入れ記録](F1_LINUX_STANDARD_VALIDATION.md)では、main基点へ2修正を加えた未コミットソースで新規2 VMが成功した。未修正mainやMacでの最新修正の成功とは扱わない。
+
+同一修正ソースの[Mac再受け入れ](F1_MAC_STANDARD_VALIDATION.md)も新規2 VMで成功。LinuxとMacのソースhash一致を確認した。修正の取り込み・対象コミットCIは受け入れ実行とは分けて確認する。

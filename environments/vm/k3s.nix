@@ -174,7 +174,7 @@ let
           ln -s ${pkgs.apparmor-bin-utils}/bin/aa-exec /usr/bin/aa-exec
         '';
         serviceConfig = { Type = "oneshot"; TimeoutStartSec = limits.workflow_seconds; TimeoutStopSec = 5; };
-        script = ''exec ${pkgs.python314}/bin/python3 ${if f3 then "${guestModules}/k3s_f3_guest.py" else if f2 then "${guestModules}/k3s_f2_guest.py" else toString guestScript} ${inputs} ${manifest}'';
+        script = ''exec ${pkgs.python314}/bin/python3 ${if f3 then "${guestModules}/k3s_f3_guest.py" else if f2 then "${guestModules}/k3s_f2_guest.py" else "${guestScript}"} ${inputs} ${manifest}'';
         postStop = ''printf '%s\n' "$SERVICE_RESULT" > /out/service-result.txt'';
         unitConfig = { OnSuccess = "arena-poweroff.service"; OnFailure = "arena-poweroff.service"; };
       };
