@@ -5,6 +5,8 @@ Node Readyを実APIで確認し、Keeper profileを追加する前に、専用ob
 `/proc`で停止状態Tを観測してから、完了した証拠をatomicに公開する。
 runner停止を単に仮定したり、K3s未起動を意図した停止として認めたりしない。
 
+既存pi-nodeで準備済みrunner・guestを使う本人操作は、[具体的な自己利用手順](F4_LIFECYCLE_SELF_USE.md)を参照する。
+
 ## 準備と実行
 
 既存のNix／Cargo cache、固定kernel・K3s・OCI入力を再利用する。
