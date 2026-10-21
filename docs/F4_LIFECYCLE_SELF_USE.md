@@ -86,6 +86,7 @@ if [ "${arena_ready:-0}" != 1 ]; then
   printf '先に手順2の起動前確認を成功させてください。\n'
 elif (umask 077; mkdir -m 700 "$arena_session"); then
   arena_exit=0
+  printf '開始するコンテナ: %s\n証拠の予定先: %s/lifecycle\n' "$arena_container" "$arena_session"
   docker run --pull=never --name "$arena_container" \
     --user "$(id -u):$(id -g)" --group-add "$(stat -c %g /dev/kvm)" \
     --device /dev/kvm --cap-drop ALL --security-opt no-new-privileges --network none \
