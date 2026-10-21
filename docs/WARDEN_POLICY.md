@@ -75,12 +75,16 @@ hostの独立判定器は段階の欠落・拒否errno/受信/対象scope・復�
 拒否証拠はLinux guestのAF_INET=2とevent family=4、AF_INET6=10とevent family=6が各1件必要で、同じfamilyの重複を拒否する。
 bundleのhashは各VM起動前と全run終了後に照合し、最後のrun終了時点でhashが一致しなければ成功扱いしない。
 SIGINT/SIGTERM/SIGHUPは同じ中断経路へ入り、controllerへTERMを送って終了を待つ。
+controllerは専用session/process groupで起動する。TERM後15秒で終了しなければ所有groupへSIGKILLを送り、
+さらに最大5秒でcontrollerの終了を待つ。強制回収は証拠が不完全になり得るため、成功や通常中断ではなく失敗3と記録する。
+拒否rule IDは正のu32整数またはその数字文字列を要求し、null・bool・配列・範囲外等を証拠不一致として拒否する。
 想定外の通信影響、受信ゼロ不成立、回収失敗は合格にしない。
 
 2026-10-22のレビュー対応では、重複family・client/event不一致、daily/acceptanceの最終bundle不一致、
 SIGHUPからの終了待ちを回帰試験で確認した。保存済みの実VM 2台の証拠も新判定器で再検証した。
 別途、実controllerと待機fixtureへ実SIGHUPを送り、launcher終了130と所有プロセス不在を確認した。
 この追加プロセス試験はQEMUやBPFを起動しておらず、新しい実VM試験の結果としては扱わない。
+追加の再レビューでは、TERMを無視するcontroller/子fixtureの実プロセスで15秒後のgroup強制回収・終了3・残留なしも確認した。
 
 各runの `warden-result.json`、`warden-inputs.json`、`runtime-inputs.sha256`、
 `guest-boot-id.txt`、`vm-stop.json`、`serial.log`、`qemu-argv.json` と上位 `summary.json` を保存する。

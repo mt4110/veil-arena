@@ -19,6 +19,33 @@ STEPS = ['baseline', 'observe', 'deny', 'existing-connection-bypasses-deny',
 FILES = ['store.img', 'Image', 'initrd', 'kernel-params', 'toplevel', 'inputs.json']
 
 
+def positive_policy_id(value):
+    if isinstance(value, str) and re.fullmatch('[0-9]{1,10}', value):
+        value = int(value)
+    return type(value) is int and 0 < value <= 0xffffffff
+
+
+def stop_controller(process):
+    # Popen owns a new session/group; until reaped, its PID cannot be reused.
+    # Repeated terminal signals must not interrupt this bounded cleanup.
+    handlers = {s: signal.signal(s, signal.SIG_IGN) for s in [signal.SIGINT, signal.SIGTERM, signal.SIGHUP]}
+    try:
+        if process.poll() is not None: return False
+        process.terminate()
+        try:
+            process.wait(timeout=15)
+            return False
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.wait(timeout=5)
+            return True
+    finally:
+        for signum, handler in handlers.items(): signal.signal(signum, handler)
+
+
 def sha(path):
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
@@ -70,7 +97,7 @@ def verify(root):
     proofs = steps[2].get('proofs', [])
     if len(proofs) != 2 or any(p.get('receiver_delta') != 0 or p.get('client', {}).get('errno') != errno.EPERM
             or not p.get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')
-            or p.get('event', {}).get('decision') != 'deny' or int(p.get('event', {}).get('policy_id', 0)) <= 0 for p in proofs):
+            or p.get('event', {}).get('decision') != 'deny' or not positive_policy_id(p.get('event', {}).get('policy_id')) for p in proofs):
         raise ValueError('deny proof missing')
     # These are Linux guest AF_INET/AF_INET6 values, not host socket constants
     # (macOS has a different AF_INET6 number). Events encode IP version 4/6.
@@ -124,13 +151,14 @@ def workflow(uid, bundle, mode, output):
             (root / 'qemu-argv.json').write_text(json.dumps(args, indent=2) + '\n')
             (root / 'vm-manifest.json').write_text(json.dumps({'scenario': 'warden-policy', 'network': 'no NIC',
                 'memory_mib': 4096, 'vcpus': 2, 'hostUid': uid, 'boot_inputs': expected, 'route': route}, indent=2) + '\n')
-            p = subprocess.Popen(args, env=env)
+            p = subprocess.Popen(args, env=env, start_new_session=True)
             try:
                 result = p.wait(timeout=660)
             except BaseException:
-                if p.poll() is None:
-                    p.terminate()
-                    p.wait(timeout=15)
+                escalated = stop_controller(p)
+                report['interruption_cleanup'] = {'controller_reaped': True, 'escalated': escalated}
+                if escalated:
+                    raise ValueError('controller cleanup timed out; owned process group killed; evidence may be incomplete')
                 raise
             if result != 0: raise ValueError('VM controller failed: ' + str(result))
             r = verify(root)

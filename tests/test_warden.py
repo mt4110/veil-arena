@@ -3,6 +3,7 @@ import copy
 import errno
 import json
 import signal
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -76,7 +77,14 @@ class WardenEvidence(unittest.TestCase):
             if case == 'mismatched-event': proofs[1]['event']['family'] = '4'
             with self.subTest(case=case), self.assertRaises(ValueError): self.verify()
 
-    def workflow_fixture(self, mode, *, change_after_final=False, hup=False):
+    def test_malformed_policy_id_is_failed_evidence(self):
+        original = copy.deepcopy(self.record)
+        for value in [None, [], {}, True, 1.5, 0, -1, 'invalid', '9' * 30, 2**32]:
+            self.record = copy.deepcopy(original)
+            self.record['steps'][2]['proofs'][0]['event']['policy_id'] = value
+            with self.subTest(value=value), self.assertRaises(ValueError): self.verify()
+
+    def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False):
         base = Path(tempfile.mkdtemp(prefix='workflow-', dir=self.root))
         bundle = base / 'bundle'; bundle.mkdir()
         (bundle / 'inputs.json').write_text('{"guest_system":"aarch64-linux"}')
@@ -88,12 +96,13 @@ class WardenEvidence(unittest.TestCase):
             nonlocal check_count
             check_count += 1
             return {'Image': 'changed'} if change_after_final and check_count > count + 1 else {}
-        proc = Mock(); proc.poll.return_value = None
+        proc = Mock(); proc.poll.return_value = None; proc.pid = 123456
         waits = 0
         def wait(**kwargs):
             nonlocal waits
             waits += 1
             if hup and waits == 1: signal.raise_signal(signal.SIGHUP)
+            if cleanup_timeout and waits in [1, 2]: raise subprocess.TimeoutExpired('controller', 15)
             return 0
         proc.wait.side_effect = wait
         with patch.object(warden_host, 'execution', return_value={'arch': 'aarch64', 'cpu': 'max', 'accelerator': 'tcg'}), \
@@ -124,6 +133,21 @@ class WardenEvidence(unittest.TestCase):
         proc.terminate.assert_called_once_with()
         self.assertEqual([c.kwargs for c in proc.wait.call_args_list], [{'timeout': 660}, {'timeout': 15}])
 
+    def test_stalled_cleanup_kills_owned_group_and_reports_failure(self):
+        for hup in [False, True]:
+            handlers = warden_host.install_signal_handlers()
+            try:
+                with self.subTest(hup=hup), patch.object(warden_host.os, 'killpg') as kill_group:
+                    code, report, proc = self.workflow_fixture('daily', hup=hup, cleanup_timeout=True)
+                    self.assertEqual(code, 3)
+                    self.assertEqual(report['status'], 'failed')
+                    self.assertTrue(report['interruption_cleanup']['escalated'])
+                    kill_group.assert_called_once_with(proc.pid, signal.SIGKILL)
+                    self.assertEqual([c.kwargs for c in proc.wait.call_args_list],
+                                     [{'timeout': 660}, {'timeout': 15}, {'timeout': 5}])
+            finally:
+                for signum, handler in handlers.items(): signal.signal(signum, handler)
+
     def test_boot_uses_init_executable_and_no_external_nic(self):
         bundle = self.root / 'bundle'; bundle.mkdir()
         (bundle / 'inputs.json').write_text('{"guest_system":"aarch64-linux"}')
@@ -139,6 +163,7 @@ class WardenEvidence(unittest.TestCase):
              patch.object(warden_host.subprocess, 'Popen', return_value=proc) as launch:
             self.assertEqual(warden_host.workflow(1000, bundle, 'daily', self.root / 'launch'), 0)
         args = launch.call_args.args[0]
+        self.assertTrue(launch.call_args.kwargs['start_new_session'])
         self.assertIn('init=' + system + '/init ', args[args.index('-append') + 1])
         self.assertEqual(args[args.index('-nic') + 1], 'none')
 
