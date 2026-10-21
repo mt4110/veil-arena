@@ -72,7 +72,15 @@ guest試験は180秒、Arena controllerは既存660秒、外側の待機は660�
 
 拒否はtimeout/ECONNREFUSEDや単なる非ゼロ終了では代用しない。
 hostの独立判定器は段階の欠落・拒否errno/受信/対象scope・復帰・boot ID・証拠同期・QEMU回収を照合する。
+拒否証拠はLinux guestのAF_INET=2とevent family=4、AF_INET6=10とevent family=6が各1件必要で、同じfamilyの重複を拒否する。
+bundleのhashは各VM起動前と全run終了後に照合し、最後のrun終了時点でhashが一致しなければ成功扱いしない。
+SIGINT/SIGTERM/SIGHUPは同じ中断経路へ入り、controllerへTERMを送って終了を待つ。
 想定外の通信影響、受信ゼロ不成立、回収失敗は合格にしない。
+
+2026-10-22のレビュー対応では、重複family・client/event不一致、daily/acceptanceの最終bundle不一致、
+SIGHUPからの終了待ちを回帰試験で確認した。保存済みの実VM 2台の証拠も新判定器で再検証した。
+別途、実controllerと待機fixtureへ実SIGHUPを送り、launcher終了130と所有プロセス不在を確認した。
+この追加プロセス試験はQEMUやBPFを起動しておらず、新しい実VM試験の結果としては扱わない。
 
 各runの `warden-result.json`、`warden-inputs.json`、`runtime-inputs.sha256`、
 `guest-boot-id.txt`、`vm-stop.json`、`serial.log`、`qemu-argv.json` と上位 `summary.json` を保存する。

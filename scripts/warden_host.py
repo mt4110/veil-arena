@@ -72,6 +72,11 @@ def verify(root):
             or not p.get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')
             or p.get('event', {}).get('decision') != 'deny' or int(p.get('event', {}).get('policy_id', 0)) <= 0 for p in proofs):
         raise ValueError('deny proof missing')
+    # These are Linux guest AF_INET/AF_INET6 values, not host socket constants
+    # (macOS has a different AF_INET6 number). Events encode IP version 4/6.
+    families = [(p['client'].get('family'), p['event'].get('family')) for p in proofs]
+    if families.count((2, '4')) != 1 or families.count((10, '6')) != 1:
+        raise ValueError('deny requires one matching IPv4 and IPv6 proof')
     if any(steps[i].get('receiver_delta') != 1 for i in [3, 4, 6]): raise ValueError('limits not demonstrated')
     if (steps[5].get('client', {}).get('errno') != 0 or steps[7].get('errno') != 0
             or steps[5].get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')):
@@ -131,6 +136,7 @@ def workflow(uid, bundle, mode, output):
             r = verify(root)
             if r['boot_id'] in [x['boot_id'] for x in report['runs']]: raise ValueError('boot ID reused')
             report['runs'].append({'path': root.name, 'boot_id': r['boot_id'], 'status': 'passed'})
+        if check_bundle(bundle) != expected: raise ValueError('bundle changed during final run')
         report['status'] = 'passed'; code = 0
     except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
         report['status'] = 'failed'; report['error'] = str(error)
@@ -142,10 +148,14 @@ def workflow(uid, bundle, mode, output):
     return code
 
 
-if __name__ == '__main__':
+def install_signal_handlers():
     def cancelled(_signum, _frame):
         raise KeyboardInterrupt
-    signal.signal(signal.SIGTERM, cancelled)
+    return {s: signal.signal(s, cancelled) for s in [signal.SIGINT, signal.SIGTERM, signal.SIGHUP]}
+
+
+if __name__ == '__main__':
+    install_signal_handlers()
     try:
         if len(sys.argv) != 5: raise ValueError('usage: arena-warden BUNDLE daily|acceptance NEW_OUTPUT')
         sys.exit(workflow(int(sys.argv[1]), Path(sys.argv[2]).absolute(), sys.argv[3], Path(sys.argv[4]).absolute()))
