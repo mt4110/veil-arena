@@ -7,6 +7,11 @@ from pathlib import Path
 import sys
 import tarfile
 
+KEEPER_INPUTS = {
+    "tools/m0_exec_check.py": "108372f8dbe35f354c2fae7dc8708353a02324e186ae611b59afc639ef760eed",
+    "experiments/apparmor/m0-exec-check.profile": "e56379b741145cf8caa07f2e2bff9e47a8dbd00f2c781e95af1af53e006d3cc6",
+}
+
 FILES = ["store.img", "Image", "initrd", "kernel-params", "inputs.json", "fixtures.json", "toplevel", "run-base.qcow2"]
 LIMITS = {"vcpus": 4, "memory_mib": 16384, "writable_run_disk_virtual_gib": 32,
           "node_ready_seconds": 300, "pod_ready_seconds": 120, "io_probe_seconds": 5,
@@ -46,6 +51,13 @@ def check(root):
             raise ValueError("invalid F2 node role")
         if inputs["role"] == "agent":
             expected.update(vcpus=2, memory_mib=4096)
+    if inputs.get("scenario") == "k3s-f3":
+        keeper = inputs.get("keeper", {})
+        if (keeper.get("input_sha256") != KEEPER_INPUTS
+                or keeper.get("profile_name") != "veil_keeper_m0_exec_check_20261016"
+                or keeper.get("child_uid") != 501 or keeper.get("child_gid") != 1000
+                or keeper.get("command_timeout_seconds") != 20):
+            raise ValueError("F0 Keeper fixed inputs differ")
     if any(inputs.get("limits", {}).get(k) != v for k, v in expected.items()):
         raise ValueError("F0 resource or deadline contract mismatch")
     if inputs.get("versions") != VERSIONS:

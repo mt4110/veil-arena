@@ -75,9 +75,11 @@ def verify_run(out, inputs):
     return 0, result
 
 
-def workflow(uid, bundle, mode, root):
+def workflow(uid, bundle, mode, root, *, scenario="k3s-f1", verifier=verify_run):
     os.umask(0o077)
     inputs, seal = check(bundle)
+    if inputs.get("scenario", scenario) != scenario:
+        raise ValueError("guest scenario differs from the selected runner")
     if os.getuid() != uid or uid == 0 or inputs["hostUid"] != uid:
         raise ValueError("ordinary host UID differs from prepared guest")
     arch = "aarch64" if platform.machine() in {"arm64", "aarch64"} else "x86_64"
@@ -99,7 +101,7 @@ def workflow(uid, bundle, mode, root):
     if available_memory_mib() < limits["memory_mib"] + 2048:
         raise ValueError("insufficient free/inactive memory for the fixed guest plus 2 GiB headroom")
     root.mkdir(mode=0o700)  # New-only, preserve failures and run disks.
-    summary = {"schema_version": 1, "scenario": "k3s-f1", "mode": mode,
+    summary = {"schema_version": 1, "scenario": scenario, "mode": mode,
                "status": "environment_error", "runs": []}
     code = 3
     deadline = time.monotonic() + 600
@@ -114,7 +116,7 @@ def workflow(uid, bundle, mode, root):
             out.mkdir(mode=0o700)
             run = {"output": str(out), "status": "environment_error"}
             summary["runs"].append(run)
-            manifest = {"scenario": "k3s-f1", "run_id": uuid.uuid4().hex,
+            manifest = {"scenario": scenario, "run_id": uuid.uuid4().hex,
                         "owner_uid": uid, "owner_pid": os.getpid(), "inputs": inputs,
                         "bundle_sha256": sha(bundle / "bundle.json"), "boot_inputs": seal["files"],
                         "network": "no NIC", "accelerator": "tcg"}
@@ -165,7 +167,7 @@ def workflow(uid, bundle, mode, root):
                 raise ValueError("workflow cancelled; inspect owned VM recovery evidence")
             if controller_exit:
                 raise ValueError("owned VM lifecycle failed; inspect vm-stop.json and serial.log")
-            code, result = verify_run(out, inputs)
+            code, result = verifier(out, inputs)
             run.update(status=result["status"], boot_id=result["boot_id"], exit_code=code)
             if code:
                 raise ValueError(f"guest failed at {result.get('stage')}: {result.get('detail')}")
@@ -187,7 +189,7 @@ def workflow(uid, bundle, mode, root):
         (root / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     if code:
         print(f"Failure: {summary.get('detail', 'missing failure detail')}", file=sys.stderr)
-    print(f"k3s-f1 {mode}: {summary['status']} — {root / 'summary.json'}")
+    print(f"{scenario} {mode}: {summary['status']} — {root / 'summary.json'}")
     return code
 
 
