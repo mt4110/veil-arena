@@ -1,0 +1,57 @@
+{
+  "date_jst": "2026-10-21",
+  "scenario": "k3s-f3",
+  "mode": "lifecycle",
+  "execution_host": "existing pi-node / Linux x86_64 KVM",
+  "owner_executed": true,
+  "evidence_path": "/home/maakie/veil-arena-validation/f4-checkpoint-20261021/self-use-20261021-180412-10173/lifecycle",
+  "verification": "Pasted owner output and read-only SSH inspection of persisted summary.json and four vm-stop.json files",
+  "status": "passed",
+  "exit_code": 0,
+  "runs": [
+    {
+      "name": "fresh-1",
+      "fixture": "cancel",
+      "fixture_verified": true,
+      "controller_exit": 3
+    },
+    {
+      "name": "fresh-2",
+      "fixture": null,
+      "controller_exit": 0
+    },
+    {
+      "name": "fresh-3",
+      "fixture": "timeout",
+      "fixture_verified": true,
+      "controller_exit": 3
+    },
+    {
+      "name": "fresh-4",
+      "fixture": null,
+      "controller_exit": 0
+    }
+  ],
+  "all_four_vm_stops": {
+    "qemu_reaped": true,
+    "qemu_exit_code": 0,
+    "escalated": false,
+    "evidence_synced": true
+  },
+  "unique_boot_ids": 4,
+  "checkpoint_evidence_present_in": [
+    1,
+    3
+  ],
+  "keeper_result_present_in": [
+    2,
+    4
+  ],
+  "remaining": [
+    "Resource-blocked F2/F4 acceptance",
+    "Mac final integrated acceptance and remaining checkpoint coverage",
+    "New PC and SSD changes paused",
+    "Tags and publication paused"
+  ],
+  "new_vm_started_by_this_verification": false
+}

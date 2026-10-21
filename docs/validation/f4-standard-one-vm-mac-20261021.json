@@ -1,0 +1,340 @@
+{
+  "date_jst": "2026-10-21",
+  "base_main_commit": "7cf98e2b7b5273b91ec8f27e73a0a992972649d3",
+  "scope_revision": "One VM standard; two-VM cross-node tests retained as additional validation, not counted as passed",
+  "runtime_host": "macOS ARM64 / QEMU TCG max",
+  "host_uid": 501,
+  "keeper_runner": "/nix/store/16hbra48x4n3dzn050vg1s3acx895a3r-arena-keeper",
+  "network_runner": "/nix/store/sr5dcza72zbh4wcv99dfdg9ww53flp6a-arena-k3s",
+  "keeper_runner_relevant_sources_match_main": true,
+  "checkpoint_guest": "/nix/store/s2fxi4gnqnaa0hr0swkirqhn3r62zzdz-arena-k3s-f3-keeper-bundle",
+  "checkpoint_bundle": "/Volumes/Elecom-1TB/Linux/veil-arena/f4-standard-one-vm-20261021/image",
+  "checkpoint_bundle_sha256": "07fc99e097f2cff21aadb33d650d7b512659055ba7e43311baae03146b9957df",
+  "guest_resources": {
+    "vcpus": 4,
+    "memory_mib": 16384,
+    "virtual_disk_gib": 32
+  },
+  "resources_and_deadlines_unchanged": true,
+  "guest_preparation": "Existing dedicated builder and cache; nix build --offline succeeded; builder/container restored to stopped",
+  "old_guest_keeper_acceptance": {
+    "path": "/Volumes/Elecom-1TB/Linux/veil-arena/f4-one-vm-mac-20261021-acceptance",
+    "status": "passed",
+    "exit_code": 0,
+    "runs": [
+      {
+        "name": "fresh-1",
+        "status": "passed",
+        "fixture": null,
+        "fixture_verified": null,
+        "controller_exit": 0,
+        "boot_id": "6bf5fb34-f599-4ecb-aade-9b5d8e1fa880",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "keeper_exec",
+            "status": "passed"
+          }
+        ],
+        "stop": {
+          "reason": "service_completed",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 72047,
+          "checkpoint_seen": false,
+          "checkpoint_elapsed_ms": null
+        }
+      },
+      {
+        "name": "fresh-2",
+        "status": "passed",
+        "fixture": null,
+        "fixture_verified": null,
+        "controller_exit": 0,
+        "boot_id": "acb1355a-f4a0-47e5-b2f3-d1af560ca269",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "keeper_exec",
+            "status": "passed"
+          }
+        ],
+        "stop": {
+          "reason": "service_completed",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 71285,
+          "checkpoint_seen": false,
+          "checkpoint_elapsed_ms": null
+        }
+      }
+    ]
+  },
+  "checkpoint_lifecycle": {
+    "path": "/Volumes/Elecom-1TB/Linux/veil-arena/f4-standard-one-vm-20261021/lifecycle",
+    "status": "passed",
+    "exit_code": 0,
+    "runs": [
+      {
+        "name": "fresh-1",
+        "status": "passed",
+        "fixture": "cancel",
+        "fixture_verified": true,
+        "controller_exit": 3,
+        "boot_id": "cd09747c-78ae-470f-8877-1a41eb1b42cb",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          }
+        ],
+        "stop": {
+          "reason": "cancelled",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 66232,
+          "checkpoint_seen": false,
+          "checkpoint_elapsed_ms": null
+        }
+      },
+      {
+        "name": "fresh-2",
+        "status": "passed",
+        "fixture": null,
+        "fixture_verified": null,
+        "controller_exit": 0,
+        "boot_id": "1c1fdf7e-0c09-40fe-946d-8d07e71375a0",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "keeper_exec",
+            "status": "passed"
+          }
+        ],
+        "stop": {
+          "reason": "service_completed",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 68851,
+          "checkpoint_seen": false,
+          "checkpoint_elapsed_ms": null
+        }
+      },
+      {
+        "name": "fresh-3",
+        "status": "passed",
+        "fixture": "timeout",
+        "fixture_verified": true,
+        "controller_exit": 3,
+        "boot_id": "121500a9-8f47-4f4e-bbfc-820d266e2835",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          }
+        ],
+        "stop": {
+          "reason": "watchdog",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 69525,
+          "checkpoint_seen": true,
+          "checkpoint_elapsed_ms": 2142
+        }
+      },
+      {
+        "name": "fresh-4",
+        "status": "passed",
+        "fixture": null,
+        "fixture_verified": null,
+        "controller_exit": 0,
+        "boot_id": "07110b02-92f6-4d70-b6e8-06d0b1222dd6",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "keeper_exec",
+            "status": "passed"
+          }
+        ],
+        "stop": {
+          "reason": "service_completed",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 71092,
+          "checkpoint_seen": false,
+          "checkpoint_elapsed_ms": null
+        }
+      }
+    ]
+  },
+  "network_acceptance": {
+    "path": "/Volumes/Elecom-1TB/Linux/veil-arena/f4-standard-one-vm-20261021/network-acceptance",
+    "status": "passed",
+    "exit_code": 0,
+    "runs": [
+      {
+        "name": "fresh-1",
+        "boot_id": "668c9e8a-2bb5-43d3-8602-d8550560d5d4",
+        "status": "passed",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "pod_ready",
+            "status": "passed",
+            "count": 2,
+            "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+            "node": "arena-k3s-server"
+          },
+          {
+            "stage": "dns_tcp",
+            "status": "passed",
+            "probe": {
+              "protocol": "tcp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.38.33"
+              ],
+              "payload": "arena-f1:tcp:39dcb2b1d3ed4d3597e7590714393ecd",
+              "received": "arena-f1:tcp:39dcb2b1d3ed4d3597e7590714393ecd",
+              "count": 1
+            },
+            "receiver_count": 1
+          },
+          {
+            "stage": "dns_udp",
+            "status": "passed",
+            "probe": {
+              "protocol": "udp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.38.33"
+              ],
+              "payload": "arena-f1:udp:77c25567cf4d4532ad9f363aca3fa8e6",
+              "received": "arena-f1:udp:77c25567cf4d4532ad9f363aca3fa8e6",
+              "count": 1
+            },
+            "receiver_count": 1
+          }
+        ],
+        "stop": {
+          "reason": "service_completed",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 107268
+        }
+      },
+      {
+        "name": "fresh-2",
+        "boot_id": "4acf49b3-1cfd-4ee6-8731-6306768c6041",
+        "status": "passed",
+        "checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          },
+          {
+            "stage": "pod_ready",
+            "status": "passed",
+            "count": 2,
+            "image_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+            "node": "arena-k3s-server"
+          },
+          {
+            "stage": "dns_tcp",
+            "status": "passed",
+            "probe": {
+              "protocol": "tcp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.245.73"
+              ],
+              "payload": "arena-f1:tcp:46d8fee093184669901a5b67f8d64b10",
+              "received": "arena-f1:tcp:46d8fee093184669901a5b67f8d64b10",
+              "count": 1
+            },
+            "receiver_count": 1
+          },
+          {
+            "stage": "dns_udp",
+            "status": "passed",
+            "probe": {
+              "protocol": "udp",
+              "host": "echo.arena-f1.svc.cluster.local",
+              "addresses": [
+                "10.43.245.73"
+              ],
+              "payload": "arena-f1:udp:6ba3320320514cb7accd607d52528490",
+              "received": "arena-f1:udp:6ba3320320514cb7accd607d52528490",
+              "count": 1
+            },
+            "receiver_count": 1
+          }
+        ],
+        "stop": {
+          "reason": "service_completed",
+          "qemu_reaped": true,
+          "qemu_exit_code": 0,
+          "escalated": false,
+          "evidence_synced": true,
+          "duration_ms": 107188
+        }
+      }
+    ]
+  },
+  "unit_tests": {
+    "checkpoint": {
+      "passed": 7,
+      "skipped": 1,
+      "skip_reason": "Linux procfs observer test on macOS"
+    }
+  },
+  "owner_operation": "Linux owner 4-run success retained; Mac rerun optional",
+  "deferred": [
+    "Two-VM current-main F2/F3 integrated acceptance",
+    "Two-VM checkpoint coverage",
+    "New PC and SSD configuration changes",
+    "Tags and publication"
+  ],
+  "commit_push_pr_performed": false,
+  "independent_raw_evidence_reverification": "Network two runs and Keeper checkpoint four runs passed current verifiers",
+  "unique_fresh_vm_boot_ids": 8,
+  "standard_mac_technical_acceptance": "passed",
+  "post_execution_owned_processes": "All 8 recorded QEMU and controller PIDs absent at final check"
+}
