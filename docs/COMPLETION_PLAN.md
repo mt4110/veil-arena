@@ -77,7 +77,7 @@ K3sは [Kubernetesディストリビューション](https://docs.k3s.io/) で�
 現在の [M0〜M5文書](MILESTONES.md) は履歴として保持し、本書を今後の完成判断に使う。
 
 F1〜F3は完了。F3は[専用入口](F3_KEEPER.md)で固定Keeper checker/profileを実行し、拒否不成立の対照も判定する。
-標準1 VMのF4は未完了。Mac技術確認とLinux Keeper/lifecycle本人実行は成功したが、Linux x86_64/KVMのF1 Pod・Service/DNS・TCP/UDPは未検証で標準TODOに残る。次は今回の提供範囲改訂・証拠・手順のレビューと取り込み判断。その後、既存1 VM条件でLinux F1通信を確認してから標準完成を判断する。本人操作はLinuxの成功記録を利用し、追加機能を終了条件に増やさない。詳細は [標準1 VMの完了判定](F4_STANDARD_ONE_VM.md)。2 VMの実装・生証拠・未検証TODOは追加検証として保持し、成功へ読み替えない。
+Linux x86_64/KVMのF1 Pod・Service/DNS・TCP/UDPは[2026-10-22の修正後ソースで新規2 VM成功](F1_LINUX_STANDARD_VALIDATION.md)。未修正mainの成功ではなく、標準1 VMの完成判断には修正レビュー・取り込み・対象コミットCIを分けて確認する。同じ修正ソースのMac新規2 VMも[成功](F1_MAC_STANDARD_VALIDATION.md)。以前のMac証拠は別に保持する。次は今回の提供範囲改訂・証拠・手順のレビューと取り込み判断。両ホストF1の成功証拠と修正範囲を確認してから標準完成を判断する。本人操作はLinuxの成功記録を利用し、追加機能を終了条件に増やさない。詳細は [標準1 VMの完了判定](F4_STANDARD_ONE_VM.md)。2 VMの実装・生証拠・未検証TODOは追加検証として保持し、成功へ読み替えない。
 
 F1の専用入口と運用契約は [F1_K3S.md](F1_K3S.md)。実装・実行結果の判定はF0と分けて記録する。
 
@@ -95,7 +95,7 @@ F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVM�
 | --- | --- |
 | Linux x86_64の新規F2・F4統合受け入れ（追加検証） | 資源不足で未完了。pi-nodeは4 CPU、既存F2条件は6 CPU以上。条件を緩めず、満たす実行経路が得られた時点で再開 |
 | Macの新規F2・F3統合受け入れ（追加検証） | 2026-10-21の現行main preflightもRAM不足で終了3・新規VM 0台。直前観測24,178 MiB、必要24,576 MiB。3 bundleのhash照合は成功。[記録](validation/f4-mac-main-preflight-20261021.json)。旧runnerは2 moduleがmainと異なるため次回準備・照合する。余力がある時点で再開し、他プロセス停止や条件緩和はしない |
-| Linux x86_64/KVMの標準F1通信 | 未検証。1 VMでPod Ready・Service DNS・TCP/UDP・証拠同期・回収・新規VM再成功を確認するまで標準F4は未完了。Linux Keeper/lifecycle成功では代用しない |
+| Linux x86_64/KVMの標準F1通信 | [修正後ソースで成功](F1_LINUX_STANDARD_VALIDATION.md)。新規2 VMでPod・Service DNS・TCP/UDP・同期・回収・再成功。起動ソースのNix収録とServiceAccount成立順序を修正し、同一ソースのMacでも再成功。取り込み・対象CIは別途確認。以前の失敗証拠も保持 |
 | Macの標準1 VM受け入れ | [成功](validation/f4-standard-one-vm-mac-20261021.json)。現行runnerで通信2回・Keeper正常2回・新checkpoint bundleの4 runを実行。全8 VMが異なるboot ID、同期・正常回収。旧guest・証拠は保持 |
 | 2 VM側のcheckpoint受け入れ（追加検証） | 未完了。既存実装・証拠を保持し、標準1 VMの成功とは別に記録 |
 | 本人操作確認 | 既存pi-nodeで本人の4 run実行が成功。一括終了0・異なる4 boot ID・中断/期限検出後の正常復帰・証拠同期・全所有QEMU回収を[確認](validation/f4-owner-lifecycle-20261021.json)。Mac側と2 VM側へは一般化しない |

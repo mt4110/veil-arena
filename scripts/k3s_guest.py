@@ -41,6 +41,38 @@ def ready(items):
                                   for c in item.get("status", {}).get("conditions", [])) for item in items)
 
 
+def apply_fixture(kubectl, manifest, end, *, now=None, sleep=None):
+    """Wait for namespace dependencies inside the existing Pod deadline."""
+    now = time.monotonic if now is None else now
+    sleep = time.sleep if sleep is None else sleep
+    namespaces = [item for item in manifest["items"] if item.get("kind") == "Namespace"]
+    if len(namespaces) != 1 or namespaces[0].get("metadata", {}).get("name") != "arena-f1":
+        raise Failure("pod_ready", "fixture namespace identity mismatch", 1)
+    namespace_manifest = {"apiVersion": "v1", "kind": "List", "items": namespaces}
+    cp = kubectl(["apply", "-f", "-"], end, json.dumps(namespace_manifest).encode())
+    if cp.returncode:
+        raise Failure("pod_ready", "fixture namespace apply failed")
+    while now() < end:
+        cp = kubectl(["-n", "arena-f1", "get", "serviceaccount", "default",
+                      "--ignore-not-found=true", "-o", "json"], end)
+        if cp.returncode:
+            raise Failure("pod_ready", "default ServiceAccount lookup failed")
+        if cp.stdout.strip():
+            account = json.loads(cp.stdout)
+            metadata = account.get("metadata", {})
+            if (account.get("kind") != "ServiceAccount" or metadata.get("name") != "default"
+                    or metadata.get("namespace") != "arena-f1" or metadata.get("deletionTimestamp")):
+                raise Failure("pod_ready", "default ServiceAccount identity mismatch")
+            break
+        sleep(min(0.25, max(0, end - now())))
+    else:
+        raise Failure("pod_ready", "default ServiceAccount not created before Pod deadline")
+    # Apply the original fixed fixture once, after its namespace dependency exists.
+    cp = kubectl(["apply", "-f", "-"], end, json.dumps(manifest).encode())
+    if cp.returncode:
+        raise Failure("pod_ready", "fixture manifest apply failed")
+
+
 def run(out, inputs):
     started = time.monotonic()
     deadline = started + 600
@@ -139,9 +171,7 @@ def run(out, inputs):
         stage = "pod_ready"
         pod_end = min(deadline, time.monotonic() + 120)
         manifest = json.loads(Path(sys.argv[2]).read_text())
-        cp = kubectl(["apply", "-f", "-"], pod_end, json.dumps(manifest).encode())
-        if cp.returncode:
-            raise Failure(stage, "fixture manifest apply failed")
+        apply_fixture(kubectl, manifest, pod_end)
         pods = wait("pods", pod_end, "arena-f1")
         if {p["metadata"]["name"] for p in pods} != {"server", "client"}:
             raise Failure(stage, "fixture Pod membership mismatch", 1)

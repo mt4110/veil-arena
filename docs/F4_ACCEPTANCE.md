@@ -6,7 +6,7 @@
 K3sをKubernetes実装として使う。別のkind／kubeadm版は追加しない。
 1 VMのcheckpoint中断・期限超過は[Linuxで受け入れ成功](F4_LIFECYCLE_VALIDATION.md)。
 2 VM側・両ホストの統合受け入れは追加検証TODOとして保持し、標準完成の必須条件にはしない。
-標準1 VMの残件はLinux F1通信。Linux本人のKeeper/lifecycle成功は、F1通信の証拠として代用しない。
+Linux F1通信は[修正後ソースで成功](F1_LINUX_STANDARD_VALIDATION.md)。修正レビュー・取り込みを残し、Linux本人のKeeper/lifecycle成功とは別の証拠として扱う。
 
 ## ホストと事前確認
 
@@ -67,7 +67,7 @@ F2が失敗したらF3を開始しない。終了コード1（不一致）・3�
 ## 標準完成の残件と追加検証TODO
 
 標準F4の判定は [標準1 VM](F4_STANDARD_ONE_VM.md) に従う。Macの通信・Keeper・checkpointとLinux本人のKeeper/lifecycleは成功済み。
-Linux x86_64/KVMでF1のPod・Service DNS・TCP/UDP、証拠同期・回収・追加新規VMでの再成功は未検証であり、標準TODOとして残す。確認できるまで標準F4は未完了。
+Linux x86_64/KVMのF1通信・同期・回収・新規再成功は2026-10-22の修正後ソースで確認した。未修正mainでは未完了であり、修正のレビュー・取り込み・対象コミットCIを残す。
 
 本書の両ホストF2・F3統合受け入れ、2 VM側checkpointなどは追加検証TODOであり、標準1 VM完成を妨げる必須条件にはしない。
 既存の成功証拠・資源不足・未検証を保持し、標準1 VMの成功で追加検証を合格扱いにしない。
