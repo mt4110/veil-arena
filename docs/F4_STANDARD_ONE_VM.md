@@ -60,6 +60,11 @@ kind/kubeadm別実装、複数CNI、IPv6、HA、物理環境は標準完成へ�
 旧guestは削除せず、専用builder/containerは元の停止状態へ戻した。他用途のColima環境は稼働を継続。
 Linux本人4 runの成功は別の[記録](validation/f4-owner-lifecycle-20261021.json)へ保持する。
 次は文書・証拠のレビューと取り込み判断。標準範囲を越える機能追加は再開しない。
+
+**標準F4全体は未完了。Linux x86_64/KVMでF1のPod・Service/DNS・TCP/UDP通信を確認した証拠はまだない。**
+Linux本人4 runはKeeper/F3・lifecycleの成功であり、Linux F1通信へ一般化しない。
+Linux F1の1 VM正常通信・証拠同期・回収・追加新規VMでの再成功を標準TODOとして残し、成功後に完成を判断する。
+これは2 VMの追加検証とは別の残件。過去の [F1検証記録](K3S_F1_VALIDATION.md)にあるLinux未実施を保持する。
 Macの本人再実行は任意で、Linux本人実行済みの操作条件を重複して必須にしない。
 
 ## Macで同じ入力を再利用する入口
