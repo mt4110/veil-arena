@@ -1,0 +1,55 @@
+{
+  "main_commit": "7017ca72432ce4107ce413ee08771a0685944ebf",
+  "runner_uid": 1000,
+  "runner_scripts": "/home/maakie/veil-arena-validation/run-1791624441124999000/results/kvm-runtime-copy/nix/store/8kq95wsgjh756a2fka18h1cabig6qjbp-scripts",
+  "script_sha256": {
+    "scripts/k3s_f3_host.py": "992da2fda3d11ea2edab1396b147f550bec3e4a693018a72d93fa2ddeaf2886e",
+    "scripts/k3s_host.py": "571f11565c90974b2e79af65b1a87c1e600f5234a539f7cb9d7ced89cda16583",
+    "scripts/k3s_execution.py": "089c146749a9d873dbb4235ce05cf1316f33bfd54bf7a6341b50355b373d8c19",
+    "scripts/k3s_checkpoint.py": "bb2ff0c1bc908a7b6c12353b9c9d12f403b542384e97e60e8d3df8c269895e80",
+    "scripts/k3s_bundle.py": "616442e216fb807199f4491aa7c9b344a6f2be98adb02ecadf8e5e5dfb7dd727",
+    "scripts/k3s_guest.py": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+    "scripts/keeper_trial.py": "66cbd3bf0622e9cb575239221adb5c41bd6678a691ba719f36a5c6e1bde99ab7",
+    "scripts/k3s_f2_host.py": "ed19e0a8d1b4d586853dad3043790149efbff952d1cf11ee56d684cc69e39243",
+    "scripts/k3s_f2_guest.py": "b49eb173e0fbc337847db057733233778c7e4c4519d3314ce909ce075abf469b"
+  },
+  "bundle_sha256": "df2aa2ccf51a04d5ade68eb5f4a9661701b9a53bd01c30fbd7e0dc08e1284a47",
+  "bundle_files_verified": 8,
+  "guest_runner_sha256": "be13718df7a39635a69294e6c8a4df5a9cb3c5d7cbd8e3d680c6245d69ffe603",
+  "checkpoint_sha256": "bb2ff0c1bc908a7b6c12353b9c9d12f403b542384e97e60e8d3df8c269895e80",
+  "guest_system": "x86_64-linux",
+  "date": "2026-10-21",
+  "scope": "Owner procedure preparation and preflight only; no Linux guest started",
+  "preflight": {
+    "status": "passed",
+    "uid": 1000,
+    "accelerator": "kvm",
+    "cpus": 4,
+    "available_memory_mib": 25125,
+    "disk_free_gib": 263,
+    "cache_downloads": false
+  },
+  "owner_lifecycle_execution": "pending",
+  "resources_blocked_acceptance": "TODO retained",
+  "shell_blocks_syntax_checked": 4,
+  "executed_shell_block": "preflight only",
+  "notes": [
+    "The empty KVM VM fd probe was closed without starting a guest or QEMU",
+    "Runner, guest and runtime cache reused; no host group/device permissions changed",
+    "No commit, push or PR in this preparation task"
+  ],
+  "recheck": {
+    "date_jst": "2026-10-21",
+    "remote_main_commit": "7017ca72432ce4107ce413ee08771a0685944ebf",
+    "runner_source_files_matched": 9,
+    "bundle_manifest_sha256_matched": true,
+    "docker_image_cached": true,
+    "shell_blocks_syntax_checked": 4,
+    "preflight_status": "passed",
+    "available_memory_mib": 25111,
+    "disk_free_gib": 263,
+    "kvm_via": "existing Docker device passthrough; empty VM fd only",
+    "guest_started": false,
+    "owner_lifecycle_execution": "pending"
+  }
+}
