@@ -1,0 +1,63 @@
+{
+  "main_commit": "7cf98e2b7b5273b91ec8f27e73a0a992972649d3",
+  "date_jst": "2026-10-21",
+  "runtime_sources_match_main": true,
+  "bundles": {
+    "server": {
+      "path": "/Volumes/Elecom-1TB/Linux/veil-arena/f2-cri-20261021/images/server",
+      "status": "hash_verified",
+      "bundle_sha256": "dbcc90ddd19cf6f8af2374911d3181901bd8a6921c1c8f505aff90944b93834b",
+      "system": "aarch64-linux",
+      "scenario": "k3s-f2",
+      "host_uid": 501
+    },
+    "agent": {
+      "path": "/Volumes/Elecom-1TB/Linux/veil-arena/f2-cri-20261021/images/agent",
+      "status": "hash_verified",
+      "bundle_sha256": "4bd1be1a60be956d29ec0ec4023986c193bba794106a0bb1be3a96d352f437a6",
+      "system": "aarch64-linux",
+      "scenario": "k3s-f2",
+      "host_uid": 501
+    },
+    "keeper": {
+      "path": "/Volumes/Elecom-1TB/Linux/veil-arena/keeper-f3-20261021/image-final",
+      "status": "hash_verified",
+      "bundle_sha256": "87ff1cd383b0d4bbfc597628718c10730e5a8f62883b19a7b73e611c266f951c",
+      "system": "aarch64-linux",
+      "scenario": "k3s-f3",
+      "host_uid": 501
+    }
+  },
+  "available_memory_mib_before_bundle_check": 24384,
+  "required_available_memory_mib": 24576,
+  "required_cpu_count": 6,
+  "cpu_count": 14,
+  "required_disk_free_gib": 194,
+  "disk_free_gib": 869,
+  "new_vms_started": 0,
+  "new_pc_or_ssd_configuration_changed": false,
+  "resource_limits_changed": false,
+  "preflight": "environment_error",
+  "preflight_detail": "requires 6 host CPUs and 24 GiB available/inactive RAM",
+  "exit_code": 3,
+  "output_summary_created": false,
+  "available_memory_mib_before_formal_preflight": 24178,
+  "scope": "Bundle integrity and current-main F4 preflight only; no new VM acceptance",
+  "prepared_runner_review": {
+    "path": "/nix/store/w4ffmn0qvd08s56wn5iq9vxsyi6yxxyj-arena-k3s-f4",
+    "matches_current_main": [
+      "k3s_f4_host.py",
+      "k3s_f2_host.py",
+      "k3s_bundle.py",
+      "k3s_execution.py"
+    ],
+    "differs_from_current_main": [
+      "k3s_f3_host.py",
+      "k3s_host.py"
+    ],
+    "used_for_acceptance": false,
+    "next_action": "Prepare and verify current-main runner before the next resource-qualified acceptance; reuse existing caches"
+  },
+  "todo": "Mac current-main F2/F3 integrated fresh acceptance remains pending: RAM preflight rejected. No automatic retry or relaxed limits.",
+  "commit_push_pr": "not performed"
+}

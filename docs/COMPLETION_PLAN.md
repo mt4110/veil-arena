@@ -1,17 +1,18 @@
 # Veil Arenaの完成計画 F0〜F4
 
-2026-10-20 JST。ユーザーが採用した完成範囲。基点mainは `5f0c0a3`。
+2026-10-20 JST策定、2026-10-21 JSTに完成範囲を改訂。基点mainは `5f0c0a3`。
+改訂時mainは `7cf98e2`。ユーザー承認により1 VMを標準、2 VMを追加検証へ変更した。
 最終ゴールは、他のVeilシリーズが試験を始められるVM・仮想ネットワーク・Kubernetes環境の完成。
 物理ネットワークは別の `physical-veil-arena` に分ける。
 
 ## 完成条件
 
-1. Linux VM＋netnsと、K3sの2ノード環境を、準備・実行・結果確認・停止の入口から利用できる。
+1. Linux VM＋netnsと、K3sの1ノード（1 VM）環境を、準備・実行・結果確認・停止の入口から利用できる。
 2. Linux系の実Veilを最低1つ接続し、正常・意図した不一致・解除後の正常復帰を判定できる。
 3. 固定Nix環境、kernel、依存、K3sとOCIイメージを準備時に固定し、試験中はdownload/buildしない。
 4. 通常試験・中断・期限超過でも保存可能な証拠を残し、所有VM・プロセスを回収する。次の正常runが成功する。
-5. Mac ARM64／TCGとLinux x86_64／KVMの宣言した構成で、新規環境による追加受け入れが成立する。
-6. 本人が手順から実行し、期待値との差と証拠の場所を確認できる。F4まで達したら機能開発を一区切りにする。
+5. Mac ARM64／TCGとLinux x86_64／KVMの標準1 VM構成で、新規環境による正常試験とcheckpoint中断・期限検出・回収・正常復帰が成立する。2 VMのノード間通信は追加検証であり、標準完成の必須条件にしない。
+6. 本人が標準手順から実行し、期待値との差と証拠の場所を確認できる。Linuxの本人4 run成功で操作確認済み。Mac向けにも固定入力と証拠先を示すが、本人再実行を新たな必須条件にはしない。標準1 VMのF4まで達したら機能開発を一区切りにする。
 
 K3sをKubernetesの実装として採用する。kind／kubeadm版を別途作ることは完成条件に含めない。
 CNIはFlannel／VXLANの1種類。通常の参照試験と、実Veilの試験結果は分ける。
@@ -30,7 +31,7 @@ F2もMac ARM64／TCGの新規2クラスタで[受け入れ完了](K3S_F2_VALIDAT
 F3の固定Keeper exec smokeも、Mac ARM64／TCGの新規2 VMで[受け入れ完了](KEEPER_F3_VALIDATION.md)。
 F4のF2・F3統合入口を[専用手順](F4_ACCEPTANCE.md)へ追加。
 Linux x86_64／KVMのF3は新規2 VMで[成功](F4_ENTRY_VALIDATION.md)。統合新規受け入れはホスト資源不足で残件。
-両対応ホスト・指定checkpointの中断/期限超過・本人操作を含むF4全体は未完了。
+2026-10-21にMacの標準1 VMは現行runnerで通信2回・Keeper正常2回・checkpoint 4 runが[成功](validation/f4-standard-one-vm-mac-20261021.json)。Linux本人4 runの成功と分けて記録する。旧F4の2 VM・統合受け入れは未検証の追加検証として保持する。
 F0は [検証契約](F0_CONTRACT.md) と [入力固定表](contracts/f0-inputs.json) を作成・静的確認した状態。
 F0時点は定義評価まで。F1でARM64 packageのbuild・archive取得・実VM起動を確認した。
 
@@ -40,9 +41,9 @@ F0時点は定義評価まで。F1でARM64 packageのbuild・archive取得・実
 | --- | --- | --- |
 | F0 検証契約 | Keeperの既存最小exec試験、必要権限、入力hash、固定版、対応ホスト、資源・期限、環境失敗の条件を固定 | F0契約とJSONの一致、既存入力とのhash一致、既存単体試験、F1着手条件の明記 |
 | F1 1 VMのK3s | 固定Nixpkgsから専用VMとair-gap入力を準備。1 node、固定fixture Pod、クラスタDNS、TCP／UDP疎通を確認 | downloadなしでNode／Pod Ready、名前解決・通信、証拠同期、所有QEMU回収。別の新規VMでも再成功 |
-| F2 2 VMのクラスタ | 1 server VM＋1 agent VMを専用仮想LANへ接続。Podを別nodeへ配置。Service・DNS・NetworkPolicyの対象拒否／対照通過と解除を比較 | node配置・送受信の対応、限定拒否と解除後復帰。node未準備・経路故障を防御成功にしない |
+| F2 2 VMのクラスタ（追加検証） | 1 server VM＋1 agent VMを専用仮想LANへ接続。Podを別nodeへ配置。Service・DNS・NetworkPolicyの対象拒否／対照通過と解除を比較 | node配置・送受信の対応、限定拒否と解除後復帰。node未準備・経路故障を防御成功にしない |
 | F3 実Veil接続 | 固定Keeper checkerとprofileでbaseline→限定exec拒否→解除後baseline。実行・判定はArenaが管理 | 実コードの実行結果・実label・errno・回収と再成功。不成立の拒否条件を意図的に検出。Kernel未対応は環境エラー |
-| F4 最終受け入れ | 両対応ホストの新規クラスタで一括確認。指定checkpointの中断・期限超過、部分証拠・VM回収・正常再実行。本人操作確認 | 対応表、異なるboot ID・同一起動入力、成功／故障検出／復帰、操作手順と既知の制約 |
+| F4 標準1 VMの最終受け入れ | 両対応ホストで1 VMを順次起動し、正常・checkpoint中断・期限検出・部分証拠・VM回収・正常復帰を確認。本人操作確認 | 対応表、異なるboot ID・同一起動入力、成功／故障検出／復帰、操作手順と既知の制約。旧F2・F3統合入口は追加検証として維持 |
 
 F3の最小試験はKeeperの既存AppArmor exec smokeであり、station-apiの全M0や本番保護を認定しない。
 Keeper試験はVM内の一般ユーザーから行い、Podへの移植は求めない。Kubernetes側の通信は別の固定fixtureで検証する。
@@ -76,13 +77,13 @@ K3sは [Kubernetesディストリビューション](https://docs.k3s.io/) で�
 現在の [M0〜M5文書](MILESTONES.md) は履歴として保持し、本書を今後の完成判断に使う。
 
 F1〜F3は完了。F3は[専用入口](F3_KEEPER.md)で固定Keeper checker/profileを実行し、拒否不成立の対照も判定する。
-次はF4。対応ホストの最終受け入れ・指定checkpointの中断/期限超過・正常再実行・本人操作を別途着手判断し、機能範囲を増やさない。
+標準1 VMのF4はMac技術確認とLinux本人実行の証拠が揃った。次は今回の提供範囲改訂・証拠・手順のレビューと取り込み判断。本人操作はLinuxの成功記録を利用し、追加機能を終了条件に増やさない。詳細は [標準1 VMの完了判定](F4_STANDARD_ONE_VM.md)。2 VMの実装・生証拠・未検証TODOは追加検証として保持し、成功へ読み替えない。
 
 F1の専用入口と運用契約は [F1_K3S.md](F1_K3S.md)。実装・実行結果の判定はF0と分けて記録する。
 
 F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVMの実クラスタ受け入れはF4に残る。
 
-## F4の実行可能な範囲と資源不足TODO（2026-10-21）
+## F4の標準1 VM残件と追加検証TODO（2026-10-21）
 
 追加機器の購入・T340の起動を前提にせず、既存Linux／KVMの1 VMから進める。
 [1 VM lifecycle手順](F4_LIFECYCLE.md)で、Node Ready後・Keeper開始前のcheckpointを使う。
@@ -92,10 +93,11 @@ F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVM�
 
 | TODO | 状態・着手条件 |
 | --- | --- |
-| Linux x86_64の新規F2・F4統合受け入れ | 資源不足で未完了。pi-nodeは4 CPU、既存F2条件は6 CPU以上。条件を緩めず、満たす実行経路が得られた時点で再開 |
-| Macの新規F2・F3統合受け入れ | 前回は利用可能/inactive RAM約22.1 GiBで24 GiB条件に届かず事前停止。余力がある時点で再開。他プロセス停止や条件緩和はしない |
-| 2 VM側・残る対応ホストのcheckpoint受け入れ | 未完了。1 VMの限定検証とは別に記録 |
-| 本人操作確認 | [既存pi-nodeの手順](F4_LIFECYCLE_SELF_USE.md)を準備し、起動前確認まで成功。本人による4 run実行・表示と証拠の確認は未実施 |
+| Linux x86_64の新規F2・F4統合受け入れ（追加検証） | 資源不足で未完了。pi-nodeは4 CPU、既存F2条件は6 CPU以上。条件を緩めず、満たす実行経路が得られた時点で再開 |
+| Macの新規F2・F3統合受け入れ（追加検証） | 2026-10-21の現行main preflightもRAM不足で終了3・新規VM 0台。直前観測24,178 MiB、必要24,576 MiB。3 bundleのhash照合は成功。[記録](validation/f4-mac-main-preflight-20261021.json)。旧runnerは2 moduleがmainと異なるため次回準備・照合する。余力がある時点で再開し、他プロセス停止や条件緩和はしない |
+| Macの標準1 VM受け入れ | [成功](validation/f4-standard-one-vm-mac-20261021.json)。現行runnerで通信2回・Keeper正常2回・新checkpoint bundleの4 runを実行。全8 VMが異なるboot ID、同期・正常回収。旧guest・証拠は保持 |
+| 2 VM側のcheckpoint受け入れ（追加検証） | 未完了。既存実装・証拠を保持し、標準1 VMの成功とは別に記録 |
+| 本人操作確認 | 既存pi-nodeで本人の4 run実行が成功。一括終了0・異なる4 boot ID・中断/期限検出後の正常復帰・証拠同期・全所有QEMU回収を[確認](validation/f4-owner-lifecycle-20261021.json)。Mac側と2 VM側へは一般化しない |
 
 既存キャッシュ・証拠・diskは保持する。新規ハードウェアがないことを理由に未検証を合格扱いにせず、
 条件が揃うまで上記TODOを残す。対象外の物理環境・第三者試用・署名タグ・公開は再開しない。

@@ -1,4 +1,6 @@
-# F2: 2 VMのK3sと限定NetworkPolicy
+# F2追加検証: 2 VMのK3sと限定NetworkPolicy
+
+2026-10-21改訂: [標準完成は1 VM](F4_STANDARD_ONE_VM.md)。本入口・資源・期限・期待値は変更せず追加検証として保持する。
 
 他のVeilが使う仮想クラスタの土台として、server/agent間の通信と限定deny・解除後復帰を判定する。
 F3のKeeper実行、F4の両対応ホスト・本人操作、物理環境・第三者試用・署名タグ・公開は含めない。

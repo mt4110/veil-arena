@@ -4,6 +4,8 @@
 状態：契約の文書化・入力照合・パッケージ定義評価済み。F1の実装・build・VM起動は未着手。
 機械可読な正本は [f0-inputs.json](contracts/f0-inputs.json)。文書と矛盾した場合は実行せず整合させる。
 
+2026-10-21の提供範囲改訂: 標準完成は [1 VM](F4_STANDARD_ONE_VM.md)、2 VMは追加検証。以下の固定入力・資源・権限・期限の契約は変更しない。
+
 ## 1. 最初の実Veil試験
 
 Keeperの `tools/m0_exec_check.py` と `experiments/apparmor/m0-exec-check.profile` を選定する。

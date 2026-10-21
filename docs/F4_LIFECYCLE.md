@@ -71,7 +71,8 @@ controllerは中断／watchdogを従来どおり環境エラー3として記録�
 
 ## F4の残件
 
-この入口は1 VMに範囲を限定する。Linux F2の6 CPU不足、両ホストのF2・F3統合新規受け入れ、
-2 VM側のcheckpoint中断／timeout、本人操作は未完了TODOとして保持する。
-購入や別マシンの追加をこの作業の前提にしない。1 VM成功をF4全体の完了へ読み替えない。
+2026-10-21改訂後は、本入口を[標準1 VM](F4_STANDARD_ONE_VM.md)のcheckpoint受け入れに用いる。
+Linux x86_64/KVMの本人4 runは成功確認済み。Mac ARM64/TCGも[checkpoint 4 run成功](validation/f4-standard-one-vm-mac-20261021.json)。Linuxの本人操作成功を保持し、Mac本人再実行は任意とする。
+Linux F2の6 CPU不足、両ホストのF2・F3統合新規受け入れ、2 VM側checkpointは追加検証TODOとして保持する。
+購入や別マシン追加を標準完成の前提にしない。1 VM成功を追加検証の成功へ読み替えない。
 物理環境・第三者試用・署名タグ・公開は対象外。
