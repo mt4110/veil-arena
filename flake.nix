@@ -52,7 +52,13 @@
     in {
       lib = {
         inherit versions;
-        mkK3sGuest = { hostUid, f2Role ? null }: import ./environments/vm/k3s.nix { inherit nixpkgs hostUid f2Role; };
+        mkK3sGuest = { hostUid, f2Role ? null, keeperSource ? null }: import ./environments/vm/k3s.nix { inherit nixpkgs hostUid f2Role keeperSource; };
+        mkKeeperRunner = { hostSystem, hostUid }:
+          let pkgs = pkgsFor hostSystem; in assert pkgs.qemu.version == "11.1.1"; pkgs.writeShellApplication {
+            name = "arena-keeper";
+            runtimeInputs = [ pkgs.python314 pkgs.coreutils pkgs.qemu (vmControllerFor pkgs) ];
+            text = ''exec python3 ${./scripts}/k3s_f3_host.py ${toString hostUid} "$@"'';
+          };
         mkK3sF2Runner = { hostSystem, hostUid }:
           let pkgs = pkgsFor hostSystem; in assert pkgs.qemu.version == "11.1.1"; pkgs.writeShellApplication {
             name = "arena-k3s-f2";

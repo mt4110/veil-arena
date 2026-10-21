@@ -1,0 +1,291 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "milestone": "F3",
+  "base_commit": "f6c4ca1f395f73e709e7541c3a47fcad89092de3",
+  "source_state_at_acceptance": "uncommitted; no push or PR",
+  "source_sha256": {
+    "environments/vm/k3s.nix": "cc13d56ffe54cf71ba22f2b789be80756a17282eeb50229e7f231439db796a73",
+    "flake.nix": "21c2c418d7a262fa916aac99b9ab7f13da3a9292dba3b34e086fb62e55d3bda8",
+    "scripts/k3s_bundle.py": "616442e216fb807199f4491aa7c9b344a6f2be98adb02ecadf8e5e5dfb7dd727",
+    "scripts/k3s_host.py": "68858529f1851d08ce83849f6e61245e67b16b8ac03ae87e702b9dec952ca693",
+    "scripts/k3s_f3_guest.py": "b71e029be87f27ebcf1b1dab1d1723c74cde2b059a12eb797b8d8bda73b5607f",
+    "scripts/k3s_f3_host.py": "862180357427907403112149723c6c3ff0485e48156242a3a24837cf285dfb1a",
+    "scripts/keeper_inputs.py": "5d88fe741ce20ca1c8d4382625d8aa4e008fb6f6d5562c5e7f1f28956b2a65f7",
+    "scripts/keeper_trial.py": "66cbd3bf0622e9cb575239221adb5c41bd6678a691ba719f36a5c6e1bde99ab7",
+    "scripts/prepare-keeper.sh": "2f738a30bc53cf173f10f646123a8a8227c32e5ff8d628ccdb5bbd9a06f4e770",
+    "tests/test_keeper_f3.py": "3a430a166566e508ebe158f6b591fbf7bb71fed3152bb42bb5f94e3bef5e67ba"
+  },
+  "result": "passed",
+  "exit_code": 0,
+  "host": "aarch64-darwin",
+  "accelerator": "tcg",
+  "keeper_owner_head_observed": "ffaec36644941e8700c4ffe0a896f999a8c0cf1c",
+  "keeper_checkout_edited": false,
+  "evidence_root": "/Volumes/Elecom-1TB/Linux/veil-arena/keeper-f3-20261021",
+  "accepted_image": "/Volumes/Elecom-1TB/Linux/veil-arena/keeper-f3-20261021/image-final",
+  "accepted_runs": "/Volumes/Elecom-1TB/Linux/veil-arena/keeper-f3-20261021/acceptance-final",
+  "runner": "/nix/store/kz3m113p718lqmqcgf8qsjvph643f33a-arena-keeper",
+  "builder_disk_gib": 256,
+  "builder_final_state": "Stopped",
+  "cache_and_prior_evidence_preserved": true,
+  "limits_unchanged": true,
+  "owned_pids_absent_after_run": true,
+  "runs": [
+    {
+      "name": "fresh-1",
+      "boot_id": "7a678351-3639-4a27-a32a-a5bd3d378efa",
+      "status": "passed",
+      "node_ready": true,
+      "input_sha256": {
+        "experiments/apparmor/m0-exec-check.profile": "e56379b741145cf8caa07f2e2bff9e47a8dbd00f2c781e95af1af53e006d3cc6",
+        "tools/m0_exec_check.py": "108372f8dbe35f354c2fae7dc8708353a02324e186ae611b59afc639ef760eed"
+      },
+      "parser_actions": [
+        {
+          "action": "--skip-kernel-load",
+          "returncode": 0,
+          "stderr": ""
+        },
+        {
+          "action": "--add",
+          "returncode": 0,
+          "stderr": ""
+        },
+        {
+          "action": "--remove",
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "inventory_before": [],
+      "inventory_after_syntax": [],
+      "inventory_loaded": [
+        "veil_keeper_m0_exec_check_20261016 (enforce)"
+      ],
+      "inventory_after": [],
+      "inventory_restored": true,
+      "owned_profile_removed": true,
+      "observations": {
+        "baseline_before": {
+          "checker_exit": 0,
+          "label": "unconfined",
+          "true": {
+            "command": "/usr/bin/true",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 0
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        },
+        "negative_control": {
+          "checker_exit": 1,
+          "label": "unconfined",
+          "true": {
+            "command": "/usr/bin/true",
+            "kind": "exited",
+            "passed": false,
+            "returncode": 0
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        },
+        "confined": {
+          "checker_exit": 0,
+          "label": "veil_keeper_m0_exec_check_20261016 (enforce)",
+          "true": {
+            "command": "/usr/bin/true",
+            "errno": 13,
+            "kind": "exec_error",
+            "passed": true
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        },
+        "baseline_after": {
+          "checker_exit": 0,
+          "label": "unconfined",
+          "true": {
+            "command": "/usr/bin/true",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 0
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        }
+      },
+      "vm_lifecycle": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 38883,
+        "duration_ms": 70432,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 38886,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      }
+    },
+    {
+      "name": "fresh-2",
+      "boot_id": "3c6a107d-1c10-484b-9962-0f7212aeaf41",
+      "status": "passed",
+      "node_ready": true,
+      "input_sha256": {
+        "experiments/apparmor/m0-exec-check.profile": "e56379b741145cf8caa07f2e2bff9e47a8dbd00f2c781e95af1af53e006d3cc6",
+        "tools/m0_exec_check.py": "108372f8dbe35f354c2fae7dc8708353a02324e186ae611b59afc639ef760eed"
+      },
+      "parser_actions": [
+        {
+          "action": "--skip-kernel-load",
+          "returncode": 0,
+          "stderr": ""
+        },
+        {
+          "action": "--add",
+          "returncode": 0,
+          "stderr": ""
+        },
+        {
+          "action": "--remove",
+          "returncode": 0,
+          "stderr": ""
+        }
+      ],
+      "inventory_before": [],
+      "inventory_after_syntax": [],
+      "inventory_loaded": [
+        "veil_keeper_m0_exec_check_20261016 (enforce)"
+      ],
+      "inventory_after": [],
+      "inventory_restored": true,
+      "owned_profile_removed": true,
+      "observations": {
+        "baseline_before": {
+          "checker_exit": 0,
+          "label": "unconfined",
+          "true": {
+            "command": "/usr/bin/true",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 0
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        },
+        "negative_control": {
+          "checker_exit": 1,
+          "label": "unconfined",
+          "true": {
+            "command": "/usr/bin/true",
+            "kind": "exited",
+            "passed": false,
+            "returncode": 0
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        },
+        "confined": {
+          "checker_exit": 0,
+          "label": "veil_keeper_m0_exec_check_20261016 (enforce)",
+          "true": {
+            "command": "/usr/bin/true",
+            "errno": 13,
+            "kind": "exec_error",
+            "passed": true
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        },
+        "baseline_after": {
+          "checker_exit": 0,
+          "label": "unconfined",
+          "true": {
+            "command": "/usr/bin/true",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 0
+          },
+          "false": {
+            "command": "/usr/bin/false",
+            "kind": "exited",
+            "passed": true,
+            "returncode": 1
+          }
+        }
+      },
+      "vm_lifecycle": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 39660,
+        "duration_ms": 70763,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 39663,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      }
+    }
+  ],
+  "regression": {
+    "mac_full_check": "passed",
+    "mac_python_tests": 146,
+    "linux_arm64_python_tests": 146,
+    "f3_unit_tests": 15
+  },
+  "scope": "fixed AppArmor exec smoke and Ready K3s Node; not Keeper service/API/BPF LSM or production protection",
+  "remaining": [
+    "Linux x86_64/KVM runtime acceptance",
+    "F4 checkpoint interruption/deadline and owner use"
+  ]
+}

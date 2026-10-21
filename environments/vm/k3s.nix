@@ -1,5 +1,5 @@
 # Dedicated F1 guest; no host NIC, host store, credentials or Keeper profile.
-{ nixpkgs, hostUid, f2Role ? null }:
+{ nixpkgs, hostUid, f2Role ? null, keeperSource ? null }:
 assert builtins.isInt hostUid && hostUid > 0;
 let
   lib = nixpkgs.lib;
@@ -7,15 +7,24 @@ let
   pkgs = import nixpkgs { inherit system; };
   contract = builtins.fromJSON (builtins.readFile ../../docs/contracts/f0-inputs.json);
   f2 = f2Role != null;
+  f3 = keeperSource != null;
+  keeperSnapshot = pkgs.runCommand "arena-keeper-fixed-inputs" {} ''
+    mkdir -p $out
+    cp ${keeperSource}/m0_exec_check.py $out/m0_exec_check.py
+    cp ${keeperSource}/m0-exec-check.profile $out/m0-exec-check.profile
+  '';
   role = if f2 then f2Role else "server";
   ip = if role == "server" then "10.77.10.1" else "10.77.10.2";
   limits = if f2 then (builtins.removeAttrs contract.f2_limits [ "server" "agent" ]) // contract.f2_limits.${role} else contract.f1_limits;
-  guestScript = if f2 then ../../scripts/k3s_f2_guest.py else ../../scripts/k3s_guest.py;
-  guestModules = pkgs.runCommand "arena-k3s-f2-guest-modules" {} ''
+  guestScript = if f3 then ../../scripts/k3s_f3_guest.py else if f2 then ../../scripts/k3s_f2_guest.py else ../../scripts/k3s_guest.py;
+  guestModules = pkgs.runCommand "arena-k3s-f2-guest-modules" {} (''
     mkdir -p $out
     cp ${../../scripts/k3s_guest.py} $out/k3s_guest.py
     cp ${../../scripts/k3s_f2_guest.py} $out/k3s_f2_guest.py
-  '';
+  '' + lib.optionalString f3 ''
+    cp ${../../scripts/k3s_f3_guest.py} $out/k3s_f3_guest.py
+    cp ${../../scripts/keeper_trial.py} $out/keeper_trial.py
+  '');
   fixtureScript = if f2 then ../../tests/k3s/f2_fixture.py else ../../tests/k3s/fixture.py;
   fixture = pkgs.writeTextDir "bin/arena-k3s-fixture.py" (builtins.readFile fixtureScript);
   fixtureCommand = [ "${pkgs.python314}/bin/python3" "${fixture}/bin/arena-k3s-fixture.py" ];
@@ -65,9 +74,9 @@ let
     destination = "/usr/bin/${name}";
     sha256 = builtins.hashFile "sha256" "${pkgs.coreutils}/bin/${name}";
   });
-  inputs = pkgs.writeText "k3s-inputs.json" (builtins.toJSON {
+  inputs = pkgs.writeText "k3s-inputs.json" (builtins.toJSON ({
     schema_version = 1; inherit limits hostUid system imageName;
-    scenario = if f2 then "k3s-f2" else "k3s-f1";
+    scenario = if f3 then "k3s-f3" else if f2 then "k3s-f2" else "k3s-f1";
     inherit role;
     versions = contract.versions;
     fixture_command = fixtureCommand;
@@ -84,7 +93,10 @@ let
     common_guest_sha256 = builtins.hashString "sha256" (builtins.readFile ../../scripts/k3s_guest.py);
     guest_runner_sha256 = builtins.hashString "sha256" (builtins.readFile guestScript);
     manifest_sha256 = builtins.hashString "sha256" (builtins.readFile manifest);
-  });
+  } // lib.optionalAttrs f3 { keeper = {
+    inherit (contract.keeper) input_sha256 profile_name child_uid child_gid;
+    command_timeout_seconds = contract.keeper.apparmor_lifecycle.command_timeout_seconds;
+  }; }));
   guest = lib.nixosSystem {
     inherit system;
     modules = [ ({ modulesPath, ... }: {
@@ -148,6 +160,7 @@ let
         requires = [ "out.mount" "var.mount" ] ++ lib.optional f2 "control.mount";
         path = [ pkgs.k3s pkgs.systemd pkgs.coreutils pkgs.iptables ];
         preStart = ''
+          ${lib.optionalString f3 "test ! -e /inputs; ln -s ${keeperSnapshot} /inputs"}
           mkdir -p /usr/bin
           test ! -e /usr/bin/true
           test ! -e /usr/bin/false
@@ -159,7 +172,7 @@ let
           ln -s ${pkgs.apparmor-bin-utils}/bin/aa-exec /usr/bin/aa-exec
         '';
         serviceConfig = { Type = "oneshot"; TimeoutStartSec = limits.workflow_seconds; TimeoutStopSec = 5; };
-        script = ''exec ${pkgs.python314}/bin/python3 ${if f2 then "${guestModules}/k3s_f2_guest.py" else toString guestScript} ${inputs} ${manifest}'';
+        script = ''exec ${pkgs.python314}/bin/python3 ${if f3 then "${guestModules}/k3s_f3_guest.py" else if f2 then "${guestModules}/k3s_f2_guest.py" else toString guestScript} ${inputs} ${manifest}'';
         postStop = ''printf '%s\n' "$SERVICE_RESULT" > /out/service-result.txt'';
         unitConfig = { OnSuccess = "arena-poweroff.service"; OnFailure = "arena-poweroff.service"; };
       };
@@ -173,14 +186,18 @@ let
   '' + import (nixpkgs + "/nixos/lib/erofs-store-image.nix") {
     hostPkgs = pkgs; storePaths = "${closure}/store-paths"; label = "nix-store"; destination = "$out/store.img";
   });
-in assert f2Role == null || builtins.elem f2Role [ "server" "agent" ];
+in assert !(f2 && f3);
+   assert !f3 || builtins.all (name:
+     builtins.hashFile "sha256" (keeperSource + "/${builtins.baseNameOf name}") == contract.keeper.input_sha256.${name}
+   ) (builtins.attrNames contract.keeper.input_sha256);
+   assert f2Role == null || builtins.elem f2Role [ "server" "agent" ];
    assert builtins.elem system [ "aarch64-linux" "x86_64-linux" ];
    assert pkgs.k3s.version == contract.versions.k3s;
    assert pkgs.python314.version == contract.versions.python;
    assert pkgs.coreutils.version == contract.versions.coreutils;
    assert pkgs.apparmor-parser.version == contract.versions.apparmor;
    assert cfg.boot.kernelPackages.kernel.version == contract.versions.kernel;
-pkgs.runCommand "arena-k3s-${if f2 then "f2-${role}" else "guest"}-bundle" { nativeBuildInputs = [ pkgs.python314 pkgs.qemu pkgs.zstd ]; } ''
+pkgs.runCommand "arena-k3s-${if f3 then "f3-keeper" else if f2 then "f2-${role}" else "guest"}-bundle" { nativeBuildInputs = [ pkgs.python314 pkgs.qemu pkgs.zstd ]; } ''
   mkdir -p $out
   cp ${image}/store.img $out/store.img
   cp ${cfg.system.build.kernel}/${cfg.system.boot.loader.kernelFile} $out/Image
