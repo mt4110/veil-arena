@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Preparation only. Uses the pinned store and keeps immutable roots per result.
 set -euo pipefail
-if [ "$#" -ne 1 ]; then echo 'usage: bash scripts/prepare-k3s.sh guest|runner|f2-server|f2-agent|f2-runner' >&2; exit 2; fi
+if [ "$#" -ne 1 ]; then echo 'usage: bash scripts/prepare-k3s.sh guest|runner|f2-server|f2-agent|f2-runner|f4-runner' >&2; exit 2; fi
 export ARENA_FLAKE="$(cd "$(dirname "$0")/.." && pwd -P)"
 export ARENA_HOST_UID="$(id -u)"
 export ARENA_HOST_SYSTEM="$(nix eval --impure --raw --expr builtins.currentSystem)"
@@ -15,9 +15,10 @@ case "$1" in
       expression="${expression%\}} f2Role = builtins.getEnv \"ARENA_F2_ROLE\"; }"
     fi
     ;;
-  runner|f2-runner)
+  runner|f2-runner|f4-runner)
     expression='let f = builtins.getFlake (builtins.unsafeDiscardStringContext (toString (builtins.path { path = builtins.toPath (builtins.getEnv "ARENA_FLAKE"); filter = path: type: !(builtins.elem (builtins.baseNameOf path) [ ".git" "artifacts" "target" "__pycache__" ]); }))); in f.lib.mkK3sRunner { hostSystem = builtins.getEnv "ARENA_HOST_SYSTEM"; hostUid = builtins.fromJSON (builtins.getEnv "ARENA_HOST_UID"); }'
     if [ "$1" = f2-runner ]; then expression="${expression/mkK3sRunner/mkK3sF2Runner}"; fi
+    if [ "$1" = f4-runner ]; then expression="${expression/mkK3sRunner/mkF4Runner}"; fi
     ;;
   *) echo 'use guest or runner' >&2; exit 2;;
 esac

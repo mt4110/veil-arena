@@ -3,7 +3,6 @@
 import json
 import os
 from pathlib import Path
-import platform
 import re
 import secrets
 import shutil
@@ -15,6 +14,7 @@ import uuid
 
 from k3s_bundle import bounded, check, sha
 from k3s_host import available_memory_mib, recovered
+from k3s_execution import execution, route
 from k3s_f2_guest import STAGES, placed, policy
 
 ROLES = {"server": (4, 16384), "agent": (2, 4096)}
@@ -141,11 +141,14 @@ def verify_cluster(root, inputs):
 
 def qemu_args(arch, bundle, out, control, socket, role, inputs):
     cpu, memory = ROLES[role]
+    selected = route()
+    if selected["arch"] != arch:
+        raise ValueError("QEMU architecture differs from host route")
     top = bounded(bundle / "toplevel").decode().strip()
     if not re.fullmatch(r"/nix/store/[0-9a-z]+-nixos-system-[A-Za-z0-9._+-]+", top):
         raise ValueError("invalid trusted toplevel")
-    return [f"qemu-system-{arch}", "-machine", "virt" if arch=="aarch64" else "q35", "-cpu","max",
-            "-accel","tcg","-m",str(memory),"-smp",str(cpu),"-nographic","-monitor","none","-no-reboot",
+    return [f"qemu-system-{arch}", "-machine", "virt" if arch=="aarch64" else "q35", "-cpu",selected["cpu"],
+            "-accel",selected["accelerator"],"-m",str(memory),"-smp",str(cpu),"-nographic","-monitor","none","-no-reboot",
             "-nodefaults", "-serial", "stdio",
             "-netdev",f"stream,id=lan,server={'on' if role=='server' else 'off'},addr.type=unix,addr.path={socket}",
             "-device",f"virtio-net-pci,netdev=lan,mac=52:54:00:77:10:{'01' if role=='server' else '02'}",
@@ -184,7 +187,8 @@ def workflow(uid, bundles, mode, root):
         inputs[role],seals[role] = check(path)
         if inputs[role].get("role")!=role or inputs[role].get("scenario")!="k3s-f2" or inputs[role]["hostUid"]!=uid:
             raise ValueError("F2 bundle role/scenario/UID differs")
-    arch = "aarch64" if platform.machine() in {"arm64","aarch64"} else "x86_64"
+    selected = execution()
+    arch = selected["arch"]
     if any(i["system"] != arch+"-linux" for i in inputs.values()):
         raise ValueError("guest architecture differs")
     if inputs["server"]["fixture_config_digest"]!=inputs["agent"]["fixture_config_digest"]:
@@ -236,7 +240,7 @@ def workflow(uid, bundles, mode, root):
                     subprocess.run(["qemu-img","create","-f","qcow2","-F","qcow2","-b",str((bundle/"run-base.qcow2").resolve()),str(out/"run.qcow2")],check=True,timeout=10,stdout=subprocess.DEVNULL)
                     args=qemu_args(arch,bundle,out,control,socket,role,inputs[role])
                     (out/"qemu-argv.json").write_text(json.dumps(args,indent=2)+'\n')
-                    (out/"vm-manifest.json").write_text(json.dumps({"scenario":"k3s-f2","role":role,"owner_uid":uid,"owner_pid":os.getpid(),"inputs":inputs[role],"boot_inputs":seals[role]["files"],"bundle_sha256":sha(bundle/"bundle.json")},indent=2)+'\n')
+                    (out/"vm-manifest.json").write_text(json.dumps({"scenario":"k3s-f2","role":role,"accelerator":selected["accelerator"],"owner_uid":uid,"owner_pid":os.getpid(),"inputs":inputs[role],"boot_inputs":seals[role]["files"],"bundle_sha256":sha(bundle/"bundle.json")},indent=2)+'\n')
                     check_abort("node_startup")
                     children[role]=subprocess.Popen(["timeout","--signal=TERM","--kill-after=5","670","veil-arena-vm-controller",str(out),*args],stdin=subprocess.DEVNULL,start_new_session=True)
                     if role=="server":

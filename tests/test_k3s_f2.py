@@ -103,7 +103,8 @@ class F2(unittest.TestCase):
             self.assertEqual(contract['f2_limits'][role],{'vcpus':cpu,'memory_mib':ram,'writable_run_disk_virtual_gib':32})
             (self.root/'toplevel').write_text('/nix/store/'+'a'*32+'-nixos-system-fixture')
             (self.root/'kernel-params').write_text('root=fstab')
-            args=host.qemu_args('aarch64',self.root,self.root,self.root,self.root/'lan.sock',role,{})
+            with patch.object(host, 'route', return_value={'arch':'aarch64','accelerator':'tcg','cpu':'max'}):
+                args=host.qemu_args('aarch64',self.root,self.root,self.root,self.root/'lan.sock',role,{})
             self.assertIn('addr.type=unix',args[args.index('-netdev')+1]);self.assertNotIn('user',args)
             self.assertEqual(args[args.index('-smp')+1],str(cpu));self.assertEqual(args[args.index('-m')+1],str(ram))
         for k in ['node_ready_seconds','pod_ready_seconds','io_probe_seconds','workflow_seconds','host_watchdog_seconds']:
@@ -131,7 +132,7 @@ class F2(unittest.TestCase):
         inputs={role:{'role':role,'scenario':'k3s-f2','hostUid':501,'system':'aarch64-linux','fixture_config_digest':'fixed'} for role in host.ROLES}
         with patch.object(host,'check',side_effect=lambda path:(inputs[path.name],{})), \
                 patch.object(host.os,'getuid',return_value=501),patch.object(host.os,'cpu_count',return_value=6), \
-                patch.object(host.platform,'machine',return_value='arm64'), \
+                patch.object(host, "execution", return_value={"arch": "aarch64", "accelerator": "tcg", "cpu": "max"}), \
                 patch.object(host,'available_memory_mib',return_value=30000), \
                 patch.object(host.shutil,'disk_usage',return_value=Mock(free=200*1024**3)), \
                 patch.object(host.subprocess,'Popen') as spawn:
@@ -154,7 +155,7 @@ class F2(unittest.TestCase):
             return child
         with patch.object(host,'check',side_effect=lambda path:(inputs[path.name],{'files':{}})), \
                 patch.object(host.os,'getuid',return_value=501),patch.object(host.os,'cpu_count',return_value=6), \
-                patch.object(host.platform,'machine',return_value='arm64'), \
+                patch.object(host, "execution", return_value={"arch": "aarch64", "accelerator": "tcg", "cpu": "max"}), \
                 patch.object(host,'available_memory_mib',return_value=30000), \
                 patch.object(host.shutil,'disk_usage',return_value=Mock(free=200*1024**3)), \
                 patch.object(host,'qemu_args',return_value=['owned-qemu']),patch.object(host,'sha',return_value='fixed'), \

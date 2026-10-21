@@ -199,7 +199,7 @@ class RunSummary(unittest.TestCase):
                 return child
             with patch.object(host, "check", side_effect=lambda p: (inputs[p.name], {"files": {}})), \
                     patch.object(host.os, "getuid", return_value=501), patch.object(host.os, "cpu_count", return_value=6), \
-                    patch.object(host.platform, "machine", return_value="arm64"), \
+                    patch.object(host, "execution", return_value={"arch": "aarch64", "accelerator": "tcg", "cpu": "max"}), \
                     patch.object(host, "available_memory_mib", return_value=30000), \
                     patch.object(host.shutil, "disk_usage", return_value=Mock(free=200 * 1024**3)), \
                     patch.object(host, "qemu_args", return_value=["owned-qemu"]), patch.object(host, "sha", return_value="fixed"), \

@@ -40,7 +40,7 @@ Linux builderはゲストと同じCPU系統、実行ホストと同じ非root UI
 # Linux ARM64またはLinux x86_64 builder側。既存Nix storeを再利用する。
 bash scripts/prepare-k3s.sh guest
 
-# 実行ホスト側（Mac ARM64または同CPUのLinux）。既存Nix storeを再利用する。
+# 実行ホスト側（Mac ARM64／TCGまたはLinux x86_64／KVM）。既存Nix storeを再利用する。
 bash scripts/prepare-k3s.sh runner
 ```
 
@@ -99,3 +99,5 @@ Linux x86_64/KVMや2 node試験の成功を、Macの1 VM結果から推測しな
 runnerは`/nix/store/i8m70yhmd88qy63yn947rrrv5kmss615-arena-k3s`。同じMac UID用の不変入力であり、
 別ホストではそのホストUID・CPUに合わせてprepareする。
 準備用ビルダーの今回の容量は100 GiB。試験用run diskの32 GiBとは別で、既存cacheを保持して拡張した。
+
+実行時のaccelerator選択とKVM事前確認は[F4手順](F4_ACCEPTANCE.md)に従う。Linux ARM64はguest準備用で、今回の実行対応ホストの対象外。
