@@ -28,7 +28,9 @@ TCP追加後のARM64受け入れは [記録](TCP_SYN_VALIDATION.md) を参照す
 F1は、F0の互換入口を含め、Mac ARM64／TCGの新規2 VMで[受け入れ完了](K3S_F1_VALIDATION.md)。
 F2もMac ARM64／TCGの新規2クラスタで[受け入れ完了](K3S_F2_VALIDATION.md)。
 F3の固定Keeper exec smokeも、Mac ARM64／TCGの新規2 VMで[受け入れ完了](KEEPER_F3_VALIDATION.md)。
-両対応ホスト・指定checkpointの中断/期限超過・本人操作を含むF4は未実施。
+F4のF2・F3統合入口を[専用手順](F4_ACCEPTANCE.md)へ追加。
+Linux x86_64／KVMのF3は新規2 VMで[成功](F4_ENTRY_VALIDATION.md)。統合新規受け入れはホスト資源不足で残件。
+両対応ホスト・指定checkpointの中断/期限超過・本人操作を含むF4全体は未完了。
 F0は [検証契約](F0_CONTRACT.md) と [入力固定表](contracts/f0-inputs.json) を作成・静的確認した状態。
 F0時点は定義評価まで。F1でARM64 packageのbuild・archive取得・実VM起動を確認した。
 
@@ -79,3 +81,21 @@ F1〜F3は完了。F3は[専用入口](F3_KEEPER.md)で固定Keeper checker/prof
 F1の専用入口と運用契約は [F1_K3S.md](F1_K3S.md)。実装・実行結果の判定はF0と分けて記録する。
 
 F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVMの実クラスタ受け入れはF4に残る。
+
+## F4の実行可能な範囲と資源不足TODO（2026-10-21）
+
+追加機器の購入・T340の起動を前提にせず、既存Linux／KVMの1 VMから進める。
+[1 VM lifecycle手順](F4_LIFECYCLE.md)で、Node Ready後・Keeper開始前のcheckpointを使う。
+中断→新規正常VM→watchdog期限検出→新規正常VMを一括実行し、部分証拠と所有QEMU回収を判定する。
+この1 VM単位はLinux x86_64／KVMで[受け入れ成功](F4_LIFECYCLE_VALIDATION.md)。
+1 VMの結果を2 VM側や両ホストの最終受け入れへ一般化しない。
+
+| TODO | 状態・着手条件 |
+| --- | --- |
+| Linux x86_64の新規F2・F4統合受け入れ | 資源不足で未完了。pi-nodeは4 CPU、既存F2条件は6 CPU以上。条件を緩めず、満たす実行経路が得られた時点で再開 |
+| Macの新規F2・F3統合受け入れ | 前回は利用可能/inactive RAM約22.1 GiBで24 GiB条件に届かず事前停止。余力がある時点で再開。他プロセス停止や条件緩和はしない |
+| 2 VM側・残る対応ホストのcheckpoint受け入れ | 未完了。1 VMの限定検証とは別に記録 |
+| 本人操作確認 | 未実施。実行経路・受け入れ証拠を示した後に手順を提示 |
+
+既存キャッシュ・証拠・diskは保持する。新規ハードウェアがないことを理由に未検証を合格扱いにせず、
+条件が揃うまで上記TODOを残す。対象外の物理環境・第三者試用・署名タグ・公開は再開しない。

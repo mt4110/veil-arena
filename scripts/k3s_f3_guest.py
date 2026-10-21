@@ -10,6 +10,7 @@ import time
 
 from k3s_guest import Failure, ready, request_timeout, executable_entry
 from keeper_trial import command, trial
+from k3s_checkpoint import configuration, stop_at_checkpoint, CHECKPOINT
 
 
 def run(inputs, out=Path('/out')):
@@ -54,6 +55,12 @@ def run(inputs, out=Path('/out')):
             time.sleep(min(.25,max(0,end-time.monotonic())))
         else:raise Failure(stage,'Node not Ready by original 300s deadline')
         result['checks'].append({'stage':stage,'status':'passed','count':1});save()
+        injection = configuration(out)
+        if injection is not None:
+            stage = CHECKPOINT
+            result.update(stage=stage, lifecycle_fixture=injection)
+            save()
+            stop_at_checkpoint(out, result)
         stage='keeper_exec'
         keeper=trial(inputs,out,deadline)
         if keeper['status']!='passed':

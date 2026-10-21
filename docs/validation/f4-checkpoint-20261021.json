@@ -1,0 +1,482 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "base_commit": "cb274f4",
+  "source_state": "uncommitted; no push or PR",
+  "scope": "F4 single-VM checkpoint lifecycle on Linux x86_64/KVM; full F4 incomplete",
+  "source_sha256": {
+    "scripts/k3s_checkpoint.py": "bb2ff0c1bc908a7b6c12353b9c9d12f403b542384e97e60e8d3df8c269895e80",
+    "scripts/k3s_host.py": "571f11565c90974b2e79af65b1a87c1e600f5234a539f7cb9d7ced89cda16583",
+    "scripts/k3s_f3_guest.py": "be13718df7a39635a69294e6c8a4df5a9cb3c5d7cbd8e3d680c6245d69ffe603",
+    "scripts/k3s_f3_host.py": "992da2fda3d11ea2edab1396b147f550bec3e4a693018a72d93fa2ddeaf2886e",
+    "environments/vm/k3s.nix": "efc67d07111a10f7afcf95afb82cf072fb59b10864ce338e01a7d40be1651f11",
+    "tests/test_k3s_checkpoint.py": "27529a54fbcb6f3297966fe2fc634e2f422f034c613f59da13750850f8a86ff4"
+  },
+  "guest_bundle": "/nix/store/0j1hw52wawx76q88axgab6lz69sqa7hx-arena-k3s-f3-keeper-bundle",
+  "runner": "/nix/store/5mafjb93l4a2lq5zfdp97x47mcd8zbd4-arena-keeper",
+  "host": "pi-node",
+  "runtime_uid": 1000,
+  "network": "none",
+  "cpu_count": 4,
+  "runtime_result": {
+    "summary": {
+      "schema_version": 1,
+      "scenario": "k3s-f3",
+      "mode": "lifecycle",
+      "status": "passed",
+      "runs": [
+        {
+          "output": "/out/lifecycle/fresh-1",
+          "status": "passed",
+          "fixture": "cancel",
+          "controller_exit": 3,
+          "boot_id": "80cf04a1-281a-4bf3-9a01-f34aca8cebfe",
+          "exit_code": 0,
+          "fixture_verified": true,
+          "observed_exit_code": 130
+        },
+        {
+          "output": "/out/lifecycle/fresh-2",
+          "status": "passed",
+          "fixture": null,
+          "controller_exit": 0,
+          "boot_id": "5117d8d3-c0df-4445-96fc-35a839416fd1",
+          "exit_code": 0
+        },
+        {
+          "output": "/out/lifecycle/fresh-3",
+          "status": "passed",
+          "fixture": "timeout",
+          "controller_exit": 3,
+          "boot_id": "dda168e5-b395-4c13-aacb-8ef0286bc5b9",
+          "exit_code": 0,
+          "fixture_verified": true,
+          "observed_exit_code": 3
+        },
+        {
+          "output": "/out/lifecycle/fresh-4",
+          "status": "passed",
+          "fixture": null,
+          "controller_exit": 0,
+          "boot_id": "638cdb10-0ba0-4d75-bd41-e6f45733225a",
+          "exit_code": 0
+        }
+      ],
+      "exit_code": 0
+    },
+    "runs": [
+      {
+        "name": "fresh-1",
+        "boot_id": "80cf04a1-281a-4bf3-9a01-f34aca8cebfe",
+        "fixture": "cancel",
+        "controller_exit": 3,
+        "guest_status": "environment_error",
+        "guest_exit_code": 3,
+        "accelerator": "kvm",
+        "bundle_sha256": "df2aa2ccf51a04d5ade68eb5f4a9661701b9a53bd01c30fbd7e0dc08e1284a47",
+        "boot_inputs": {
+          "store.img": {
+            "sha256": "aec49a16710d5ea25136b447592918b78225f71db5749b6b02ec4cdaa2f827e6",
+            "bytes": 1838141440
+          },
+          "Image": {
+            "sha256": "d9307ba329eaf7ee1df08878508527f7989bef0380311eb1ed307c046254c4d5",
+            "bytes": 13095424
+          },
+          "initrd": {
+            "sha256": "a1a6af6c26cac469e440027312c55fbdc60d8f7e0f63775ad52fd06c27b564cd",
+            "bytes": 30139499
+          },
+          "kernel-params": {
+            "sha256": "18d86214f960717fa5a06a88a57fc65d0ca116a55cff4f7fc11e2083404304d3",
+            "bytes": 77
+          },
+          "inputs.json": {
+            "sha256": "f5eb5ddf47483991a399723b75b44a76d4c9c6d587e7c0286b6f88045babb248",
+            "bytes": 2672
+          },
+          "fixtures.json": {
+            "sha256": "2e743762f0a52bdf2feeda8be6a60b1a9d79f4ed7becffe40ba23b972e03ccb2",
+            "bytes": 1614
+          },
+          "toplevel": {
+            "sha256": "9ee9edab2e8d86d785a456067843c0d4057d7a27de9a1c34119f37af2caa35c3",
+            "bytes": 97
+          },
+          "run-base.qcow2": {
+            "sha256": "d540e67a60a1b940ac9dda21e516b9570e8db916d2fb1a12766d3d67453cc573",
+            "bytes": 197120
+          }
+        },
+        "stop": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 11,
+          "duration_ms": 29186,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 3,
+          "qemu_exit_code": 0,
+          "qemu_pid": 12,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "cancelled",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "environment_error",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        },
+        "checkpoint": "f3-node-ready-before-keeper",
+        "partial_checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          }
+        ],
+        "keeper_not_started": true,
+        "profile_count": 0,
+        "runner_state": "T",
+        "fixture_verified": true
+      },
+      {
+        "name": "fresh-2",
+        "boot_id": "5117d8d3-c0df-4445-96fc-35a839416fd1",
+        "fixture": null,
+        "controller_exit": 0,
+        "guest_status": "passed",
+        "guest_exit_code": 0,
+        "accelerator": "kvm",
+        "bundle_sha256": "df2aa2ccf51a04d5ade68eb5f4a9661701b9a53bd01c30fbd7e0dc08e1284a47",
+        "boot_inputs": {
+          "store.img": {
+            "sha256": "aec49a16710d5ea25136b447592918b78225f71db5749b6b02ec4cdaa2f827e6",
+            "bytes": 1838141440
+          },
+          "Image": {
+            "sha256": "d9307ba329eaf7ee1df08878508527f7989bef0380311eb1ed307c046254c4d5",
+            "bytes": 13095424
+          },
+          "initrd": {
+            "sha256": "a1a6af6c26cac469e440027312c55fbdc60d8f7e0f63775ad52fd06c27b564cd",
+            "bytes": 30139499
+          },
+          "kernel-params": {
+            "sha256": "18d86214f960717fa5a06a88a57fc65d0ca116a55cff4f7fc11e2083404304d3",
+            "bytes": 77
+          },
+          "inputs.json": {
+            "sha256": "f5eb5ddf47483991a399723b75b44a76d4c9c6d587e7c0286b6f88045babb248",
+            "bytes": 2672
+          },
+          "fixtures.json": {
+            "sha256": "2e743762f0a52bdf2feeda8be6a60b1a9d79f4ed7becffe40ba23b972e03ccb2",
+            "bytes": 1614
+          },
+          "toplevel": {
+            "sha256": "9ee9edab2e8d86d785a456067843c0d4057d7a27de9a1c34119f37af2caa35c3",
+            "bytes": 97
+          },
+          "run-base.qcow2": {
+            "sha256": "d540e67a60a1b940ac9dda21e516b9570e8db916d2fb1a12766d3d67453cc573",
+            "bytes": 197120
+          }
+        },
+        "stop": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 63,
+          "duration_ms": 40567,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 64,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        },
+        "keeper": {
+          "status": "passed",
+          "exit_code": 0,
+          "inventory_restored": true,
+          "owned_profile_removed": true
+        }
+      },
+      {
+        "name": "fresh-3",
+        "boot_id": "dda168e5-b395-4c13-aacb-8ef0286bc5b9",
+        "fixture": "timeout",
+        "controller_exit": 3,
+        "guest_status": "environment_error",
+        "guest_exit_code": 3,
+        "accelerator": "kvm",
+        "bundle_sha256": "df2aa2ccf51a04d5ade68eb5f4a9661701b9a53bd01c30fbd7e0dc08e1284a47",
+        "boot_inputs": {
+          "store.img": {
+            "sha256": "aec49a16710d5ea25136b447592918b78225f71db5749b6b02ec4cdaa2f827e6",
+            "bytes": 1838141440
+          },
+          "Image": {
+            "sha256": "d9307ba329eaf7ee1df08878508527f7989bef0380311eb1ed307c046254c4d5",
+            "bytes": 13095424
+          },
+          "initrd": {
+            "sha256": "a1a6af6c26cac469e440027312c55fbdc60d8f7e0f63775ad52fd06c27b564cd",
+            "bytes": 30139499
+          },
+          "kernel-params": {
+            "sha256": "18d86214f960717fa5a06a88a57fc65d0ca116a55cff4f7fc11e2083404304d3",
+            "bytes": 77
+          },
+          "inputs.json": {
+            "sha256": "f5eb5ddf47483991a399723b75b44a76d4c9c6d587e7c0286b6f88045babb248",
+            "bytes": 2672
+          },
+          "fixtures.json": {
+            "sha256": "2e743762f0a52bdf2feeda8be6a60b1a9d79f4ed7becffe40ba23b972e03ccb2",
+            "bytes": 1614
+          },
+          "toplevel": {
+            "sha256": "9ee9edab2e8d86d785a456067843c0d4057d7a27de9a1c34119f37af2caa35c3",
+            "bytes": 97
+          },
+          "run-base.qcow2": {
+            "sha256": "d540e67a60a1b940ac9dda21e516b9570e8db916d2fb1a12766d3d67453cc573",
+            "bytes": 197120
+          }
+        },
+        "stop": {
+          "checkpoint_elapsed_ms": 2971,
+          "checkpoint_seen": true,
+          "controller_pid": 95,
+          "duration_ms": 25117,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 3,
+          "qemu_exit_code": 0,
+          "qemu_pid": 96,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "watchdog",
+          "schema_version": 2,
+          "startup_timeout_ms": 120000,
+          "status": "environment_error",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": 2000,
+          "watchdog_fixture": true
+        },
+        "checkpoint": "f3-node-ready-before-keeper",
+        "partial_checks": [
+          {
+            "stage": "node_ready",
+            "status": "passed",
+            "count": 1
+          }
+        ],
+        "keeper_not_started": true,
+        "profile_count": 0,
+        "runner_state": "T",
+        "fixture_verified": true
+      },
+      {
+        "name": "fresh-4",
+        "boot_id": "638cdb10-0ba0-4d75-bd41-e6f45733225a",
+        "fixture": null,
+        "controller_exit": 0,
+        "guest_status": "passed",
+        "guest_exit_code": 0,
+        "accelerator": "kvm",
+        "bundle_sha256": "df2aa2ccf51a04d5ade68eb5f4a9661701b9a53bd01c30fbd7e0dc08e1284a47",
+        "boot_inputs": {
+          "store.img": {
+            "sha256": "aec49a16710d5ea25136b447592918b78225f71db5749b6b02ec4cdaa2f827e6",
+            "bytes": 1838141440
+          },
+          "Image": {
+            "sha256": "d9307ba329eaf7ee1df08878508527f7989bef0380311eb1ed307c046254c4d5",
+            "bytes": 13095424
+          },
+          "initrd": {
+            "sha256": "a1a6af6c26cac469e440027312c55fbdc60d8f7e0f63775ad52fd06c27b564cd",
+            "bytes": 30139499
+          },
+          "kernel-params": {
+            "sha256": "18d86214f960717fa5a06a88a57fc65d0ca116a55cff4f7fc11e2083404304d3",
+            "bytes": 77
+          },
+          "inputs.json": {
+            "sha256": "f5eb5ddf47483991a399723b75b44a76d4c9c6d587e7c0286b6f88045babb248",
+            "bytes": 2672
+          },
+          "fixtures.json": {
+            "sha256": "2e743762f0a52bdf2feeda8be6a60b1a9d79f4ed7becffe40ba23b972e03ccb2",
+            "bytes": 1614
+          },
+          "toplevel": {
+            "sha256": "9ee9edab2e8d86d785a456067843c0d4057d7a27de9a1c34119f37af2caa35c3",
+            "bytes": 97
+          },
+          "run-base.qcow2": {
+            "sha256": "d540e67a60a1b940ac9dda21e516b9570e8db916d2fb1a12766d3d67453cc573",
+            "bytes": 197120
+          }
+        },
+        "stop": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 134,
+          "duration_ms": 23502,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 135,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        },
+        "keeper": {
+          "status": "passed",
+          "exit_code": 0,
+          "inventory_restored": true,
+          "owned_profile_removed": true
+        }
+      }
+    ],
+    "evidence_root": "/home/maakie/veil-arena-validation/f4-checkpoint-20261021",
+    "bundle_inputs": {
+      "airgap_sha256": "9024613e2d468c51ba0e5ba21898604c41339354449fb3338cc6a7931189eb6a",
+      "apparmor_parser": "/nix/store/j6pryy0v19xhl0prv0kwsqilzf1l23zi-apparmor-parser-5.0.2/bin/apparmor_parser",
+      "common_guest_sha256": "193467f2a6b7549f17ccfc2d3a09b46f0e7e1e87c4d6db53452d0dd719074dfa",
+      "compat_aa_exec": "/nix/store/lj6yhwrpa9pvhymy8r27wyxdi9h7cv8d-apparmor-bin-utils-5.0.2/bin/aa-exec",
+      "compat_elf": {
+        "false": {
+          "destination": "/usr/bin/false",
+          "sha256": "06c69c98d4e2110863b2ce7fcfa15c3ca4f9e9f28a1bf4b137f610d28ba3fefb",
+          "source": "/nix/store/2gfxiwls9hbgwdwcy43mprchwsq36mg6-coreutils-9.11/bin/false"
+        },
+        "true": {
+          "destination": "/usr/bin/true",
+          "sha256": "06c69c98d4e2110863b2ce7fcfa15c3ca4f9e9f28a1bf4b137f610d28ba3fefb",
+          "source": "/nix/store/2gfxiwls9hbgwdwcy43mprchwsq36mg6-coreutils-9.11/bin/true"
+        }
+      },
+      "compat_python": "/nix/store/lb41b0anx1f98y9y5s9mdv97gjgsq740-python3-3.14.7/bin/python3",
+      "fixture_command": [
+        "/nix/store/lb41b0anx1f98y9y5s9mdv97gjgsq740-python3-3.14.7/bin/python3",
+        "/nix/store/rpzmflfr80wyk87j8z7fnb82qw96bjhf-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+      ],
+      "fixture_config_digest": "sha256:60f02bffdaba275bb55126f588d1f4c6f7abe80d14937eae0b5a146b667e96a8",
+      "fixture_script_sha256": "f00f14b3e67877feea1aaa05f6f27ec2f4a218d51858f3e334fa91d857a94c23",
+      "guest_runner_sha256": "be13718df7a39635a69294e6c8a4df5a9cb3c5d7cbd8e3d680c6245d69ffe603",
+      "hostUid": 1000,
+      "imageName": "docker.io/veil-arena/fixture:f1-f00f14b3e67877fe",
+      "keeper": {
+        "child_gid": 1000,
+        "child_uid": 501,
+        "command_timeout_seconds": 20,
+        "input_sha256": {
+          "experiments/apparmor/m0-exec-check.profile": "e56379b741145cf8caa07f2e2bff9e47a8dbd00f2c781e95af1af53e006d3cc6",
+          "tools/m0_exec_check.py": "108372f8dbe35f354c2fae7dc8708353a02324e186ae611b59afc639ef760eed"
+        },
+        "profile_name": "veil_keeper_m0_exec_check_20261016"
+      },
+      "keeper_child_gid": 1000,
+      "keeper_child_uid": 501,
+      "lifecycle_checkpoint_sha256": "bb2ff0c1bc908a7b6c12353b9c9d12f403b542384e97e60e8d3df8c269895e80",
+      "limits": {
+        "host_watchdog_seconds": 660,
+        "io_probe_seconds": 5,
+        "meaning": "User-approved resource revision 2026-10-20; original deadlines and expectations retained; no automatic retry/extension",
+        "memory_mib": 16384,
+        "node_ready_seconds": 300,
+        "pod_ready_seconds": 120,
+        "vcpus": 4,
+        "workflow_seconds": 600,
+        "writable_run_disk_virtual_gib": 32
+      },
+      "manifest_sha256": "2e743762f0a52bdf2feeda8be6a60b1a9d79f4ed7becffe40ba23b972e03ccb2",
+      "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+      "role": "server",
+      "scenario": "k3s-f3",
+      "schema_version": 1,
+      "system": "x86_64-linux",
+      "versions": {
+        "apparmor": "5.0.2",
+        "cargo_binary": "1.98.0",
+        "containerd": "2.3.4-k3s1.36",
+        "coreutils": "9.11",
+        "flannel": "v0.28.4",
+        "k3s": "1.36.4+k3s1",
+        "kernel": "6.12.112",
+        "python": "3.14.7",
+        "qemu": "11.1.1",
+        "rust": "1.98.1"
+      }
+    }
+  },
+  "limits_unchanged": true,
+  "workflow_shared_seconds": 600,
+  "fixture_startup_seconds": 120,
+  "fixture_after_checkpoint_ms": 2000,
+  "normal_watchdog_seconds": 660,
+  "guest_resources": {
+    "vcpus": 4,
+    "memory_mib": 16384,
+    "disk_virtual_gib": 32
+  },
+  "cache_and_prior_evidence_preserved": true,
+  "host_permissions_unchanged": true,
+  "checks": {
+    "mac_full_check": "passed; artifacts/f4-checkpoint-mac-check.log",
+    "mac_final_python": {
+      "status": "passed",
+      "tests": 163,
+      "skipped": 1,
+      "log": "artifacts/f4-checkpoint-mac-final-python.log"
+    },
+    "linux_final_python": {
+      "status": "passed",
+      "tests": 163,
+      "skipped": 0,
+      "log": "artifacts/f4-checkpoint-linux-final-tests.log"
+    }
+  },
+  "remaining_todos": [
+    "Resource-blocked Linux F2 and F2/F3 combined fresh acceptance",
+    "Mac combined fresh acceptance when existing resource requirements are met",
+    "Two-VM and remaining host checkpoint acceptance",
+    "Owner procedure execution"
+  ],
+  "excluded": [
+    "physical network environment",
+    "third-party trials",
+    "signed tags",
+    "publication"
+  ],
+  "runtime_container": {
+    "state": "stopped",
+    "exit_code": 0
+  },
+  "builder_final_state": "stopped",
+  "unrelated_mainnet_container": "remained running"
+}

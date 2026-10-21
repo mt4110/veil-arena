@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "milestone": "F4 entry preparation; full F4 incomplete",
+  "base_commit": "cb274f4",
+  "source_state": "uncommitted; no push or PR",
+  "source_sha256": {
+    "flake.nix": "90a64fa9eeaf5ca77d88a3f64fdbe77b4b3c1103a2f5dcf202d444031b4e5b96",
+    "scripts/k3s_execution.py": "089c146749a9d873dbb4235ce05cf1316f33bfd54bf7a6341b50355b373d8c19",
+    "scripts/k3s_f4_host.py": "6805ad484b0932e00d8b4279c785ec7f480f21feea320548767912e7814e282a",
+    "scripts/k3s_host.py": "31bb28dfbfe1bb3009fa238fd965955530a38ad2e5392b961acc466da65fca9d",
+    "scripts/k3s_f2_host.py": "ed19e0a8d1b4d586853dad3043790149efbff952d1cf11ee56d684cc69e39243",
+    "scripts/k3s_f3_host.py": "862180357427907403112149723c6c3ff0485e48156242a3a24837cf285dfb1a",
+    "scripts/prepare-k3s.sh": "dfd7c7d43279e3c4f85b25ab5258c15ebffe1a03c25bab1e64fc8ab041ff292b",
+    "tests/test_k3s_f4.py": "151a6430432e9958d8426a1ef3758f1c0f87f0487d335b2565d7c4eb5160d3e5"
+  },
+  "linux_x86_64_kvm_f3": {
+    "host": "pi-node",
+    "architecture": "x86_64",
+    "cpu_count": 4,
+    "kvm_probe": {
+      "uid": 1000,
+      "groups": [
+        993,
+        1000
+      ],
+      "kvm_api_version": 12,
+      "create_vm": true
+    },
+    "status": "passed",
+    "exit_code": 0,
+    "evidence_root": "/home/maakie/veil-arena-validation/f4-20261021",
+    "runs": [
+      {
+        "boot_id": "7038bc93-4039-44b3-a495-8d5085a37991",
+        "accelerator": "kvm",
+        "controller_exit": 0,
+        "stop": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 11,
+          "duration_ms": 27848,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 12,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        },
+        "keeper": {
+          "status": "passed",
+          "exit_code": 0,
+          "inventory_restored": true,
+          "owned_profile_removed": true
+        },
+        "checks": {
+          "baseline_before": {
+            "checker_exit": 0,
+            "passed": true,
+            "profile": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "negative_control": {
+            "checker_exit": 1,
+            "passed": false,
+            "profile": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": false,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "confined": {
+            "checker_exit": 0,
+            "passed": true,
+            "profile": "veil_keeper_m0_exec_check_20261016 (enforce)",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "errno": 13,
+                "kind": "exec_error",
+                "passed": true
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "baseline_after": {
+            "checker_exit": 0,
+            "passed": true,
+            "profile": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          }
+        }
+      },
+      {
+        "boot_id": "6ff12fe7-471f-4ac1-a4f5-63645f8449a7",
+        "accelerator": "kvm",
+        "controller_exit": 0,
+        "stop": {
+          "checkpoint_elapsed_ms": null,
+          "checkpoint_seen": false,
+          "controller_pid": 48,
+          "duration_ms": 23645,
+          "escalated": false,
+          "evidence_synced": true,
+          "evidence_synced_before_stop": true,
+          "lifecycle_exit_code": 0,
+          "qemu_exit_code": 0,
+          "qemu_pid": 49,
+          "qemu_reaped": true,
+          "qemu_signal": null,
+          "reason": "service_completed",
+          "schema_version": 2,
+          "startup_timeout_ms": 660000,
+          "status": "passed",
+          "sync_error": null,
+          "timeout_after_checkpoint_ms": null,
+          "watchdog_fixture": false
+        },
+        "keeper": {
+          "status": "passed",
+          "exit_code": 0,
+          "inventory_restored": true,
+          "owned_profile_removed": true
+        },
+        "checks": {
+          "baseline_before": {
+            "checker_exit": 0,
+            "passed": true,
+            "profile": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "negative_control": {
+            "checker_exit": 1,
+            "passed": false,
+            "profile": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": false,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "confined": {
+            "checker_exit": 0,
+            "passed": true,
+            "profile": "veil_keeper_m0_exec_check_20261016 (enforce)",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "errno": 13,
+                "kind": "exec_error",
+                "passed": true
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "baseline_after": {
+            "checker_exit": 0,
+            "passed": true,
+            "profile": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "linux_f2": {
+    "status": "not_run",
+    "reason": "pi-node exposes 4 logical CPUs; fixed F2 requires at least 6. No CPU preflight bypass, no permission changes."
+  },
+  "mac_combined_entry": {
+    "status": "preflight_environment_error",
+    "exit_code": 3,
+    "runner": "/nix/store/b0hg5989rfcyvcqriqqzyv2grr4qq5x9-arena-k3s-f4",
+    "cpu_count": 14,
+    "available_memory_mib_observed_after_stop": 22615,
+    "required_available_memory_mib": 24576,
+    "new_vms_started": 0,
+    "output_summary_created": false,
+    "log": "artifacts/f4-mac-acceptance.log"
+  },
+  "historical_mac_evidence_reverification": {
+    "status": "passed",
+    "f2_root": "/Volumes/Elecom-1TB/Linux/veil-arena/f2-cri-20261021/acceptance",
+    "f3_root": "/Volumes/Elecom-1TB/Linux/veil-arena/keeper-f3-20261021/acceptance-final",
+    "new_vm_acceptance": false
+  },
+  "checks": {
+    "mac": {
+      "command": "nix develop --command bash scripts/check.sh",
+      "status": "passed",
+      "python_tests": 155,
+      "includes": [
+        "cargo fmt",
+        "cargo clippy offline locked",
+        "cargo test offline locked",
+        "vm-controller checks",
+        "nix flake check all systems no build"
+      ],
+      "log": "artifacts/f4-mac-final-check.log"
+    },
+    "linux_python": {
+      "command": "python3 -B -m unittest discover -s tests -p test_*.py",
+      "python_version": "3.14.7",
+      "status": "passed",
+      "tests": 155,
+      "log": "artifacts/f4-linux-final-check.log",
+      "runtime_uid": 1000,
+      "network": "none"
+    }
+  },
+  "preserved": {
+    "component_deadline_seconds": 600,
+    "node_seconds": 300,
+    "pod_seconds": 120,
+    "probe_seconds": 5,
+    "host_watchdog_seconds": 660,
+    "host_permissions": true,
+    "previous_cache_and_evidence": true,
+    "unrelated_processes": true
+  },
+  "remaining": [
+    "New combined F2/F3 acceptance with sufficient resources on declared hosts",
+    "Checkpoint cancellation/timeout, partial evidence, owned-resource recovery and normal rerun",
+    "Owner execution confirmation"
+  ],
+  "excluded": [
+    "physical network environment",
+    "third-party trials",
+    "signed tags",
+    "publication"
+  ],
+  "final_prepared_mac_runner": "/nix/store/w4ffmn0qvd08s56wn5iq9vxsyi6yxxyj-arena-k3s-f4"
+}

@@ -5,7 +5,7 @@ Veilプロジェクトの検証を実行し、結果と証拠を保存するRust
 最終ゴールは、他のVeilシリーズを試験できるLinux VM・仮想ネットワーク・K3s（Kubernetes）環境の完成です。
 現在の完成計画は [F0〜F4](docs/COMPLETION_PLAN.md)、最初のKeeper接続と固定版・権限・対応ホストは
 [F0検証契約](docs/F0_CONTRACT.md) に定めます。F0の検証契約と、[F1の1 VM試験](docs/F1_K3S.md)を完了しました（Mac ARM64／TCG、新規2 VM）。
-[F2の2 VM試験](docs/F2_K3S.md)もMac ARM64／TCGの新規2クラスタで[受け入れ成功](docs/K3S_F2_VALIDATION.md)。[F3の固定Keeper exec smoke](docs/F3_KEEPER.md)も新規2 VMで[受け入れ成功](docs/KEEPER_F3_VALIDATION.md)。F4の両ホスト・中断/期限超過・本人操作確認は残っています。
+[F2の2 VM試験](docs/F2_K3S.md)もMac ARM64／TCGの新規2クラスタで[受け入れ成功](docs/K3S_F2_VALIDATION.md)。[F3の固定Keeper exec smoke](docs/F3_KEEPER.md)も新規2 VMで[受け入れ成功](docs/KEEPER_F3_VALIDATION.md)。F4の両ホスト・2 VM側の中断/期限超過・本人操作確認は残っています。
 既存netns 18ケースとBlackholeオフライン入口を維持し、第三者試用・販売を完成の前提にしません。
 物理ネットワークは別のphysical-veil-arenaへ分離し、署名タグ・公開は引き続き保留します。
 
@@ -65,3 +65,7 @@ VM内の一括試験は、TC attach後の[キャンセル・タイムアウト�
 `artifacts/` はGit対象外です。検証文書内のartifactリンクは検証者のローカル証拠を指し、公開リポジトリには含まれません。
 
 Rust・スクリプト・文書は[MIT](LICENSE)、`reference/*.c` の参照eBPFは[GPL-2.0-only](reference/LICENSE)です。初版はソース配布とし、VMイメージや依存バイナリは同梱しません。
+
+F4のF2・F3統合受け入れ入口と対応ホスト・判定方法は [F4手順](docs/F4_ACCEPTANCE.md) を参照してください。F4全体の完了条件とは分けて扱います。
+
+既存環境の1 VMで行うcheckpoint中断・watchdog期限検出・正常復帰は [F4 lifecycle手順](docs/F4_LIFECYCLE.md) を参照してください。資源不足の統合受け入れは完成計画のTODOに残します。

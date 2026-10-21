@@ -53,6 +53,12 @@
       lib = {
         inherit versions;
         mkK3sGuest = { hostUid, f2Role ? null, keeperSource ? null }: import ./environments/vm/k3s.nix { inherit nixpkgs hostUid f2Role keeperSource; };
+        mkF4Runner = { hostSystem, hostUid }:
+          let pkgs = pkgsFor hostSystem; in assert pkgs.qemu.version == "11.1.1"; pkgs.writeShellApplication {
+            name = "arena-k3s-f4";
+            runtimeInputs = [ pkgs.python314 pkgs.coreutils pkgs.qemu (vmControllerFor pkgs) ];
+            text = ''exec python3 ${./scripts}/k3s_f4_host.py ${toString hostUid} "$@"'';
+          };
         mkKeeperRunner = { hostSystem, hostUid }:
           let pkgs = pkgsFor hostSystem; in assert pkgs.qemu.version == "11.1.1"; pkgs.writeShellApplication {
             name = "arena-keeper";

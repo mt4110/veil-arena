@@ -57,7 +57,7 @@ def verify_run(out, inputs):
 
 if __name__=='__main__':
     try:
-        if len(sys.argv)!=5:raise ValueError('usage: arena-keeper BUNDLE daily|acceptance NEW_OUTPUT')
+        if len(sys.argv)!=5:raise ValueError('usage: arena-keeper BUNDLE daily|acceptance|lifecycle NEW_OUTPUT')
         bundle=Path(sys.argv[2]).absolute()
         if check(bundle)[0].get('scenario')!='k3s-f3':raise ValueError('F3 bundle required')
         sys.exit(workflow(int(sys.argv[1]),bundle,sys.argv[3],Path(sys.argv[4]).absolute(),
