@@ -25,9 +25,13 @@ class WardenEvidence(unittest.TestCase):
         steps[0]['receiver_delta'] = [1, 1]
         steps[1].update(mutations_rejected=True, event={'decision': 'allow'})
         steps[2]['proofs'] = [{'receiver_delta': 0,
-            'client': {'errno': errno.EPERM, 'scope': '/warden.slice/warden-test.slice/client.service', 'family': family},
-            'event': {'decision': 'deny', 'policy_id': '1', 'family': event_family}}
-            for family, event_family in [(2, '4'), (10, '6')]]
+            'client': {'errno': errno.EPERM, 'scope': '/warden.slice/warden-test.slice/client.service', 'family': family,
+                       'pid': 747, 'address': address, 'port': 39889},
+            'event': {'decision': 'deny', 'policy_id': '1', 'family': event_family,
+                      'tgid': '747', 'destination': destination, 'protocol': 'tcp'}}
+            for family, event_family, address, destination in [
+                (2, '4', '127.0.0.1', '127.0.0.1:39889'),
+                (10, '6', '::1', '[::1]:39889')]]
         for i in [3, 4, 6]: steps[i]['receiver_delta'] = 1
         steps[5]['client'] = {'errno': 0, 'scope': '/system.slice/client.service'}
         steps[7]['errno'] = 0
@@ -84,7 +88,51 @@ class WardenEvidence(unittest.TestCase):
             self.record['steps'][2]['proofs'][0]['event']['policy_id'] = value
             with self.subTest(value=value), self.assertRaises(ValueError): self.verify()
 
-    def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False):
+    def test_deny_event_must_identify_tested_client(self):
+        original = copy.deepcopy(self.record)
+        for index in [0, 1]:
+            for key, value in [('tgid', '748'), ('destination', '127.0.0.2:39889'),
+                               ('destination', '[::1]:39890'), ('protocol', 'udp')]:
+                self.record = copy.deepcopy(original)
+                self.record['steps'][2]['proofs'][index]['event'][key] = value
+                with self.subTest(index=index, key=key, value=value), self.assertRaises(ValueError):
+                    self.verify()
+        for key, value in [('pid', True), ('port', 0), ('port', '39889'),
+                           ('address', 'invalid'), ('address', '::1')]:
+            self.record = copy.deepcopy(original)
+            self.record['steps'][2]['proofs'][0]['client'][key] = value
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError): self.verify()
+
+    def test_malformed_evidence_shapes_are_value_errors(self):
+        original, stop = copy.deepcopy(self.record), copy.deepcopy(self.stop)
+        paths = [(), ('steps',), ('steps', 1), ('steps', 1, 'event'),
+                 ('steps', 2, 'proofs'), ('steps', 2, 'proofs', 0),
+                 ('steps', 2, 'proofs', 0, 'client'), ('steps', 2, 'proofs', 0, 'event'),
+                 ('steps', 2, 'proofs', 0, 'client', 'scope'), ('steps', 5, 'client'),
+                 ('steps', 5, 'client', 'scope'), ('steps', 8, 'clients'),
+                 ('steps', 8, 'clients', 0), ('monitors',), ('monitors', 0), ('boot_id',)]
+        for path in paths:
+            for value in [None, [], {}, True, 7]:
+                self.record = copy.deepcopy(original)
+                if not path: self.record = value
+                else:
+                    parent = self.record
+                    for key in path[:-1]: parent = parent[key]
+                    parent[path[-1]] = value
+                with self.subTest(path=path, value=value), self.assertRaises(ValueError): self.verify()
+        self.record = original
+        for value in [None, [], True, 'invalid']:
+            self.stop = value
+            with self.subTest(stop=value), self.assertRaises(ValueError): self.verify()
+        self.stop = stop
+
+    def test_malformed_result_marks_workflow_failed(self):
+        code, report, _ = self.workflow_fixture('daily', malformed_result=True)
+        self.assertEqual(code, 3)
+        self.assertEqual(report['status'], 'failed')
+        self.assertIn('evidence object', report['error'])
+
+    def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False):
         base = Path(tempfile.mkdtemp(prefix='workflow-', dir=self.root))
         bundle = base / 'bundle'; bundle.mkdir()
         (bundle / 'inputs.json').write_text('{"guest_system":"aarch64-linux"}')
@@ -105,11 +153,16 @@ class WardenEvidence(unittest.TestCase):
             if cleanup_timeout and waits in [1, 2]: raise subprocess.TimeoutExpired('controller', 15)
             return 0
         proc.wait.side_effect = wait
+        verifier = warden_host.verify
+        def verify_result(root):
+            (root / 'warden-result.json').write_text('[]')
+            return verifier(root)
+        verification = verify_result if malformed_result else [{'boot_id': f'boot-{i}'} for i in range(count)]
         with patch.object(warden_host, 'execution', return_value={'arch': 'aarch64', 'cpu': 'max', 'accelerator': 'tcg'}), \
              patch.object(warden_host.os, 'getuid', return_value=1000), \
              patch.object(warden_host, 'available_memory_mib', return_value=8192), \
              patch.object(warden_host, 'check_bundle', side_effect=seal), \
-             patch.object(warden_host, 'verify', side_effect=[{'boot_id': f'boot-{i}'} for i in range(count)]), \
+             patch.object(warden_host, 'verify', side_effect=verification), \
              patch.object(warden_host.subprocess, 'Popen', return_value=proc):
             code = warden_host.workflow(1000, bundle, mode, base / 'output')
         return code, json.loads((base / 'output/summary.json').read_text()), proc

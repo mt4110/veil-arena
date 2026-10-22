@@ -1,6 +1,7 @@
 """Offline Warden workflow using Arena's existing owned-QEMU controller."""
 import errno
 import hashlib
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -73,12 +74,57 @@ def check_bundle(bundle):
     return result
 
 
+def evidence_object(value):
+    if not isinstance(value, dict): raise ValueError('evidence object required')
+    return value
+
+
+def evidence_objects(value):
+    if not isinstance(value, list): raise ValueError('evidence array required')
+    for item in value: evidence_object(item)
+    return value
+
+
+def deny_matches_client(proof):
+    client, event = proof['client'], proof['event']
+    pid, port = client.get('pid'), client.get('port')
+    if (not positive_policy_id(pid) or type(pid) is not int
+            or type(port) is not int or not 1 <= port <= 65535
+            or not isinstance(client.get('address'), str)):
+        return False
+    try:
+        address = ipaddress.ip_address(client['address'])
+    except ValueError:
+        return False
+    family = 2 if address.version == 4 else 10
+    destination = f'{address}:{port}' if address.version == 4 else f'[{address}]:{port}'
+    return (client.get('family') == family and event.get('family') == str(address.version)
+            and event.get('tgid') == str(pid) and event.get('destination') == destination
+            and event.get('protocol') == 'tcp')
+
+
 def verify(root):
     def read(name):
         p = root / name
         if p.is_symlink() or not p.is_file() or p.stat().st_size > 2**20: raise ValueError('invalid evidence: ' + name)
         return p.read_text()
-    r = json.loads(read('warden-result.json')); stop = json.loads(read('vm-stop.json'))
+    r = evidence_object(json.loads(read('warden-result.json')))
+    stop = evidence_object(json.loads(read('vm-stop.json')))
+    # Check accessed containers before semantic checks: malformed JSON evidence
+    # must become a reported verification failure, never an uncaught traceback.
+    steps = evidence_objects(r.get('steps'))
+    monitors = evidence_objects(r.get('monitors'))
+    if not isinstance(r.get('boot_id'), str): raise ValueError('invalid boot identity')
+    if [s.get('id') for s in steps] != STEPS: raise ValueError('incomplete Warden phases')
+    evidence_object(steps[1].get('event'))
+    proofs = evidence_objects(steps[2].get('proofs'))
+    for proof in proofs:
+        client = evidence_object(proof.get('client'))
+        evidence_object(proof.get('event'))
+        if not isinstance(client.get('scope'), str): raise ValueError('invalid client scope')
+    outside = evidence_object(steps[5].get('client'))
+    if not isinstance(outside.get('scope'), str): raise ValueError('invalid outside scope')
+    for step in steps[8:]: evidence_objects(step.get('clients'))
     if (r.get('schema_version') != 1 or r.get('status') != 'passed'
             or r.get('scenario') != 'warden-policy' or r.get('cleanup_complete') is not True
             or read('service-result.txt').strip() != 'success'
@@ -89,15 +135,13 @@ def verify(root):
     if (not re.fullmatch('[0-9a-f-]{36}', r.get('boot_id', ''))
             or read('guest-boot-id.txt').strip() != r['boot_id']):
         raise ValueError('boot identity differs')
-    steps = r.get('steps', [])
-    if [s.get('id') for s in steps] != STEPS: raise ValueError('incomplete Warden phases')
     if (steps[0].get('receiver_delta') != [1, 1] or steps[1].get('mutations_rejected') is not True
             or steps[1].get('event', {}).get('decision') != 'allow'):
         raise ValueError('baseline/observe proof missing')
-    proofs = steps[2].get('proofs', [])
     if len(proofs) != 2 or any(p.get('receiver_delta') != 0 or p.get('client', {}).get('errno') != errno.EPERM
             or not p.get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')
-            or p.get('event', {}).get('decision') != 'deny' or not positive_policy_id(p.get('event', {}).get('policy_id')) for p in proofs):
+            or p.get('event', {}).get('decision') != 'deny' or not positive_policy_id(p.get('event', {}).get('policy_id'))
+            or not deny_matches_client(p) for p in proofs):
         raise ValueError('deny proof missing')
     # These are Linux guest AF_INET/AF_INET6 values, not host socket constants
     # (macOS has a different AF_INET6 number). Events encode IP version 4/6.
@@ -113,7 +157,7 @@ def verify(root):
                 or s.get('control_endpoint_closed') is not True or len(s.get('clients', [])) != 2
                 or any(c.get('errno') != 0 for c in s['clients'])):
             raise ValueError('stop recovery proof missing')
-    if len(r.get('monitors', [])) != 3 or any(m.get('links_restored') is not True for m in r['monitors']):
+    if len(monitors) != 3 or any(m.get('links_restored') is not True for m in monitors):
         raise ValueError('monitor lifecycle proof missing')
     return r
 

@@ -78,6 +78,8 @@ SIGINT/SIGTERM/SIGHUPは同じ中断経路へ入り、controllerへTERMを送っ
 controllerは専用session/process groupで起動する。TERM後15秒で終了しなければ所有groupへSIGKILLを送り、
 さらに最大5秒でcontrollerの終了を待つ。強制回収は証拠が不完全になり得るため、成功や通常中断ではなく失敗3と記録する。
 拒否rule IDは正のu32整数またはその数字文字列を要求し、null・bool・配列・範囲外等を証拠不一致として拒否する。
+拒否イベントはclientのPID（tgid）・IP・port・family・TCPと照合し、別プロセスや別宛先のイベントで合格にしない。
+結果JSON・VM終了JSONのobject/array構造と参照する入れ子を検査し、不正な形は例外終了ではなく証拠不一致の失敗3として記録する。
 想定外の通信影響、受信ゼロ不成立、回収失敗は合格にしない。
 
 2026-10-22のレビュー対応では、重複family・client/event不一致、daily/acceptanceの最終bundle不一致、
