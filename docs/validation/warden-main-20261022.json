@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22 JST",
+  "scenario": "warden-policy",
+  "status": "passed",
+  "arena_revision": "e489def8a89c983d73ae24653b076aab97653dde",
+  "guest_evidence_schema": 3,
+  "execution": {
+    "arch": "aarch64",
+    "accelerator": "tcg",
+    "cpu": "max"
+  },
+  "memory_mib": 4096,
+  "vcpus": 2,
+  "network": "no NIC; synthetic loopback only",
+  "source_sha256": {
+    "scripts/warden_host.py": "70034d1fdfd06e9858ad25bd989e330304352163a91b780d8fd2f371e6098c34",
+    "scripts/warden_guest.py": "f2fce1f45521fdb3c48342c65fe53b3f774c571ba0013ec48ae8bc3760763817",
+    "environments/vm/warden.nix": "0de4c1f9c46ad4e347b3d2610ebad098f09a579cd943e34868f4bf50d42bc96a",
+    "flake.lock": "f7c1fdb4c746bd2314b4f394483589a2b359e647c12c345379d4069b0a5a4f3f"
+  },
+  "boot_inputs": {
+    "store.img": "8c0ebb856c6842ce079608fb1f273d0bedd9f2b3d91707441102f9de5a26f466",
+    "Image": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+    "initrd": "1ce64a4b4b368b4a02052067a1703910946950828fae2b610962640d15dfe612",
+    "kernel-params": "4dc737473e00cb95da6e0a858a670b1acb847a60968032da95fdaab0899e0bf5",
+    "toplevel": "02e373d687b91ba41ebbf0d2b0e68a8f522f0b36ca65091592ba5870b49e7c62",
+    "inputs.json": "9412cd1209ca63461fc32f6e8c245a1e4a0c50525c046882d03e88524f7d82d9"
+  },
+  "artifact_provenance": "Retained owned Warden CLI/BPF and previously prepared guest bundle reused; not rebuilt from latest Warden source",
+  "host_regression": {
+    "tests_run": 25,
+    "status": "passed"
+  },
+  "raw_evidence_root": "artifacts/warden-main-20261022",
+  "raw_evidence_published": false,
+  "runs": [
+    {
+      "run": "fresh-1",
+      "boot_id": "03cd4d72-f6da-431b-b83f-882ca0a4278a",
+      "status": "passed",
+      "passed_steps": [
+        "baseline",
+        "observe",
+        "deny",
+        "existing-connection-bypasses-deny",
+        "udp-not-blocked",
+        "outside-cgroup-not-blocked",
+        "unlisted-destination-not-blocked",
+        "remove-restores",
+        "stop-term-restores",
+        "stop-kill-restores"
+      ],
+      "denied_errno_by_family": {
+        "2": 1,
+        "10": 1
+      },
+      "monitor_exit_sequence": [
+        {
+          "mode": "term",
+          "returncode": 0
+        },
+        {
+          "mode": "term",
+          "returncode": 0
+        },
+        {
+          "mode": "kill",
+          "returncode": -9
+        }
+      ],
+      "recovery_errno": {
+        "remove-restores": [
+          0,
+          0
+        ],
+        "stop-term-restores": [
+          0,
+          0
+        ],
+        "stop-kill-restores": [
+          0,
+          0
+        ]
+      },
+      "evidence_synced": true,
+      "qemu_reaped": true,
+      "escalated": false,
+      "evidence_sha256": {
+        "warden-result.json": "7ac32f3a816dc4bd128330178e3d979bbb7d234d459175da35164d60a3e6581a",
+        "vm-stop.json": "e44b2c7e012ee7380e87eecd1af5797c5b13a1c2feb148081a005bfa884fab6b",
+        "guest-boot-id.txt": "d28a66b7c4bb483b94fd3e41f4ced474ce60347f956ac05bc41c898b7ee929ce",
+        "service-result.txt": "81b2bd4ea98c8db66554fbc8d7637a1a69a130f331feb732b75caab4c4868fd5"
+      }
+    },
+    {
+      "run": "fresh-2",
+      "boot_id": "2479edf8-d09a-4701-8ce5-c7f5a43cb2ed",
+      "status": "passed",
+      "passed_steps": [
+        "baseline",
+        "observe",
+        "deny",
+        "existing-connection-bypasses-deny",
+        "udp-not-blocked",
+        "outside-cgroup-not-blocked",
+        "unlisted-destination-not-blocked",
+        "remove-restores",
+        "stop-term-restores",
+        "stop-kill-restores"
+      ],
+      "denied_errno_by_family": {
+        "2": 1,
+        "10": 1
+      },
+      "monitor_exit_sequence": [
+        {
+          "mode": "term",
+          "returncode": 0
+        },
+        {
+          "mode": "term",
+          "returncode": 0
+        },
+        {
+          "mode": "kill",
+          "returncode": -9
+        }
+      ],
+      "recovery_errno": {
+        "remove-restores": [
+          0,
+          0
+        ],
+        "stop-term-restores": [
+          0,
+          0
+        ],
+        "stop-kill-restores": [
+          0,
+          0
+        ]
+      },
+      "evidence_synced": true,
+      "qemu_reaped": true,
+      "escalated": false,
+      "evidence_sha256": {
+        "warden-result.json": "ea22f9c57dfc2829c4cb443e8ec6d0e51425ad78b791c3a89ed72091834bd83c",
+        "vm-stop.json": "9a05820bf7fd134a6b0e170b2777e6f2315a172deee9a43aa9c5aef9c35b2776",
+        "guest-boot-id.txt": "a269723c13b61336b0dcac4728ce7ef4ed0a40e7fd55e2607c9b85e682d2bbaf",
+        "service-result.txt": "81b2bd4ea98c8db66554fbc8d7637a1a69a130f331feb732b75caab4c4868fd5"
+      }
+    }
+  ],
+  "postcheck": {
+    "recorded_controller_and_qemu_processes_absent": true,
+    "observation": "after the acceptance run"
+  },
+  "limitations": [
+    "Mac ARM64/QEMU TCG only; not Linux x86_64/KVM acceptance",
+    "Existing TCP, UDP, outside-cgroup and unlisted destinations pass",
+    "No PHP/CVE containment, routed wire, cloud, production, load or long-running acceptance",
+    "No reboot persistence, hot-swap, Shadow Audit or dynamic-mode acceptance"
+  ],
+  "warden_inputs": {
+    "warden_revision": "7589858ee0df2ae9609f62bafc32fe8e1a251891",
+    "archive_sha256": "3291e4d187067253eb2e531ad5519d2e0e5a7d826f8b072521d579f135171b6e",
+    "files": {
+      "veil-warden": "8fe01ca9e80f943ed4bba54f5f482964140cb3096a1afb13760c7752e206a3f0",
+      "veil-warden-ebpf": "6fdb18c9463e851c98f6b10fa26284963e8fc813fece61f208adbd3dbfaea73e",
+      "connect_monitor.py": "19359c80cdd9f9b9bdbff385b97357b6a76ea0e88d1680d79c6a2f02a42e6ba8",
+      "connect_policy.py": "60e6038b95b1db7d01bc9d57252db2098c1eb79135bdfc041602f18892a1d47d"
+    }
+  },
+  "runtime_inputs_sha256": [
+    "f3ed5fbbd24ff4fdda6a711161b295201a77668856495a366b926e7fbf9651fb  /nix/store/v89yq55igvk0vl8fbypbc9iw17nkhjm0-arena-warden-cli-0.1.0/bin/veil-warden",
+    "6fdb18c9463e851c98f6b10fa26284963e8fc813fece61f208adbd3dbfaea73e  /nix/store/3mn3m45qifm12l9x80iwb9802pymp94g-arena-warden-inputs/veil-warden-ebpf"
+  ]
+}
