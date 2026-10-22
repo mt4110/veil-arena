@@ -24,10 +24,9 @@ bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 
 初期MVP（M0〜M2）の受け入れ検証を完了しました。[マイルストーン](docs/MILESTONES.md)と[公開用の検証集計](docs/validation/v0.1.0.json)に、条件・対応範囲・未検証事項をまとめています。
 
-v0.2.1のソース版に向け、netns一括試験の診断自動表示と、試験用ランチャーのText file busy対策をまとめています。
-[リリースノート案](docs/releases/v0.2.1-draft.md)と[公開準備の記録](docs/V0_2_1_READINESS.md)を参照してください。署名タグ・リリース公開は承認後に行います。
-以前の16ケースに関するLinux x86_64／KVMの期限超過は既知の制約として残しており、
-以前の13ケースの成功を現在の一括試験の成功とは扱いません。
+v0.3.0のソース版公開を準備しています。1 VM標準のK3s通信・Keeper接続・中断／期限検出後の復帰までを確認し、機能開発を一区切りにしました。
+[リリースノート案](docs/releases/v0.3.0-draft.md)と[公開準備記録](docs/V0_3_0_READINESS.md)で、実VMの証拠と版上げ後のチェックを区別します。マージ・署名タグ作成・公開は承認後に行います。
+2 VMの統合受け入れ・checkpointは追加検証TODOのまま保持します。過去のLinux x86_64／KVMの期限超過も原因未確定であり、今回のK3s成功をその解消の証拠にはしません。
 
 ホスト上のオフラインrunnerはOS sandboxではありません。Nixの開発環境と、外部NICを持たないLinux VMを用意しました。macOS ARM64のNix上のオフライン実行に加え、Linux x86_64／KVMのゲストで「正常版の成功 → 不具合版の検出 → 元コードで再成功」を確認済みです。ゲストの試験サービス終了後、ホストのRustコントローラーが結果をfsyncし、所有するQEMUを停止します。
 

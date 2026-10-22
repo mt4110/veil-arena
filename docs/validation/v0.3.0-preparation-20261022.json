@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "date_jst": "2026-10-22",
+  "candidate_version": "0.3.0",
+  "base_main_commit": "f93888a2fa2c7543fd2b68dfb9b4b699f10abc44",
+  "base_main_ci": {
+    "status": "success",
+    "url": "https://github.com/mt4110/veil-arena/actions/runs/39698485493"
+  },
+  "scope": "source-release preparation; one-VM standard completion; no fresh VM execution in this task",
+  "source_sha256": {
+    "Cargo.toml": "ff48b8502fcb84d7d66b75588ddcfb432ccadcb2129907ea621ed0b299d17eef",
+    "Cargo.lock": "1bc6a0b3259c28e2fa8f40f2f64327da3f35158f32afcbda3ee0dc570cc59898",
+    "tools/vm-controller/Cargo.toml": "ab30ab2beee624df9e06906d8bc15bbecbf1fbac22404a5e576410f2f2d2c28c",
+    "tools/vm-controller/Cargo.lock": "d67b18292e6c758c4cc0a0801f0fbb8cb61c6541f6b9395e6f233c0434a4e7c9",
+    "flake.nix": "b3343747f9fa8b8b5599ba39fbe1d6305e9b2aee5190fdf96c59a7a4e4e3b89c",
+    "README.md": "fd5826824c1fe425d190750d089bbe238e4c7f1e97a542fd5e459cec210ad717",
+    "docs/COMPLETION_PLAN.md": "54a90718513f9971cb3a31891da2cf1f5c1f31faf9e19c40d574aa24260458df",
+    "docs/F4_STANDARD_ONE_VM.md": "fc18800d1381292a3348b7ebb452bc098e266cbf17bc49efe3610f7ab9adc654",
+    "docs/releases/v0.3.0-draft.md": "b0aaa06fee9a1fcc36f3f9eccf7a50e32f76d834e63d6a21e8a59a65c5fc68ce",
+    "docs/V0_3_0_READINESS.md": "fac803fbcdf64f36977d444329cb8823d6ad8f8435cd9427ef192fdbe04a7d32"
+  },
+  "dependency_graph_changed": false,
+  "toolchain_pins_changed": false,
+  "guest_execution_code_changed": false,
+  "resource_deadlines_expectations_changed": false,
+  "f1_evidence_source_hashes_match": true,
+  "runtime_evidence": [
+    "docs/validation/f1-linux-standard-20261022.json",
+    "docs/validation/f1-mac-standard-20261022.json",
+    "docs/validation/f4-standard-one-vm-mac-20261021.json",
+    "docs/validation/f4-owner-lifecycle-20261021.json",
+    "docs/validation/f4-checkpoint-20261021.json",
+    "docs/validation/f3-keeper-20261021.json"
+  ],
+  "local_checks": {
+    "status": "passed",
+    "command": "CARGO_TARGET_DIR=<existing target> nix develop --offline --command bash scripts/check.sh",
+    "log": "/tmp/veil-arena-v030-check.log",
+    "exit_code": 0,
+    "python_discover": {
+      "run": 169,
+      "skipped": 1,
+      "skip_reason": "Linux procfs observer test on macOS"
+    },
+    "nix_evaluated_systems": [
+      "aarch64-darwin",
+      "aarch64-linux",
+      "x86_64-linux"
+    ],
+    "nix_package_build": {
+      "status": "passed",
+      "exit_code": 0,
+      "offline": true,
+      "system": "aarch64-darwin",
+      "outputs": [
+        "veil-arena-0.3.0",
+        "veil-arena-vm-controller-0.3.0"
+      ],
+      "log": "/tmp/veil-arena-v030-nix-build.log"
+    }
+  },
+  "pr_head_ci": "pending after commit; consult PR checks for exact SHA",
+  "merge_tag_release_performed": false,
+  "preserved": [
+    "existing caches and raw VM evidence",
+    "owner dirty worktree changes",
+    "Linux resource-blocked two-VM integrated acceptance TODO",
+    "Mac two-VM integrated acceptance TODO",
+    "two-VM checkpoint TODO",
+    "historical Linux KVM netns timeout root cause unknown"
+  ],
+  "signature_preflight": {
+    "format": "ssh",
+    "signingkey_configured": true,
+    "signing_or_key_availability_tested": false
+  },
+  "archive_check": {
+    "status": "passed",
+    "method": "git archive of staged source tree inspected in memory",
+    "required_licenses": [
+      "LICENSE",
+      "reference/LICENSE"
+    ],
+    "excluded": [
+      "artifacts/",
+      ".git/",
+      "target/",
+      "*.qcow2",
+      "*.img",
+      "*.pcap"
+    ],
+    "tagged_github_archive_checked": false
+  },
+  "not_claimed": [
+    "fresh v0.3.0 guest runtime acceptance",
+    "CI as VM runtime evidence",
+    "all Veil features or production protection",
+    "resolution of old Linux netns timeout"
+  ],
+  "prior_pr_unresolved_reviews": {
+    "30": 0,
+    "31": 0
+  }
+}
