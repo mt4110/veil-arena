@@ -3,6 +3,10 @@
 2026-10-21。Arenaの隔離VMと既存の所有QEMU controllerを使う追加入口。
 K3s/F4の完成条件は変更しない。Warden本体のhostname・cgroup・既定observe・停止時fail-openも変更しない。
 
+[マージ後mainの検証結果と再実行手順](WARDEN_MAIN_VALIDATION.md)：2026-10-22、main `e489def` から作ったrunnerで新規2 VM・各10段階が成功。
+準備済みbundleがある場合の再実行コマンド、初回準備との違い、証拠の保存先をまとめている。
+公開集計は [warden-main-20261022.json](validation/warden-main-20261022.json) を参照。
+
 [初回の検証集計](validation/warden-policy-20261021.json)：Mac ARM64/TCGの新規2 VMで全10段階が成功。
 boot IDは別、起動入力は同じ、両VMの証拠同期・QEMU回収を確認した。失敗した準備・起動の記録も保持している。
 

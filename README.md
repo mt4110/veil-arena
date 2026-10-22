@@ -4,6 +4,11 @@ Veilプロジェクトの検証を実行し、結果と証拠を保存するRust
 
 [Wardenの最小接続試験](docs/WARDEN_POLICY.md)を追加しました。隔離VM内で実Wardenの正常通信・observe・拒否・解除・停止後復帰と、既存接続/UDP等の対象外を確認する入口です。PHP/CVE対策や本番保護の認定は含めません。[Audit案](docs/WARDEN_AUDIT_DESIGN.md)は設計メモに留め、今回実装していません。
 
+2026-10-22、PR #29をマージしたmainで、Mac ARM64／QEMU TCGの新規2 VM・各10段階が成功しました。
+IPv4/IPv6の拒否・解除・SIGTERM/SIGKILL後の復帰、証拠同期・QEMU回収まで確認しています。
+保持済みのWarden CLI/BPFと準備済みguestを再利用した結果です。
+[mainの検証結果と再実行手順](docs/WARDEN_MAIN_VALIDATION.md)に、準備済みbundleから1 VMを試すコマンドと、初回準備への案内をまとめています。
+
 最終ゴールは、他のVeilシリーズを試験できるLinux VM・仮想ネットワーク・K3s（Kubernetes）環境の完成です。
 標準の完成条件は [1 VM](docs/F4_STANDARD_ONE_VM.md)、2 VMのノード間通信は追加検証です。
 現在の完成計画は [F0〜F4](docs/COMPLETION_PLAN.md)、最初のKeeper接続と固定版・権限・対応ホストは
