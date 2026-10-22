@@ -3,8 +3,12 @@
 2026-10-21。Arenaの隔離VMと既存の所有QEMU controllerを使う追加入口。
 K3s/F4の完成条件は変更しない。Warden本体のhostname・cgroup・既定observe・停止時fail-openも変更しない。
 
-[今回の検証集計](validation/warden-policy-20261021.json)：Mac ARM64/TCGの新規2 VMで全10段階が成功。
+[初回の検証集計](validation/warden-policy-20261021.json)：Mac ARM64/TCGの新規2 VMで全10段階が成功。
 boot IDは別、起動入力は同じ、両VMの証拠同期・QEMU回収を確認した。失敗した準備・起動の記録も保持している。
+
+[再レビュー後の検証集計](validation/warden-policy-20261022.json)：証拠形式v2で新規2 VMを実行し、各10段階成功。
+observeのclient/event照合と、解除・停止後の元IPv4/IPv6宛先への復帰を確認した。
+v1の旧証拠は履歴として保持し、v2の合格実績には流用しない。
 
 ## 対象と境界
 
@@ -78,6 +82,8 @@ SIGINT/SIGTERM/SIGHUPは同じ中断経路へ入り、controllerへTERMを送っ
 controllerは専用session/process groupで起動する。TERM後15秒で終了しなければ所有groupへSIGKILLを送り、
 さらに最大5秒でcontrollerの終了を待つ。強制回収は証拠が不完全になり得るため、成功や通常中断ではなく失敗3と記録する。
 拒否rule IDは正のu32整数またはその数字文字列を要求し、null・bool・配列・範囲外等を証拠不一致として拒否する。
+observeは成功したclientのerrnoとallowイベントのPID・宛先を照合する。
+解除後も元IPv4/IPv6宛先の成功clientを各1件保存・照合する。
 拒否イベントはclientのPID（tgid）・IP・port・family・TCPと照合し、別プロセスや別宛先のイベントで合格にしない。
 数値の証拠は厳密な整数型を要求し、boolやfloatによるEPERM・受信ゼロの代用を拒否する。
 停止後は対象sliceの元のIPv4/IPv6宛先へ各1件成功することを要求する。

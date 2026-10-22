@@ -101,12 +101,18 @@ def client_endpoint(client):
     return family, destination
 
 
-def deny_matches_client(proof):
-    client, event = proof['client'], proof['event']
+def event_matches_client(client, event):
     endpoint = client_endpoint(client)
     return bool(endpoint and event.get('family') == ('4' if endpoint[0] == 2 else '6')
                 and event.get('tgid') == str(client['pid']) and event.get('destination') == endpoint[1]
                 and event.get('protocol') == 'tcp')
+
+
+def recovery_matches(clients, proofs):
+    return (len(clients) == 2 and all(integer_equal(c.get('errno'), 0) for c in clients)
+            and {client_endpoint(c) for c in clients} == {client_endpoint(p['client']) for p in proofs}
+            and all(isinstance(c.get('scope'), str)
+                    and c['scope'].startswith('/warden.slice/warden-test.slice/') for c in clients))
 
 
 def integer_equal(value, expected):
@@ -127,6 +133,8 @@ def verify(root):
     if not isinstance(r.get('boot_id'), str): raise ValueError('invalid boot identity')
     if [s.get('id') for s in steps] != STEPS: raise ValueError('incomplete Warden phases')
     evidence_object(steps[1].get('event'))
+    evidence_object(steps[1].get('client'))
+    evidence_objects(steps[7].get('clients'))
     proofs = evidence_objects(steps[2].get('proofs'))
     for proof in proofs:
         client = evidence_object(proof.get('client'))
@@ -135,7 +143,7 @@ def verify(root):
     outside = evidence_object(steps[5].get('client'))
     if not isinstance(outside.get('scope'), str): raise ValueError('invalid outside scope')
     for step in steps[8:]: evidence_objects(step.get('clients'))
-    if (not integer_equal(r.get('schema_version'), 1) or r.get('status') != 'passed'
+    if (not integer_equal(r.get('schema_version'), 2) or r.get('status') != 'passed'
             or r.get('scenario') != 'warden-policy' or r.get('cleanup_complete') is not True
             or read('service-result.txt').strip() != 'success'
             or stop.get('status') != 'passed' or stop.get('qemu_reaped') is not True
@@ -148,31 +156,36 @@ def verify(root):
     if (steps[0].get('receiver_delta') != [1, 1]
             or any(not integer_equal(v, 1) for v in steps[0]['receiver_delta'])
             or steps[1].get('mutations_rejected') is not True
-            or steps[1].get('event', {}).get('decision') != 'allow'):
+            or steps[1]['event'].get('decision') != 'allow'
+            or not integer_equal(steps[1].get('errno'), 0)
+            or not integer_equal(steps[1]['client'].get('errno'), 0)
+            or not event_matches_client(steps[1]['client'], steps[1]['event'])
+            or not isinstance(steps[1]['client'].get('scope'), str)
+            or not steps[1]['client']['scope'].startswith('/warden.slice/warden-test.slice/')):
         raise ValueError('baseline/observe proof missing')
     if len(proofs) != 2 or any(not integer_equal(p.get('receiver_delta'), 0)
             or not integer_equal(p['client'].get('errno'), errno.EPERM)
             or not p.get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')
             or p.get('event', {}).get('decision') != 'deny' or not positive_policy_id(p.get('event', {}).get('policy_id'))
-            or not deny_matches_client(p) for p in proofs):
+            or not event_matches_client(p['client'], p['event']) for p in proofs):
         raise ValueError('deny proof missing')
     # These are Linux guest AF_INET/AF_INET6 values, not host socket constants
     # (macOS has a different AF_INET6 number). Events encode IP version 4/6.
     families = [(p['client'].get('family'), p['event'].get('family')) for p in proofs]
     if families.count((2, '4')) != 1 or families.count((10, '6')) != 1:
         raise ValueError('deny requires one matching IPv4 and IPv6 proof')
+    if client_endpoint(steps[1]['client']) not in {client_endpoint(p['client']) for p in proofs}:
+        raise ValueError('observe destination differs')
     if any(not integer_equal(steps[i].get('receiver_delta'), 1) for i in [3, 4, 6]): raise ValueError('limits not demonstrated')
     if (not integer_equal(steps[5]['client'].get('errno'), 0) or not integer_equal(steps[7].get('errno'), 0)
             or steps[5].get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')):
         raise ValueError('outside scope/remove proof missing')
+    if steps[7].get('families') != [4, 6] or not recovery_matches(steps[7]['clients'], proofs):
+        raise ValueError('remove recovery proof missing')
     for s, code in zip(steps[8:], [0, -signal.SIGKILL], strict=True):
         if (not integer_equal(s.get('returncode'), code) or s.get('links_restored') is not True
-                or s.get('control_endpoint_closed') is not True or len(s.get('clients', [])) != 2
-                or any(not integer_equal(c.get('errno'), 0) for c in s['clients'])
-                or {client_endpoint(c) for c in s['clients']}
-                   != {client_endpoint(p['client']) for p in proofs}
-                or any(not isinstance(c.get('scope'), str)
-                       or not c['scope'].startswith('/warden.slice/warden-test.slice/') for c in s['clients'])):
+                or s.get('control_endpoint_closed') is not True
+                or not recovery_matches(s['clients'], proofs)):
             raise ValueError('stop recovery proof missing')
     if len(monitors) != 3 or any(m.get('links_restored') is not True for m in monitors):
         raise ValueError('monitor lifecycle proof missing')

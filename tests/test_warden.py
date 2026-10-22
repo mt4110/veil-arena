@@ -17,7 +17,7 @@ import warden_host
 class WardenEvidence(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix='arena-warden-proof-'))
-        self.record = {'schema_version': 1, 'scenario': 'warden-policy', 'status': 'passed',
+        self.record = {'schema_version': 2, 'scenario': 'warden-policy', 'status': 'passed',
             'cleanup_complete': True, 'boot_id': '00000000-0000-0000-0000-000000000001',
             'monitors': [{'links_restored': True}] * 3,
             'steps': [{'id': name} for name in warden_host.STEPS]}
@@ -32,9 +32,11 @@ class WardenEvidence(unittest.TestCase):
             for family, event_family, address, destination in [
                 (2, '4', '127.0.0.1', '127.0.0.1:39889'),
                 (10, '6', '::1', '[::1]:39889')]]
+        steps[1].update(errno=0, client=dict(steps[2]['proofs'][0]['client'], errno=0),
+                        event=dict(steps[2]['proofs'][0]['event'], decision='allow'))
         for i in [3, 4, 6]: steps[i]['receiver_delta'] = 1
         steps[5]['client'] = {'errno': 0, 'scope': '/system.slice/client.service'}
-        steps[7]['errno'] = 0
+        steps[7].update(errno=0, families=[4, 6], clients=[dict(p['client'], errno=0) for p in steps[2]['proofs']])
         for s, code in zip(steps[8:], [0, -9]):
             s.update(returncode=code, links_restored=True, control_endpoint_closed=True,
                      clients=[dict(p['client'], errno=0) for p in steps[2]['proofs']])
@@ -155,7 +157,7 @@ class WardenEvidence(unittest.TestCase):
 
     def test_stop_recovery_requires_both_original_destinations_in_scope(self):
         original = copy.deepcopy(self.record)
-        for index in [8, 9]:
+        for index in [7, 8, 9]:
             for change in ['ipv4-twice', 'ipv6-twice', 'family', 'address', 'port', 'scope']:
                 self.record = copy.deepcopy(original)
                 clients = self.record['steps'][index]['clients']
@@ -170,6 +172,28 @@ class WardenEvidence(unittest.TestCase):
         for value in [None, [], True, 'invalid', 1]:
             with self.subTest(value=value), self.assertRaises(ValueError):
                 self.workflow_fixture('daily', manifest=value)
+
+    def test_observe_success_must_match_client_and_event(self):
+        original = copy.deepcopy(self.record)
+        changes = [('errno', errno.EPERM), ('client', 'errno', errno.EPERM),
+                   ('event', 'tgid', '999'), ('event', 'destination', '127.0.0.2:39889'),
+                   ('event', 'protocol', 'udp'), ('client', 'scope', '/system.slice/client.service')]
+        for change in changes:
+            self.record = copy.deepcopy(original)
+            step = self.record['steps'][1]
+            if len(change) == 2: step[change[0]] = change[1]
+            else: step[change[0]][change[1]] = change[2]
+            with self.subTest(change=change), self.assertRaises(ValueError): self.verify()
+
+    def test_remove_requires_recorded_families_and_clients(self):
+        original = copy.deepcopy(self.record)
+        for value in [None, [], [4, 4], [6, 6]]:
+            self.record = copy.deepcopy(original)
+            self.record['steps'][7]['families'] = value
+            with self.subTest(value=value), self.assertRaises(ValueError): self.verify()
+        self.record = original
+        del self.record['steps'][7]['clients']
+        with self.assertRaises(ValueError): self.verify()
 
     def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False, manifest=...):
         base = Path(tempfile.mkdtemp(prefix='workflow-', dir=self.root))

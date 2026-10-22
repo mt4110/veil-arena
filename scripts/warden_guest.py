@@ -20,7 +20,7 @@ def test(binary, inputs, out):
         raise ValueError('dedicated Arena guest required')
     if Path('/etc/hostname').read_text().strip() != 'veil-warden-sandbox':
         raise ValueError('Warden sandbox hostname required')
-    record = {'schema_version': 1, 'scenario': 'warden-policy', 'status': 'running',
+    record = {'schema_version': 2, 'scenario': 'warden-policy', 'status': 'running',
               'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
               'kernel': os.uname().release, 'steps': [], 'clients': [], 'monitors': [],
               'limits': ['new TCP only', 'exact destination denylist', 'no payload inspection',
@@ -71,7 +71,7 @@ def test(binary, inputs, out):
         event = next(e for e in m.events() if int(e['tgid']) == c['pid'])
         assert event['decision'] == 'allow'
         control(str(binary), 'add', s4.address, s4.port, ok=False)
-        step('observe', errno=c['errno'], event=event, mutations_rejected=True)
+        step('observe', client=c, errno=c['errno'], event=event, mutations_rejected=True)
         stop(m, 'term')
         m = monitor('--enforce')
         persistent = subprocess.Popen(['systemd-run', '--quiet', '--wait', '--pipe', '--collect',
@@ -103,10 +103,12 @@ def test(binary, inputs, out):
         assert attempt(other)['errno'] == 0
         eventually(lambda: other.received == ['warden-m3'])
         step('unlisted-destination-not-blocked', receiver_delta=1)
+        restored = []
         for s in [s4, s6]:
             control(str(binary), 'remove', s.address, s.port)
-            assert attempt(s)['errno'] == 0
-        step('remove-restores', errno=0, families=[4, 6])
+            c = attempt(s); assert c['errno'] == 0
+            restored.append(c)
+        step('remove-restores', errno=0, families=[4, 6], clients=restored)
         persistent.stdin.close(); assert persistent.wait(timeout=5) == 0
         for how in ['term', 'kill']:
             for s in [s4, s6]:
