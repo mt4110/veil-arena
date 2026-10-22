@@ -85,11 +85,11 @@ def evidence_objects(value):
     return value
 
 
-def client_endpoint(client):
+def client_endpoint(client, protocol='tcp'):
     pid, port = client.get('pid'), client.get('port')
     if (not positive_policy_id(pid) or type(pid) is not int
             or type(port) is not int or not 1 <= port <= 65535
-            or not isinstance(client.get('address'), str)):
+            or not isinstance(client.get('address'), str) or client.get('protocol') != protocol):
         return None
     try:
         address = ipaddress.ip_address(client['address'])
@@ -115,6 +115,23 @@ def recovery_matches(clients, proofs):
                     and c['scope'].startswith('/warden.slice/warden-test.slice/') for c in clients))
 
 
+def recovery_connection(before, after, rules_added_ns, endpoints):
+    # A single socket connected before the policy and exchanged again afterward.
+    identity = ['pid', 'scope', 'family', 'address', 'port', 'protocol',
+                'local_address', 'local_port', 'connected_ns']
+    return (before.get('family') == 2 and client_endpoint(before) in endpoints
+            and client_endpoint(before) == client_endpoint(after)
+            and integer_equal(before.get('errno'), 0) and integer_equal(after.get('errno'), 0)
+            and isinstance(before.get('scope'), str) and before['scope'].startswith('/warden.slice/warden-test.slice/')
+            and all(type(before.get(k)) is type(after.get(k)) and before.get(k) == after.get(k) for k in identity)
+            and before.get('local_address') == '127.0.0.1'
+            and type(before.get('local_port')) is int and 1 <= before['local_port'] <= 65535
+            and integer_equal(before.get('sequence'), 1) and integer_equal(after.get('sequence'), 2)
+            and all(type(v) is int and v > 0 for v in [before.get('connected_ns'),
+                before.get('exchanged_ns'), rules_added_ns, after.get('exchanged_ns')])
+            and before['connected_ns'] <= before['exchanged_ns'] < rules_added_ns < after['exchanged_ns'])
+
+
 def integer_equal(value, expected):
     return type(value) is int and value == expected
 
@@ -132,6 +149,9 @@ def verify(root):
     monitors = evidence_objects(r.get('monitors'))
     if not isinstance(r.get('boot_id'), str): raise ValueError('invalid boot identity')
     if [s.get('id') for s in steps] != STEPS: raise ValueError('incomplete Warden phases')
+    evidence_objects(steps[0].get('clients'))
+    for i in [4, 6]: evidence_object(steps[i].get('client'))
+    for key in ['before', 'after']: evidence_object(steps[3].get(key))
     evidence_object(steps[1].get('event'))
     evidence_object(steps[1].get('client'))
     evidence_objects(steps[7].get('clients'))
@@ -143,7 +163,7 @@ def verify(root):
     outside = evidence_object(steps[5].get('client'))
     if not isinstance(outside.get('scope'), str): raise ValueError('invalid outside scope')
     for step in steps[8:]: evidence_objects(step.get('clients'))
-    if (not integer_equal(r.get('schema_version'), 2) or r.get('status') != 'passed'
+    if (not integer_equal(r.get('schema_version'), 3) or r.get('status') != 'passed'
             or r.get('scenario') != 'warden-policy' or r.get('cleanup_complete') is not True
             or read('service-result.txt').strip() != 'success'
             or stop.get('status') != 'passed' or stop.get('qemu_reaped') is not True
@@ -180,6 +200,25 @@ def verify(root):
     if (not integer_equal(steps[5]['client'].get('errno'), 0) or not integer_equal(steps[7].get('errno'), 0)
             or steps[5].get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')):
         raise ValueError('outside scope/remove proof missing')
+    if (steps[0].get('families') != [4, 6] or not integer_equal(steps[0].get('errno'), 0)
+            or not recovery_matches(steps[0]['clients'], proofs)):
+        raise ValueError('baseline clients missing')
+    endpoints = {client_endpoint(p['client']) for p in proofs}
+    outside = steps[5]['client']
+    if client_endpoint(outside) not in endpoints or not outside['scope'].startswith('/'):
+        raise ValueError('outside client destination differs')
+    udp, unlisted = steps[4]['client'], steps[6]['client']
+    ipv4_port = next(p['client']['port'] for p in proofs if p['client']['family'] == 2)
+    if (not integer_equal(udp.get('errno'), 0) or client_endpoint(udp, 'udp') != (2, f'127.0.0.1:{ipv4_port}')
+            or not isinstance(udp.get('scope'), str) or not udp['scope'].startswith('/warden.slice/warden-test.slice/')):
+        raise ValueError('UDP proof differs')
+    if (not integer_equal(unlisted.get('errno'), 0) or client_endpoint(unlisted) in endpoints
+            or client_endpoint(unlisted) != (2, f"127.0.0.2:{ipv4_port}")
+            or not isinstance(unlisted.get('scope'), str) or not unlisted['scope'].startswith('/warden.slice/warden-test.slice/')):
+        raise ValueError('unlisted destination proof differs')
+    existing = steps[3]; before, after = existing['before'], existing['after']
+    if (not recovery_connection(before, after, existing.get('rules_added_ns'), endpoints)):
+        raise ValueError('established connection identity missing')
     if steps[7].get('families') != [4, 6] or not recovery_matches(steps[7]['clients'], proofs):
         raise ValueError('remove recovery proof missing')
     for s, code in zip(steps[8:], [0, -signal.SIGKILL], strict=True):

@@ -6,9 +6,14 @@ K3s/F4の完成条件は変更しない。Warden本体のhostname・cgroup・既
 [初回の検証集計](validation/warden-policy-20261021.json)：Mac ARM64/TCGの新規2 VMで全10段階が成功。
 boot IDは別、起動入力は同じ、両VMの証拠同期・QEMU回収を確認した。失敗した準備・起動の記録も保持している。
 
-[再レビュー後の検証集計](validation/warden-policy-20261022.json)：証拠形式v2で新規2 VMを実行し、各10段階成功。
+[中間形式v2の検証集計](validation/warden-policy-20261022.json)：証拠形式v2で新規2 VMを実行し、各10段階成功。
 observeのclient/event照合と、解除・停止後の元IPv4/IPv6宛先への復帰を確認した。
 v1の旧証拠は履歴として保持し、v2の合格実績には流用しない。
+
+[最新の検証集計](validation/warden-policy-20261022-v3.json)：形式v3の新規2 VMで各10段階成功。
+正常通信・UDP・未登録宛先・対象外cgroupもclientの宛先/プロトコルへ紐付ける。
+既存接続は単一socketのPID・接続元port・接続時刻・宛先をルール追加前後で照合する。
+v1/v2は履歴として保持し、v3の判定は新規実行の証拠を要求する。
 
 ## 対象と境界
 

@@ -17,7 +17,7 @@ import warden_host
 class WardenEvidence(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix='arena-warden-proof-'))
-        self.record = {'schema_version': 2, 'scenario': 'warden-policy', 'status': 'passed',
+        self.record = {'schema_version': 3, 'scenario': 'warden-policy', 'status': 'passed',
             'cleanup_complete': True, 'boot_id': '00000000-0000-0000-0000-000000000001',
             'monitors': [{'links_restored': True}] * 3,
             'steps': [{'id': name} for name in warden_host.STEPS]}
@@ -26,7 +26,7 @@ class WardenEvidence(unittest.TestCase):
         steps[1].update(mutations_rejected=True, event={'decision': 'allow'})
         steps[2]['proofs'] = [{'receiver_delta': 0,
             'client': {'errno': errno.EPERM, 'scope': '/warden.slice/warden-test.slice/client.service', 'family': family,
-                       'pid': 747, 'address': address, 'port': 39889},
+                       'pid': 747, 'address': address, 'port': 39889, 'protocol': 'tcp'},
             'event': {'decision': 'deny', 'policy_id': '1', 'family': event_family,
                       'tgid': '747', 'destination': destination, 'protocol': 'tcp'}}
             for family, event_family, address, destination in [
@@ -35,7 +35,13 @@ class WardenEvidence(unittest.TestCase):
         steps[1].update(errno=0, client=dict(steps[2]['proofs'][0]['client'], errno=0),
                         event=dict(steps[2]['proofs'][0]['event'], decision='allow'))
         for i in [3, 4, 6]: steps[i]['receiver_delta'] = 1
-        steps[5]['client'] = {'errno': 0, 'scope': '/system.slice/client.service'}
+        steps[0].update(errno=0, families=[4, 6], clients=[dict(p['client'], errno=0) for p in steps[2]['proofs']])
+        steps[4]['client'] = dict(steps[2]['proofs'][0]['client'], errno=0, protocol='udp')
+        steps[6]['client'] = dict(steps[2]['proofs'][0]['client'], errno=0, address='127.0.0.2')
+        before = dict(steps[2]['proofs'][0]['client'], errno=0, local_address='127.0.0.1',
+                      local_port=45000, connected_ns=1, exchanged_ns=2, sequence=1)
+        steps[3].update(before=before, after=dict(before, exchanged_ns=4, sequence=2), rules_added_ns=3)
+        steps[5]['client'] = dict(steps[2]['proofs'][0]['client'], errno=0, scope='/system.slice/client.service')
         steps[7].update(errno=0, families=[4, 6], clients=[dict(p['client'], errno=0) for p in steps[2]['proofs']])
         for s, code in zip(steps[8:], [0, -9]):
             s.update(returncode=code, links_restored=True, control_endpoint_closed=True,
@@ -157,7 +163,7 @@ class WardenEvidence(unittest.TestCase):
 
     def test_stop_recovery_requires_both_original_destinations_in_scope(self):
         original = copy.deepcopy(self.record)
-        for index in [7, 8, 9]:
+        for index in [0, 7, 8, 9]:
             for change in ['ipv4-twice', 'ipv6-twice', 'family', 'address', 'port', 'scope']:
                 self.record = copy.deepcopy(original)
                 clients = self.record['steps'][index]['clients']
@@ -193,6 +199,36 @@ class WardenEvidence(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError): self.verify()
         self.record = original
         del self.record['steps'][7]['clients']
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_baseline_requires_both_families_success_and_endpoints(self):
+        original = copy.deepcopy(self.record)
+        for key, value in [('families', None), ('families', [4, 4]), ('errno', errno.EPERM), ('clients', [])]:
+            self.record = copy.deepcopy(original)
+            self.record['steps'][0][key] = value
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError): self.verify()
+
+    def test_pass_through_clients_must_match_protocol_scope_and_destination(self):
+        original = copy.deepcopy(self.record)
+        for index in [4, 5, 6]:
+            for key, value in [('address', '127.0.0.3'), ('port', 12345), ('family', 10),
+                               ('protocol', 'udp' if index != 4 else 'tcp'), ('pid', None), ('errno', errno.EPERM)]:
+                self.record = copy.deepcopy(original)
+                self.record['steps'][index]['client'][key] = value
+                with self.subTest(index=index, key=key), self.assertRaises(ValueError): self.verify()
+        self.record = copy.deepcopy(original)
+        self.record['steps'][6]['client']['address'] = '127.0.0.1'
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_existing_connection_requires_same_socket_before_and_after_rules(self):
+        original = copy.deepcopy(self.record)
+        for key, value in [('local_port', 45001), ('local_port', 45000.0), ('pid', 748),
+                           ('connected_ns', 3), ('sequence', 1), ('protocol', 'udp'), ('errno', errno.EPERM)]:
+            self.record = copy.deepcopy(original)
+            self.record['steps'][3]['after'][key] = value
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError): self.verify()
+        self.record = copy.deepcopy(original)
+        self.record['steps'][3]['rules_added_ns'] = 5
         with self.assertRaises(ValueError): self.verify()
 
     def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False, manifest=...):

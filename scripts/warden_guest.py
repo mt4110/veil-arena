@@ -12,15 +12,33 @@ import time
 import traceback
 
 
+# One socket for both exchanges; report its identity before and after rules.
+PERSISTENT_CLIENT = r'''
+import json,os,socket,sys,time
+from pathlib import Path
+with socket.socket() as s:
+    s.settimeout(3)
+    s.connect(('127.0.0.1',int(sys.argv[1])))
+    connected_ns=time.monotonic_ns()
+    identity={'pid':os.getpid(),'scope':Path('/proc/self/cgroup').read_text().strip().split(':',2)[2],
+              'errno':0,'family':2,'address':'127.0.0.1','port':int(sys.argv[1]),'protocol':'tcp',
+              'local_address':s.getsockname()[0],'local_port':s.getsockname()[1],
+              'connected_ns':connected_ns}
+    for sequence,line in enumerate(sys.stdin,1):
+        s.sendall(b'warden-m3');assert s.recv(64)==b'warden-m3'
+        print(json.dumps(dict(identity,sequence=sequence,exchanged_ns=time.monotonic_ns())),flush=True)
+'''
+
+
 def test(binary, inputs, out):
     sys.path.insert(0, str(inputs))
     from connect_monitor import Monitor, links, attached, signatures
-    from connect_policy import Server, client, control, assert_deny, PERSIST
+    from connect_policy import Server, client, control, assert_deny
     if os.geteuid() != 0 or 'arena.warden=1' not in Path('/proc/cmdline').read_text().split():
         raise ValueError('dedicated Arena guest required')
     if Path('/etc/hostname').read_text().strip() != 'veil-warden-sandbox':
         raise ValueError('Warden sandbox hostname required')
-    record = {'schema_version': 2, 'scenario': 'warden-policy', 'status': 'running',
+    record = {'schema_version': 3, 'scenario': 'warden-policy', 'status': 'running',
               'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
               'kernel': os.uname().release, 'steps': [], 'clients': [], 'monitors': [],
               'limits': ['new TCP only', 'exact destination denylist', 'no payload inspection',
@@ -31,6 +49,7 @@ def test(binary, inputs, out):
         record['steps'].append({'id': name, **proof}); save()
     def attempt(server, **kwargs):
         c = client(server.family, server.address, server.port, **kwargs)
+        c['protocol'] = kwargs.get('kind', 'tcp')
         record['clients'].append(c)
         return c
     def eventually(predicate):
@@ -60,11 +79,13 @@ def test(binary, inputs, out):
         servers.append(s4)
         s6 = Server(socket.AF_INET6, '::1'); servers.append(s6)
         udp = Server(socket.AF_INET, '127.0.0.1', socket.SOCK_DGRAM, s4.port); servers.append(udp)
+        baseline = []
         for s in [s4, s6]:
             before = len(s.received)
-            assert attempt(s)['errno'] == 0
+            c = attempt(s); assert c['errno'] == 0
             eventually(lambda: len(s.received) == before + 1)
-        step('baseline', families=[4, 6], errno=0, receiver_delta=[1, 1])
+            baseline.append(c)
+        step('baseline', families=[4, 6], errno=0, clients=baseline, receiver_delta=[1, 1])
         m = monitor()
         c = attempt(s4); assert c['errno'] == 0
         m.wait(lambda: any(int(e['tgid']) == c['pid'] for e in m.events()))
@@ -76,14 +97,15 @@ def test(binary, inputs, out):
         m = monitor('--enforce')
         persistent = subprocess.Popen(['systemd-run', '--quiet', '--wait', '--pipe', '--collect',
             '--unit=arena-warden-persistent', '--slice=warden-test.slice',
-            'python3', '-u', '-c', PERSIST, str(s4.port)],
+            'python3', '-u', '-c', PERSISTENT_CLIENT, str(s4.port)],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         def exchange():
             persistent.stdin.write('send\n'); persistent.stdin.flush()
             assert select.select([persistent.stdout], [], [], 3)[0]
-            assert persistent.stdout.readline().strip() == 'received'
-        exchange()
+            return json.loads(persistent.stdout.readline())
+        initial = exchange()
         for s in [s4, s6]: control(str(binary), 'add', s.address, s.port)
+        rules_added_ns = time.monotonic_ns()
         denied = []
         for s in [s4, s6]:
             before = len(s.received)
@@ -91,18 +113,18 @@ def test(binary, inputs, out):
             time.sleep(.1); assert len(s.received) == before
             denied.append({'client': c, 'event': event, 'receiver_delta': 0})
         step('deny', proofs=denied)
-        before = len(s4.received); exchange()
+        before = len(s4.received); ongoing = exchange()
         eventually(lambda: len(s4.received) == before + 1)
-        step('existing-connection-bypasses-deny', receiver_delta=1)
-        assert attempt(udp, kind='udp')['errno'] == 0
+        step('existing-connection-bypasses-deny', receiver_delta=1, before=initial, after=ongoing, rules_added_ns=rules_added_ns)
+        c = attempt(udp, kind='udp'); assert c['errno'] == 0
         eventually(lambda: udp.received == ['warden-m3'])
-        step('udp-not-blocked', receiver_delta=1)
+        step('udp-not-blocked', client=c, receiver_delta=1)
         c = attempt(s4, inside=False); assert c['errno'] == 0
         step('outside-cgroup-not-blocked', client=c)
         other = Server(socket.AF_INET, '127.0.0.2', port=s4.port); servers.append(other)
-        assert attempt(other)['errno'] == 0
+        c = attempt(other); assert c['errno'] == 0
         eventually(lambda: other.received == ['warden-m3'])
-        step('unlisted-destination-not-blocked', receiver_delta=1)
+        step('unlisted-destination-not-blocked', client=c, receiver_delta=1)
         restored = []
         for s in [s4, s6]:
             control(str(binary), 'remove', s.address, s.port)
