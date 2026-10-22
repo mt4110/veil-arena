@@ -37,7 +37,7 @@ class WardenEvidence(unittest.TestCase):
         steps[7]['errno'] = 0
         for s, code in zip(steps[8:], [0, -9]):
             s.update(returncode=code, links_restored=True, control_endpoint_closed=True,
-                     clients=[{'errno': 0}, {'errno': 0}])
+                     clients=[dict(p['client'], errno=0) for p in steps[2]['proofs']])
         self.stop = {'status': 'passed', 'qemu_reaped': True, 'evidence_synced': True,
                      'escalated': False, 'qemu_exit_code': 0}
         (self.root / 'service-result.txt').write_text('success\n')
@@ -132,10 +132,50 @@ class WardenEvidence(unittest.TestCase):
         self.assertEqual(report['status'], 'failed')
         self.assertIn('evidence object', report['error'])
 
-    def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False):
+    def test_numeric_evidence_rejects_booleans_and_floats(self):
+        original = copy.deepcopy(self.record)
+        paths = [('schema_version',), ('steps', 0, 'receiver_delta', 0),
+                 ('steps', 2, 'proofs', 0, 'receiver_delta'),
+                 ('steps', 2, 'proofs', 0, 'client', 'errno'),
+                 ('steps', 2, 'proofs', 0, 'client', 'family'),
+                 ('steps', 3, 'receiver_delta'), ('steps', 5, 'client', 'errno'),
+                 ('steps', 7, 'errno'), ('steps', 8, 'returncode'),
+                 ('steps', 8, 'clients', 0, 'errno')]
+        for path in paths:
+            for value in [True, False, 0.0, 1.0, 2.0]:
+                self.record = copy.deepcopy(original)
+                parent = self.record
+                for key in path[:-1]: parent = parent[key]
+                parent[path[-1]] = value
+                with self.subTest(path=path, value=value), self.assertRaises(ValueError): self.verify()
+        self.record = original
+        for value in [False, 0.0]:
+            self.stop['qemu_exit_code'] = value
+            with self.subTest(stop=value), self.assertRaises(ValueError): self.verify()
+
+    def test_stop_recovery_requires_both_original_destinations_in_scope(self):
+        original = copy.deepcopy(self.record)
+        for index in [8, 9]:
+            for change in ['ipv4-twice', 'ipv6-twice', 'family', 'address', 'port', 'scope']:
+                self.record = copy.deepcopy(original)
+                clients = self.record['steps'][index]['clients']
+                if change == 'ipv4-twice': clients[1] = copy.deepcopy(clients[0])
+                elif change == 'ipv6-twice': clients[0] = copy.deepcopy(clients[1])
+                else:
+                    clients[0][change] = {'family': 10, 'address': '127.0.0.2', 'port': 12345,
+                                          'scope': '/system.slice/client.service'}[change]
+                with self.subTest(index=index, change=change), self.assertRaises(ValueError): self.verify()
+
+    def test_input_manifest_must_be_object(self):
+        for value in [None, [], True, 'invalid', 1]:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                self.workflow_fixture('daily', manifest=value)
+
+    def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False, manifest=...):
         base = Path(tempfile.mkdtemp(prefix='workflow-', dir=self.root))
         bundle = base / 'bundle'; bundle.mkdir()
-        (bundle / 'inputs.json').write_text('{"guest_system":"aarch64-linux"}')
+        (bundle / 'inputs.json').write_text(json.dumps(
+            {'guest_system': 'aarch64-linux'} if manifest is Ellipsis else manifest))
         (bundle / 'toplevel').write_text('/nix/store/' + 'a' * 32 + '-nixos-system-veil-warden-sandbox-test\n')
         (bundle / 'kernel-params').write_text('arena.warden=1 root=fstab\n')
         count = 2 if mode == 'acceptance' else 1

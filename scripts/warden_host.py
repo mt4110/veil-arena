@@ -85,22 +85,32 @@ def evidence_objects(value):
     return value
 
 
-def deny_matches_client(proof):
-    client, event = proof['client'], proof['event']
+def client_endpoint(client):
     pid, port = client.get('pid'), client.get('port')
     if (not positive_policy_id(pid) or type(pid) is not int
             or type(port) is not int or not 1 <= port <= 65535
             or not isinstance(client.get('address'), str)):
-        return False
+        return None
     try:
         address = ipaddress.ip_address(client['address'])
     except ValueError:
-        return False
+        return None
     family = 2 if address.version == 4 else 10
+    if type(client.get('family')) is not int or client['family'] != family: return None
     destination = f'{address}:{port}' if address.version == 4 else f'[{address}]:{port}'
-    return (client.get('family') == family and event.get('family') == str(address.version)
-            and event.get('tgid') == str(pid) and event.get('destination') == destination
-            and event.get('protocol') == 'tcp')
+    return family, destination
+
+
+def deny_matches_client(proof):
+    client, event = proof['client'], proof['event']
+    endpoint = client_endpoint(client)
+    return bool(endpoint and event.get('family') == ('4' if endpoint[0] == 2 else '6')
+                and event.get('tgid') == str(client['pid']) and event.get('destination') == endpoint[1]
+                and event.get('protocol') == 'tcp')
+
+
+def integer_equal(value, expected):
+    return type(value) is int and value == expected
 
 
 def verify(root):
@@ -125,20 +135,23 @@ def verify(root):
     outside = evidence_object(steps[5].get('client'))
     if not isinstance(outside.get('scope'), str): raise ValueError('invalid outside scope')
     for step in steps[8:]: evidence_objects(step.get('clients'))
-    if (r.get('schema_version') != 1 or r.get('status') != 'passed'
+    if (not integer_equal(r.get('schema_version'), 1) or r.get('status') != 'passed'
             or r.get('scenario') != 'warden-policy' or r.get('cleanup_complete') is not True
             or read('service-result.txt').strip() != 'success'
             or stop.get('status') != 'passed' or stop.get('qemu_reaped') is not True
             or stop.get('evidence_synced') is not True or stop.get('escalated') is not False
-            or stop.get('qemu_exit_code') != 0):
+            or not integer_equal(stop.get('qemu_exit_code'), 0)):
         raise ValueError('guest or VM lifecycle failed')
     if (not re.fullmatch('[0-9a-f-]{36}', r.get('boot_id', ''))
             or read('guest-boot-id.txt').strip() != r['boot_id']):
         raise ValueError('boot identity differs')
-    if (steps[0].get('receiver_delta') != [1, 1] or steps[1].get('mutations_rejected') is not True
+    if (steps[0].get('receiver_delta') != [1, 1]
+            or any(not integer_equal(v, 1) for v in steps[0]['receiver_delta'])
+            or steps[1].get('mutations_rejected') is not True
             or steps[1].get('event', {}).get('decision') != 'allow'):
         raise ValueError('baseline/observe proof missing')
-    if len(proofs) != 2 or any(p.get('receiver_delta') != 0 or p.get('client', {}).get('errno') != errno.EPERM
+    if len(proofs) != 2 or any(not integer_equal(p.get('receiver_delta'), 0)
+            or not integer_equal(p['client'].get('errno'), errno.EPERM)
             or not p.get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')
             or p.get('event', {}).get('decision') != 'deny' or not positive_policy_id(p.get('event', {}).get('policy_id'))
             or not deny_matches_client(p) for p in proofs):
@@ -148,14 +161,18 @@ def verify(root):
     families = [(p['client'].get('family'), p['event'].get('family')) for p in proofs]
     if families.count((2, '4')) != 1 or families.count((10, '6')) != 1:
         raise ValueError('deny requires one matching IPv4 and IPv6 proof')
-    if any(steps[i].get('receiver_delta') != 1 for i in [3, 4, 6]): raise ValueError('limits not demonstrated')
-    if (steps[5].get('client', {}).get('errno') != 0 or steps[7].get('errno') != 0
+    if any(not integer_equal(steps[i].get('receiver_delta'), 1) for i in [3, 4, 6]): raise ValueError('limits not demonstrated')
+    if (not integer_equal(steps[5]['client'].get('errno'), 0) or not integer_equal(steps[7].get('errno'), 0)
             or steps[5].get('client', {}).get('scope', '').startswith('/warden.slice/warden-test.slice/')):
         raise ValueError('outside scope/remove proof missing')
     for s, code in zip(steps[8:], [0, -signal.SIGKILL], strict=True):
-        if (s.get('returncode') != code or s.get('links_restored') is not True
+        if (not integer_equal(s.get('returncode'), code) or s.get('links_restored') is not True
                 or s.get('control_endpoint_closed') is not True or len(s.get('clients', [])) != 2
-                or any(c.get('errno') != 0 for c in s['clients'])):
+                or any(not integer_equal(c.get('errno'), 0) for c in s['clients'])
+                or {client_endpoint(c) for c in s['clients']}
+                   != {client_endpoint(p['client']) for p in proofs}
+                or any(not isinstance(c.get('scope'), str)
+                       or not c['scope'].startswith('/warden.slice/warden-test.slice/') for c in s['clients'])):
             raise ValueError('stop recovery proof missing')
     if len(monitors) != 3 or any(m.get('links_restored') is not True for m in monitors):
         raise ValueError('monitor lifecycle proof missing')
@@ -167,7 +184,7 @@ def workflow(uid, bundle, mode, output):
     if mode not in ['daily', 'acceptance']: raise ValueError('use daily or acceptance')
     route = execution()
     expected = check_bundle(bundle)
-    meta = json.loads((bundle / 'inputs.json').read_text())
+    meta = evidence_object(json.loads((bundle / 'inputs.json').read_text()))
     if meta.get('guest_system') != ('aarch64-linux' if route['arch'] == 'aarch64' else 'x86_64-linux'):
         raise ValueError('Warden artifact architecture differs from runtime host')
     # Existing 4 GiB VM plus a conservative 1 GiB host reserve, not a measured minimum.
