@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "guest_evidence_schema": 2,
+  "date": "2026-10-22 JST",
+  "scenario": "warden-policy",
+  "status": "passed",
+  "base_commit": "fa7a00f3a7030b40b4077806ff08dc4fa2bc0f89",
+  "changes": "working review fixes; file hashes below identify tested code",
+  "tested_source_sha256": {
+    "scripts/warden_guest.py": "2b0a4fd78b436bb61a283c7b1258659eab9f008606d5c5d77fbd308a0a3acf2a",
+    "scripts/warden_host.py": "24c40db54286a1a8225e39d6a0980f6f7329e7c5f79fc855996f3f17ee7467a1"
+  },
+  "source_archive_sha256": "d48593a431dd301b439ceaf20296f80ff9f643eb88fa1a5b02d3b620ce49bca4",
+  "boot_inputs": {
+    "store.img": "7155d3cea3f819d6bd5f24869743cd3d524a8cc9a3863cd086c53cdf766aeeec",
+    "Image": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+    "initrd": "1ce64a4b4b368b4a02052067a1703910946950828fae2b610962640d15dfe612",
+    "kernel-params": "4dc737473e00cb95da6e0a858a670b1acb847a60968032da95fdaab0899e0bf5",
+    "toplevel": "8ba88e6d19eda245c7fe8140973297603cc046cb712025ec6c5e023ec8f3a965",
+    "inputs.json": "9412cd1209ca63461fc32f6e8c245a1e4a0c50525c046882d03e88524f7d82d9"
+  },
+  "execution": {
+    "arch": "aarch64",
+    "accelerator": "tcg",
+    "cpu": "max"
+  },
+  "network": "no NIC; synthetic loopback only",
+  "raw_evidence": "/Volumes/Elecom-1TB/Linux/veil-arena/warden-20261022-review/acceptance-1",
+  "runs": [
+    {
+      "run": "fresh-1",
+      "boot_id": "49bd241e-85ff-4e28-870b-2826075bb3af",
+      "status": "passed",
+      "steps": [
+        "baseline",
+        "observe",
+        "deny",
+        "existing-connection-bypasses-deny",
+        "udp-not-blocked",
+        "outside-cgroup-not-blocked",
+        "unlisted-destination-not-blocked",
+        "remove-restores",
+        "stop-term-restores",
+        "stop-kill-restores"
+      ],
+      "observe": {
+        "id": "observe",
+        "client": {
+          "pid": 708,
+          "scope": "/warden.slice/warden-test.slice/warden-m3-3.service",
+          "errno": 0,
+          "family": 2,
+          "address": "127.0.0.1",
+          "port": 39047
+        },
+        "errno": 0,
+        "event": {
+          "family": "4",
+          "tgid": "708",
+          "tid": "708",
+          "cgroup": "3648",
+          "timestamp_ns": "22813380000",
+          "destination": "127.0.0.1:39047",
+          "protocol": "tcp",
+          "decision": "allow",
+          "policy_id": "0",
+          "connection_result": "unknown",
+          "comm": "python3",
+          "comm_status": "best_effort"
+        },
+        "mutations_rejected": true
+      },
+      "denied": [
+        {
+          "client": {
+            "pid": 749,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-4.service",
+            "errno": 1,
+            "family": 2,
+            "address": "127.0.0.1",
+            "port": 39047
+          },
+          "event": {
+            "family": "4",
+            "tgid": "749",
+            "tid": "749",
+            "cgroup": "3744",
+            "timestamp_ns": "24644699000",
+            "destination": "127.0.0.1:39047",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "1",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        },
+        {
+          "client": {
+            "pid": 754,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-5.service",
+            "errno": 1,
+            "family": 10,
+            "address": "::1",
+            "port": 37541
+          },
+          "event": {
+            "family": "6",
+            "tgid": "754",
+            "tid": "754",
+            "cgroup": "3792",
+            "timestamp_ns": "25256850000",
+            "destination": "[::1]:37541",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "2",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        }
+      ],
+      "remove": {
+        "id": "remove-restores",
+        "errno": 0,
+        "families": [
+          4,
+          6
+        ],
+        "clients": [
+          {
+            "pid": 806,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-9.service",
+            "errno": 0,
+            "family": 2,
+            "address": "127.0.0.1",
+            "port": 39047
+          },
+          {
+            "pid": 813,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-10.service",
+            "errno": 0,
+            "family": 10,
+            "address": "::1",
+            "port": 37541
+          }
+        ]
+      },
+      "stop_recovery": [
+        {
+          "id": "stop-term-restores",
+          "returncode": 0,
+          "clients": [
+            {
+              "pid": 857,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-13.service",
+              "errno": 0,
+              "family": 2,
+              "address": "127.0.0.1",
+              "port": 39047
+            },
+            {
+              "pid": 863,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-14.service",
+              "errno": 0,
+              "family": 10,
+              "address": "::1",
+              "port": 37541
+            }
+          ],
+          "links_restored": true,
+          "control_endpoint_closed": true
+        },
+        {
+          "id": "stop-kill-restores",
+          "returncode": -9,
+          "clients": [
+            {
+              "pid": 910,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-17.service",
+              "errno": 0,
+              "family": 2,
+              "address": "127.0.0.1",
+              "port": 39047
+            },
+            {
+              "pid": 916,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-18.service",
+              "errno": 0,
+              "family": 10,
+              "address": "::1",
+              "port": 37541
+            }
+          ],
+          "links_restored": true,
+          "control_endpoint_closed": true
+        }
+      ],
+      "lifecycle": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 82181,
+        "duration_ms": 35167,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 82184,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "result_sha256": "3295271c2d2e13baa3f1062cdc90b20e8e13d59ec44c93c5545e26f2cabffce2"
+    },
+    {
+      "run": "fresh-2",
+      "boot_id": "0d9ba733-b4b4-4962-8f0c-f6cd80a4b3a9",
+      "status": "passed",
+      "steps": [
+        "baseline",
+        "observe",
+        "deny",
+        "existing-connection-bypasses-deny",
+        "udp-not-blocked",
+        "outside-cgroup-not-blocked",
+        "unlisted-destination-not-blocked",
+        "remove-restores",
+        "stop-term-restores",
+        "stop-kill-restores"
+      ],
+      "observe": {
+        "id": "observe",
+        "client": {
+          "pid": 708,
+          "scope": "/warden.slice/warden-test.slice/warden-m3-3.service",
+          "errno": 0,
+          "family": 2,
+          "address": "127.0.0.1",
+          "port": 50979
+        },
+        "errno": 0,
+        "event": {
+          "family": "4",
+          "tgid": "708",
+          "tid": "708",
+          "cgroup": "3648",
+          "timestamp_ns": "22720316000",
+          "destination": "127.0.0.1:50979",
+          "protocol": "tcp",
+          "decision": "allow",
+          "policy_id": "0",
+          "connection_result": "unknown",
+          "comm": "python3",
+          "comm_status": "best_effort"
+        },
+        "mutations_rejected": true
+      },
+      "denied": [
+        {
+          "client": {
+            "pid": 749,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-4.service",
+            "errno": 1,
+            "family": 2,
+            "address": "127.0.0.1",
+            "port": 50979
+          },
+          "event": {
+            "family": "4",
+            "tgid": "749",
+            "tid": "749",
+            "cgroup": "3744",
+            "timestamp_ns": "24561897000",
+            "destination": "127.0.0.1:50979",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "1",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        },
+        {
+          "client": {
+            "pid": 754,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-5.service",
+            "errno": 1,
+            "family": 10,
+            "address": "::1",
+            "port": 42097
+          },
+          "event": {
+            "family": "6",
+            "tgid": "754",
+            "tid": "754",
+            "cgroup": "3792",
+            "timestamp_ns": "25113959000",
+            "destination": "[::1]:42097",
+            "protocol": "tcp",
+            "decision": "deny",
+            "policy_id": "2",
+            "connection_result": "unknown",
+            "comm": "python3",
+            "comm_status": "best_effort"
+          },
+          "receiver_delta": 0
+        }
+      ],
+      "remove": {
+        "id": "remove-restores",
+        "errno": 0,
+        "families": [
+          4,
+          6
+        ],
+        "clients": [
+          {
+            "pid": 805,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-9.service",
+            "errno": 0,
+            "family": 2,
+            "address": "127.0.0.1",
+            "port": 50979
+          },
+          {
+            "pid": 812,
+            "scope": "/warden.slice/warden-test.slice/warden-m3-10.service",
+            "errno": 0,
+            "family": 10,
+            "address": "::1",
+            "port": 42097
+          }
+        ]
+      },
+      "stop_recovery": [
+        {
+          "id": "stop-term-restores",
+          "returncode": 0,
+          "clients": [
+            {
+              "pid": 856,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-13.service",
+              "errno": 0,
+              "family": 2,
+              "address": "127.0.0.1",
+              "port": 50979
+            },
+            {
+              "pid": 862,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-14.service",
+              "errno": 0,
+              "family": 10,
+              "address": "::1",
+              "port": 42097
+            }
+          ],
+          "links_restored": true,
+          "control_endpoint_closed": true
+        },
+        {
+          "id": "stop-kill-restores",
+          "returncode": -9,
+          "clients": [
+            {
+              "pid": 909,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-17.service",
+              "errno": 0,
+              "family": 2,
+              "address": "127.0.0.1",
+              "port": 50979
+            },
+            {
+              "pid": 915,
+              "scope": "/warden.slice/warden-test.slice/warden-m3-18.service",
+              "errno": 0,
+              "family": 10,
+              "address": "::1",
+              "port": 42097
+            }
+          ],
+          "links_restored": true,
+          "control_endpoint_closed": true
+        }
+      ],
+      "lifecycle": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 82890,
+        "duration_ms": 35100,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 82893,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "result_sha256": "cafeb34addc4d2cb3fa58941587f4694d09c721cc8cbf8c2ae60dc76e3140eb7"
+    }
+  ],
+  "limitations": [
+    "Mac ARM64/QEMU TCG only",
+    "No PHP/CVE, cloud, production or load acceptance",
+    "Existing TCP, UDP, outside-cgroup and unlisted destinations pass",
+    "Owned cached Warden CLI/BPF reused; not a fresh source build"
+  ]
+}
