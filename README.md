@@ -10,6 +10,8 @@ Veilプロジェクトの検証を実行し、結果と証拠を保存するRust
 既存netns 18ケースとBlackholeオフライン入口を維持し、第三者試用・販売を完成の前提にしません。
 物理ネットワークは別のphysical-veil-arenaへ分離し、署名タグ・公開は引き続き保留します。
 
+他のVeilの開発へ戻る際は、[貼り付け用の引継ぎプロンプト](docs/VEIL_HANDOFF.md)を利用してください。1 VM標準での区切り、実行入口、確認済みの範囲、責務の境界、保持する追加検証TODOをまとめています。
+
 ```sh
 bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 ```
