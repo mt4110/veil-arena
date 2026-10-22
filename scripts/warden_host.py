@@ -234,6 +234,7 @@ def verify(root):
 def workflow(uid, bundle, mode, output):
     if uid <= 0 or os.getuid() != uid: raise ValueError('ordinary matching host UID required')
     if mode not in ['daily', 'acceptance']: raise ValueError('use daily or acceptance')
+    if any(c in str(bundle) for c in ',\n'): raise ValueError('bundle path without comma/newline required')
     route = execution()
     expected = check_bundle(bundle)
     meta = evidence_object(json.loads((bundle / 'inputs.json').read_text()))

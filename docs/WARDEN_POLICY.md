@@ -61,6 +61,7 @@ Nix store directoryを `docker cp` で丸ごとコピーするとread-only mode�
 ```
 
 `daily`は新規1 VM、`acceptance`は新規2 VMを直列実行。同じCPUのbundleと通常host UIDを要求する。
+QEMUの引数区切りとの衝突を避けるため、bundleと出力先のパスにカンマ・改行は使えない。
 4 GiB VMに対しhost空き/inactive RAMは保守的に5 GiB以上を要求する（測定した最低値ではない）。
 guest試験は180秒、Arena controllerは既存660秒、外側の待機は660秒。
 中断ではcontrollerへTERMを送り、所有QEMUを回収する。既存出力・失敗証拠・cacheは削除しない。

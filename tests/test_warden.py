@@ -231,9 +231,14 @@ class WardenEvidence(unittest.TestCase):
         self.record['steps'][3]['rules_added_ns'] = 5
         with self.assertRaises(ValueError): self.verify()
 
-    def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False, manifest=...):
+    def test_bundle_comma_and_newline_fail_preflight(self):
+        for name in ['a,b', 'a\nb']:
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'bundle path'):
+                self.workflow_fixture('daily', bundle_name=name)
+
+    def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False, manifest=..., bundle_name='bundle'):
         base = Path(tempfile.mkdtemp(prefix='workflow-', dir=self.root))
-        bundle = base / 'bundle'; bundle.mkdir()
+        bundle = base / bundle_name; bundle.mkdir()
         (bundle / 'inputs.json').write_text(json.dumps(
             {'guest_system': 'aarch64-linux'} if manifest is Ellipsis else manifest))
         (bundle / 'toplevel').write_text('/nix/store/' + 'a' * 32 + '-nixos-system-veil-warden-sandbox-test\n')
