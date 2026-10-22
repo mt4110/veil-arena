@@ -81,6 +81,7 @@ guest試験は180秒、Arena controllerは既存660秒、外側の待機は660�
 | SIGKILL後 | 新しいmonitorで拒否を再確認して強制終了。同じ復帰条件 |
 
 拒否はtimeout/ECONNREFUSEDや単なる非ゼロ終了では代用しない。
+boot IDは正規のUUID形式を要求し、monitorの終了記録もTERM/0、TERM/0、KILL/-9の順に照合する。
 hostの独立判定器は段階の欠落・拒否errno/受信/対象scope・復帰・boot ID・証拠同期・QEMU回収を照合する。
 拒否証拠はLinux guestのAF_INET=2とevent family=4、AF_INET6=10とevent family=6が各1件必要で、同じfamilyの重複を拒否する。
 bundleのhashは各VM起動前と全run終了後に照合し、最後のrun終了時点でhashが一致しなければ成功扱いしない。

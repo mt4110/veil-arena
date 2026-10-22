@@ -170,7 +170,7 @@ def verify(root):
             or stop.get('evidence_synced') is not True or stop.get('escalated') is not False
             or not integer_equal(stop.get('qemu_exit_code'), 0)):
         raise ValueError('guest or VM lifecycle failed')
-    if (not re.fullmatch('[0-9a-f-]{36}', r.get('boot_id', ''))
+    if (not re.fullmatch('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', r['boot_id'])
             or read('guest-boot-id.txt').strip() != r['boot_id']):
         raise ValueError('boot identity differs')
     if (steps[0].get('receiver_delta') != [1, 1]
@@ -226,7 +226,9 @@ def verify(root):
                 or s.get('control_endpoint_closed') is not True
                 or not recovery_matches(s['clients'], proofs)):
             raise ValueError('stop recovery proof missing')
-    if len(monitors) != 3 or any(m.get('links_restored') is not True for m in monitors):
+    if len(monitors) != 3 or any(m.get('links_restored') is not True
+            or m.get('exit') != mode or not integer_equal(m.get('returncode'), code)
+            for m, (mode, code) in zip(monitors, [('term', 0), ('term', 0), ('kill', -signal.SIGKILL)], strict=True)):
         raise ValueError('monitor lifecycle proof missing')
     return r
 

@@ -19,7 +19,8 @@ class WardenEvidence(unittest.TestCase):
         self.root = Path(tempfile.mkdtemp(prefix='arena-warden-proof-'))
         self.record = {'schema_version': 3, 'scenario': 'warden-policy', 'status': 'passed',
             'cleanup_complete': True, 'boot_id': '00000000-0000-0000-0000-000000000001',
-            'monitors': [{'links_restored': True}] * 3,
+            'monitors': [{'links_restored': True, 'exit': mode, 'returncode': code}
+                         for mode, code in [('term', 0), ('term', 0), ('kill', -9)]],
             'steps': [{'id': name} for name in warden_host.STEPS]}
         steps = self.record['steps']
         steps[0]['receiver_delta'] = [1, 1]
@@ -235,6 +236,25 @@ class WardenEvidence(unittest.TestCase):
         for name in ['a,b', 'a\nb']:
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'bundle path'):
                 self.workflow_fixture('daily', bundle_name=name)
+
+    def test_monitors_require_expected_exit_modes_and_integer_codes(self):
+        original = copy.deepcopy(self.record)
+        for index in range(3):
+            for key, value in [('exit', None), ('exit', 'term' if index == 2 else 'kill'),
+                               ('returncode', None), ('returncode', False), ('returncode', 0.0),
+                               ('returncode', 0 if index == 2 else -9)]:
+                self.record = copy.deepcopy(original)
+                self.record['monitors'][index][key] = value
+                with self.subTest(index=index, key=key, value=value), self.assertRaises(ValueError): self.verify()
+
+    def test_boot_identity_requires_canonical_uuid_even_when_files_match(self):
+        original = copy.deepcopy(self.record)
+        for value in ['-' * 36, 'a' * 36, '000000000-000-0000-0000-000000000001',
+                      '00000000-0000-0000-0000-00000000000A']:
+            self.record = copy.deepcopy(original)
+            self.record['boot_id'] = value
+            (self.root / 'guest-boot-id.txt').write_text(value)
+            with self.subTest(value=value), self.assertRaises(ValueError): self.verify()
 
     def workflow_fixture(self, mode, *, change_after_final=False, hup=False, cleanup_timeout=False, malformed_result=False, manifest=..., bundle_name='bundle'):
         base = Path(tempfile.mkdtemp(prefix='workflow-', dir=self.root))
