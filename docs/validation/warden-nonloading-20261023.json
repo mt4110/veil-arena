@@ -1,0 +1,139 @@
+{
+  "schema": "arena-warden-nonloading-validation-v1",
+  "observed_on": "2026-10-23",
+  "status": "passed-nonloading",
+  "scenario": "warden-nonloading-v1",
+  "provenance": {
+    "arena_base_commit": "e489def8a89c983d73ae24653b076aab97653dde",
+    "arena_implementation_sha256": {
+      "environments/vm/warden-preflight.nix": "c63a3e4832a09701e09fe9e1b9a62940a277963c968a05424284297c3c2b8b8e",
+      "scripts/prepare-warden-preflight.sh": "f144774ac4581f774d3ece5ac46050dc7111fe72ff343ef37080c2201aa463f6",
+      "scripts/warden_preflight.py": "267c9115005951e64aa50a2f254ce97b83f0e34c339f830485a38af0e90cfdab",
+      "scripts/warden_preflight_host.py": "c66ef7a3b22bfddb71f05d137050e24cc6976b9aab91171ffe029668cb237f42",
+      "scripts/warden_preflight_terminal.py": "07eb0b7d7d8add16f91600ee8a86b3a4f0244c987a49e306c014079b2a1937e0",
+      "tests/test_warden_preflight.py": "7b3595fca372ebc682ff5b95e94111e87d38db582ce5fa1d5eccfcdf607e9ee8"
+    },
+    "warden_base_commit": "3a7281648ef7a0e62626c79894222591a51bbbe1",
+    "warden_service_identity_source_sha256": "4fc81f3f0fef2b18c22428543cf5e672e007a80460a291d44efe1f59d9f7baf8",
+    "warden_source_state": "local uncommitted service-identity implementation; not a released dependency"
+  },
+  "environment": {
+    "host": "macOS ARM64",
+    "guest_system": "aarch64-linux",
+    "guest": "NixOS",
+    "route": {
+      "arch": "aarch64",
+      "accelerator": "tcg",
+      "cpu": "max"
+    },
+    "vcpus": 2,
+    "memory_mib": 4096,
+    "network": "no NIC",
+    "shared_directory": "evidence only",
+    "source_bundle": "/nix/store/6y39rs22q2w2mlmd1h696drmdv03ldcn-arena-warden-nonloading-bundle",
+    "bundle_sha256": {
+      "store.img": "c565c9c1c5f407026abdce8b849193b97e546298c2521d2dadc404e42923fb53",
+      "Image": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+      "initrd": "b8f21c601c8aae24dca8a379399e85f8ca4be5b5d1a7e8da6d6966e6e2906d90",
+      "kernel-params": "bb6e00dc453393304c98a7c2dcdf5fda9377bd2b105f57bbf6e0ac44e0e0c156",
+      "toplevel": "1363fa8b93013e603e9c84d28268cce39b309ce1f6e9a7b363e3ded82b0c8035",
+      "scenario": "82b2b6152da9be4501b365f760c3e681e7c1916d7a6b07cb27488c8e90909912",
+      "guest-system": "b65a952cb042ad611d56ee6370ca9747521841f967de0dd9e3ecb64e1687ec53"
+    }
+  },
+  "boot_id": "2afbfbbf-f1c2-42fd-a1a1-dd280892b662",
+  "cases": {
+    "running": {
+      "native_returncode": 1,
+      "bpf_syscall_count": 0,
+      "socket_families": [
+        "AF_UNIX"
+      ],
+      "trace_sha256": "36ae8de229b833f4fe45f7bfd7e4dfecf680e94fb6ad96731543a5d1ee510bc5"
+    },
+    "missing": {
+      "native_returncode": 1,
+      "bpf_syscall_count": 0,
+      "socket_families": [
+        "AF_UNIX"
+      ],
+      "trace_sha256": "7c9c7f437c14ebd6dac4c2fe1e76953eaa6b7cfd04e6760f9a7e6be2b1eb826f"
+    },
+    "protected": {
+      "native_returncode": 2,
+      "bpf_syscall_count": 0,
+      "socket_families": [],
+      "trace_sha256": "932e620b0c2b5643cf5b540352fd9fa03d6b5fb2b8e6afa521a94cc47200f5f1"
+    },
+    "mixed": {
+      "native_returncode": 2,
+      "bpf_syscall_count": 0,
+      "socket_families": [],
+      "trace_sha256": "86b682086cbbcb1ed91be170a98658b6859b3601eb80941afdf97f379eb717e1"
+    }
+  },
+  "terminal": {
+    "schema": "arena-warden-nonloading-terminal-v1",
+    "service_result": "success",
+    "diagnostic_directory_present": true,
+    "writer_uid": 501,
+    "output_owner_uid": 501
+  },
+  "stop": {
+    "reason": "service_completed",
+    "status": "passed",
+    "lifecycle_exit_code": 0,
+    "qemu_exit_code": 0,
+    "qemu_reaped": true,
+    "evidence_synced": true,
+    "evidence_synced_before_stop": true,
+    "escalated": false,
+    "duration_ms": 24666
+  },
+  "independent_stop": {
+    "controller_and_qemu_absent": true,
+    "guest_self_poweroff_verified": false
+  },
+  "local_regression": {
+    "python_tests_run": 210,
+    "skipped": 1,
+    "failures": 0,
+    "nonloading_tests": 16
+  },
+  "cleanup": {
+    "trial_vm_stopped": true,
+    "dedicated_builder_stopped": true,
+    "previous_failure_evidence_preserved": true,
+    "previous_bundle_hashes_unchanged": true
+  },
+  "limits": {
+    "runtime_protection_verified": false,
+    "deployment_ready": false,
+    "x86_64_runtime_verified": false,
+    "production_verified": false,
+    "vm_start_failure_injected": false,
+    "vm_watchdog_failure_injected": false,
+    "bpf_syscall_trace_scope": "diagnostic process and its children, not every process in the OS"
+  },
+  "local_evidence_locator": "artifacts/warden-nonloading-retry-nmhzh7vl",
+  "evidence_sha256": {
+    "run-1/summary.json": "d842c1518f23ecdae39670e07e75297adbf9dccb68f99f845afb5d1c78483f87",
+    "run-1/vm-stop.json": "cc0b5c0799d1930d04b6036d6eaac869933ffb6ed0270fe2035629b055e37a60",
+    "run-1/terminal.json": "044f2bcd29d6c318c7386788430b814c47436ed0162e4e15e0f77ebc7c093231",
+    "run-1/nonloading/preflight-result.json": "7895fcfc52697e645ae760e95bda051ae72f2eb11fcd495aedb5516dd66e5fec",
+    "run-1/nonloading/running.stdout": "ca652d64a1d6a5589d21b4446356b65d5e421c5b671abb8d35816abfbbcdc341",
+    "run-1/serial.log": "90a24558ec3c08647688d92d6ef511a9b10dde86f819a3c0ccaf36cd3f4634db",
+    "local-tests-final.stderr": "68df66661991eade331859d5e3b02b5c546cf54b9509b1d3cc8c6ed28974c520",
+    "run-1/nonloading/running.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "run-1/nonloading/running.trace": "36ae8de229b833f4fe45f7bfd7e4dfecf680e94fb6ad96731543a5d1ee510bc5",
+    "run-1/nonloading/missing.stdout": "f2be5d6a569cfb546ac0e6175fafd8b361c781bdd2c623a759955aa456336e50",
+    "run-1/nonloading/missing.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "run-1/nonloading/missing.trace": "7c9c7f437c14ebd6dac4c2fe1e76953eaa6b7cfd04e6760f9a7e6be2b1eb826f",
+    "run-1/nonloading/protected.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "run-1/nonloading/protected.stderr": "5010516ec1cc1be0278efa3222f6c292821d05d54d27dabe6805cfea14f5a7d7",
+    "run-1/nonloading/protected.trace": "932e620b0c2b5643cf5b540352fd9fa03d6b5fb2b8e6afa521a94cc47200f5f1",
+    "run-1/nonloading/mixed.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "run-1/nonloading/mixed.stderr": "fb2e2b592a0fefdbe7e743ebe3c4b7054b78f7c1ce311de0317538147a39186d",
+    "run-1/nonloading/mixed.trace": "86b682086cbbcb1ed91be170a98658b6859b3601eb80941afdf97f379eb717e1"
+  }
+}

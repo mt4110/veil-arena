@@ -9,6 +9,11 @@ IPv4/IPv6の拒否・解除・SIGTERM/SIGKILL後の復帰、証拠同期・QEMU�
 保持済みのWarden CLI/BPFと準備済みguestを再利用した結果です。
 [mainの検証結果と再実行手順](docs/WARDEN_MAIN_VALIDATION.md)に、準備済みbundleから1 VMを試すコマンドと、初回準備への案内をまとめています。
 
+サービス名からPID・cgroup・起動世代を照合する[Warden非ロード試験](docs/WARDEN_NONLOADING.md)を追加しました。
+2026-10-23、Mac ARM64／TCGの隔離VM1台で、通常サービスの同定、不在・保護対象・入力混在の判定、終端証拠、QEMU停止・回収を確認しました。
+初回の証拠出力・終端処理の失敗を修正した結果です。[検証記録と限界](docs/WARDEN_NONLOADING_VALIDATION.md)を参照してください。
+サービス同定機能を含むローカルWardenソースが必要です。公開済みWarden mainだけでの再現や、BPFによる保護を認定する試験ではありません。
+
 最終ゴールは、他のVeilシリーズを試験できるLinux VM・仮想ネットワーク・K3s（Kubernetes）環境の完成です。
 標準の完成条件は [1 VM](docs/F4_STANDARD_ONE_VM.md)、2 VMのノード間通信は追加検証です。
 現在の完成計画は [F0〜F4](docs/COMPLETION_PLAN.md)、最初のKeeper接続と固定版・権限・対応ホストは
