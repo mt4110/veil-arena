@@ -52,7 +52,7 @@ K3sをKubernetes実装として採用しています。kind/kubeadm別環境は�
 ・Linuxで本人による上記4 runの実行と表示・証拠先の確認
 ・既存Blackholeオフライン入口
 ・netns一括試験18ケース、参照TC ingress eBPF、固定IPv4 TCP/UDP、NetEm全損失との比較
-・VM内BPF_PROG_TEST_RUNによる固定70入力の検証
+・VM内BPF_PROG_TEST_RUNによる固定109入力（従来70＋TCP 39）の検証
 
 netns各版の対応ホスト・成功記録は専用文書を確認してください。上記を一律に両ホストの最新bundle成功へ一般化しないでください。
 これらは固定fixtureと指定checkpointに対する確認です。
