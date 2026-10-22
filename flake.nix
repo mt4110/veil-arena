@@ -30,7 +30,7 @@
       '';
       arenaFor = pkgs: pkgs.rustPlatform.buildRustPackage {
         pname = "veil-arena";
-        version = "0.2.1";
+        version = "0.3.0";
         src = nixpkgs.lib.fileset.toSource {
           root = ./.;
           fileset = nixpkgs.lib.fileset.unions [ ./src ./Cargo.toml ./Cargo.lock ];
@@ -40,7 +40,7 @@
       };
       vmControllerFor = pkgs: pkgs.rustPlatform.buildRustPackage {
         pname = "veil-arena-vm-controller";
-        version = "0.2.1";
+        version = "0.3.0";
         src = nixpkgs.lib.fileset.toSource {
           root = ./tools/vm-controller;
           fileset = nixpkgs.lib.fileset.unions [ ./tools/vm-controller/src
