@@ -8,7 +8,7 @@ Veilプロジェクトの検証を実行し、結果と証拠を保存するRust
 [F0検証契約](docs/F0_CONTRACT.md) に定めます。F0の検証契約と、[F1の1 VM試験](docs/F1_K3S.md)を完了しました（Mac ARM64／TCG、新規2 VM）。
 [F2の2 VM試験](docs/F2_K3S.md)もMac ARM64／TCGの新規2クラスタで[受け入れ成功](docs/K3S_F2_VALIDATION.md)。[F3の固定Keeper exec smoke](docs/F3_KEEPER.md)も新規2 VMで[受け入れ成功](docs/KEEPER_F3_VALIDATION.md)。標準F4のMac側通信・Keeper・checkpointは[成功](docs/validation/f4-standard-one-vm-mac-20261021.json)。Linuxの本人4 runも成功確認済みです。F1通信は[Linux](docs/F1_LINUX_STANDARD_VALIDATION.md)と[Mac](docs/F1_MAC_STANDARD_VALIDATION.md)で同一修正ソースの新規2 VMずつ成功しました。受け入れ証拠と修正のレビュー・対象コミットCIは分けて確認します。2 VM側の未検証は追加検証TODOとして保持します。
 既存netns 18ケースとBlackholeオフライン入口を維持し、第三者試用・販売を完成の前提にしません。
-物理ネットワークは別のphysical-veil-arenaへ分離し、署名タグ・公開は引き続き保留します。
+物理ネットワークは別のphysical-veil-arenaへ分離します。標準1 VMの到達点は、署名付きタグの[v0.3.0ソース版](https://github.com/mt4110/veil-arena/releases/tag/v0.3.0)として公開済みです。
 
 他のVeilの開発へ戻る際は、[貼り付け用の引継ぎプロンプト](docs/VEIL_HANDOFF.md)を利用してください。1 VM標準での区切り、実行入口、確認済みの範囲、責務の境界、保持する追加検証TODOをまとめています。
 
@@ -24,8 +24,8 @@ bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 
 初期MVP（M0〜M2）の受け入れ検証を完了しました。[マイルストーン](docs/MILESTONES.md)と[公開用の検証集計](docs/validation/v0.1.0.json)に、条件・対応範囲・未検証事項をまとめています。
 
-v0.3.0のソース版公開を準備しています。1 VM標準のK3s通信・Keeper接続・中断／期限検出後の復帰までを確認し、機能開発を一区切りにしました。
-[リリースノート案](docs/releases/v0.3.0-draft.md)と[公開準備記録](docs/V0_3_0_READINESS.md)で、実VMの証拠と版上げ後のチェックを区別します。マージ・署名タグ作成・公開は承認後に行います。
+v0.3.0のソース版を公開しました。1 VM標準のK3s通信・Keeper接続・中断／期限検出後の復帰までを確認し、機能開発を一区切りにしました。
+[正式リリースノート](https://github.com/mt4110/veil-arena/releases/tag/v0.3.0)を参照してください。[公開準備記録](docs/V0_3_0_READINESS.md)と[当時のノート案](docs/releases/v0.3.0-draft.md)は履歴として保持し、実VMの証拠と版上げ後のチェックを区別します。
 2 VMの統合受け入れ・checkpointは追加検証TODOのまま保持します。過去のLinux x86_64／KVMの期限超過も原因未確定であり、今回のK3s成功をその解消の証拠にはしません。
 
 ホスト上のオフラインrunnerはOS sandboxではありません。Nixの開発環境と、外部NICを持たないLinux VMを用意しました。macOS ARM64のNix上のオフライン実行に加え、Linux x86_64／KVMのゲストで「正常版の成功 → 不具合版の検出 → 元コードで再成功」を確認済みです。ゲストの試験サービス終了後、ホストのRustコントローラーが結果をfsyncし、所有するQEMUを停止します。
