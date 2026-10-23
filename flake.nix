@@ -52,6 +52,14 @@
     in {
       lib = {
         inherit versions;
+        mkWardenPreflightRunner = { hostSystem, hostUid }:
+          let pkgs = pkgsFor hostSystem; in pkgs.writeShellApplication {
+            name = "arena-warden-preflight";
+            runtimeInputs = [ pkgs.python314 pkgs.coreutils pkgs.qemu (vmControllerFor pkgs) ];
+            text = ''exec python3 ${./scripts}/warden_preflight_host.py ${toString hostUid} "$@"'';
+          };
+        mkWardenPreflightGuest = { hostUid, wardenPackage, wardenVerifier, guestSystem ? "aarch64-linux" }:
+          import ./environments/vm/warden-preflight.nix { inherit nixpkgs hostUid wardenPackage wardenVerifier guestSystem; };
         mkWardenGuest = { hostUid, wardenInputs, guestSystem ? "aarch64-linux" }:
           import ./environments/vm/warden.nix { inherit nixpkgs hostUid wardenInputs guestSystem; };
         mkWardenRunner = { hostSystem, hostUid }:
