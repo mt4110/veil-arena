@@ -83,3 +83,20 @@ Rust・スクリプト・文書は[MIT](LICENSE)、`reference/*.c` の参照eBPF
 追加検証のF2・F3統合受け入れ入口と対応ホスト・判定方法は [F4手順](docs/F4_ACCEPTANCE.md) を参照してください。F4全体の完了条件とは分けて扱います。
 
 既存環境の1 VMで行うcheckpoint中断・watchdog期限検出・正常復帰は [F4 lifecycle手順](docs/F4_LIFECYCLE.md) を参照してください。資源不足の統合受け入れは完成計画のTODOに残します。
+
+## Wardenのobserve専用JSON試験（W1-1）
+
+NICなしの隔離VMで、実TCPイベントのJSON照合とSIGTERM／SIGKILL後の所有リンク解除・通信継続を試験できます。
+DROPは適用せず、policy試験とは別のbundle・runnerを使います。
+[準備・起動前確認・再実行手順](docs/WARDEN_OBSERVE_JSON.md)と
+[ARM64 VMでの限定検証記録](docs/validation/warden-observe-json-20261023.json)を参照してください。
+
+旧実VM記録はglobal program一覧を採取しておらず、program本体のアンロードは未確認です。
+現在の判定ではその前・中・後の一覧を必須としますが、修正後の実VM試験は未実施です。
+[再レビュー補足記録](docs/validation/warden-observe-program-release-review-20261023.json)を参照してください。
+
+現在は封印済みCLI／BPFパスと、両programが参照するMap IDの対応も必須です。
+旧bundle・実VM証拠にはこれらの新しい必須情報が不足しており、現行条件での受け入れは未検証です。
+
+復帰確認にはguest単調時計による停止後の接続開始時刻も必須です。旧実VM記録には未収録のため、
+新条件での復帰確認は未検証です。

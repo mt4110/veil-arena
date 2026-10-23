@@ -52,6 +52,14 @@
     in {
       lib = {
         inherit versions;
+        mkWardenObserveGuest = { hostUid, wardenInputs, guestSystem ? "aarch64-linux" }:
+          import ./environments/vm/warden-observe.nix { inherit nixpkgs hostUid wardenInputs guestSystem; };
+        mkWardenObserveRunner = { hostSystem, hostUid }:
+          let pkgs = pkgsFor hostSystem; in pkgs.writeShellApplication {
+            name = "arena-warden-observe";
+            runtimeInputs = [ pkgs.python314 pkgs.coreutils pkgs.qemu (vmControllerFor pkgs) ];
+            text = ''exec python3 ${./scripts}/warden_observe_host.py ${toString hostUid} "$@"'';
+          };
         mkWardenPreflightRunner = { hostSystem, hostUid }:
           let pkgs = pkgsFor hostSystem; in pkgs.writeShellApplication {
             name = "arena-warden-preflight";

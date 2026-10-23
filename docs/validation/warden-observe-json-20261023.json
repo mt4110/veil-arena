@@ -1,0 +1,258 @@
+{
+  "schema": "arena-warden-observe-validation-v1",
+  "date": "2026-10-23",
+  "status": "passed",
+  "arena_base_commit": "4b2291052c22f518aab04797e0070d67c98b94c4",
+  "arena_branch": "feat/warden-observe-json",
+  "arena_changes": "uncommitted",
+  "warden_base_commit": "32c42d647139536d8a9d360d87ffb8725247a34f",
+  "warden_changes": "uncommitted W1-1 snapshot; source hashes sealed",
+  "execution": {
+    "host": "macOS ARM64",
+    "guest": "aarch64-linux",
+    "accelerator": "tcg",
+    "vcpus": 2,
+    "memory_mib": 4096,
+    "network": "no NIC; synthetic loopback only"
+  },
+  "kernel": "6.12.112",
+  "boot_id": "57a2fcda-d744-4d16-8271-079daa72097c",
+  "boot_sha256": {
+    "store.img": "d4db4b09038b0e4ce3b2c201b662b059668afd4aeffb15312e9538982d675e19",
+    "Image": "da7cfa5a5507549254688328ecf09d113dc33cea256fd78c970c777e42f94dc3",
+    "initrd": "1ce64a4b4b368b4a02052067a1703910946950828fae2b610962640d15dfe612",
+    "kernel-params": "05b48dacdd98aee937af020c57231114116d6a1653cf0266030731260b45a1e6",
+    "toplevel": "4c22a21f3dca6a3bcc9713b2877a176364f62aec3cbc0bb6c05c7a249d1c99e8",
+    "inputs.json": "cf6f3b1c8c27c517e6c2a9d07e49ed9d936bf85c9102739ad18fb59c42cfc6d8"
+  },
+  "original_cli_sha256": "07aee8c6cb9cbeade9a4b32c36b8de2ae7f515969aedcb54a0dcbc00e15701e2",
+  "runtime_cli_sha256": "237f1273f9e3727fb4969c18a7c94517ae043c340a00867ee529b7fbd7bf3fc6",
+  "bpf_sha256": "6fdb18c9463e851c98f6b10fa26284963e8fc813fece61f208adbd3dbfaea73e",
+  "cases": [
+    {
+      "signal": "term",
+      "returncode": 0,
+      "new_link_ids": [
+        3,
+        4
+      ],
+      "new_program_ids": [
+        178,
+        179
+      ],
+      "owned_links_absent": true,
+      "owned_programs_absent": true,
+      "global_link_baseline_equal": true,
+      "systemd_program_ids_before": [
+        173,
+        172
+      ],
+      "systemd_program_ids_after": [
+        191,
+        190
+      ],
+      "baseline_attach_attributes_equal": true,
+      "mode_zero_and_deny_empty": true,
+      "events": [
+        {
+          "cgroup_id": "3648",
+          "connection_result": "unknown",
+          "decision": "allow",
+          "destination_ip": "127.0.0.1",
+          "destination_port": 58927,
+          "elapsed_ns": "1511969000",
+          "family": 4,
+          "instance_id": "699-1792729255003826000",
+          "kernel_timestamp_ns": "23082300000",
+          "mode": "observe",
+          "observation": "connect_attempt",
+          "pid": 732,
+          "policy_id": 0,
+          "protocol": "tcp",
+          "schema_version": 1,
+          "scope": "/warden.slice/warden-test.slice",
+          "sequence": "12",
+          "tid": 733,
+          "type": "event"
+        },
+        {
+          "cgroup_id": "3696",
+          "connection_result": "unknown",
+          "decision": "allow",
+          "destination_ip": "::1",
+          "destination_port": 37191,
+          "elapsed_ns": "2058189000",
+          "family": 6,
+          "instance_id": "699-1792729255003826000",
+          "kernel_timestamp_ns": "23629097000",
+          "mode": "observe",
+          "observation": "connect_attempt",
+          "pid": 738,
+          "policy_id": 0,
+          "protocol": "tcp",
+          "schema_version": 1,
+          "scope": "/warden.slice/warden-test.slice",
+          "sequence": "18",
+          "tid": 739,
+          "type": "event"
+        }
+      ],
+      "last_stats": {
+        "attempted": "2",
+        "decode_errors": "0",
+        "decoded": "2",
+        "denied": "0",
+        "elapsed_ns": "3363793000",
+        "emitted": "2",
+        "final": true,
+        "instance_id": "699-1792729255003826000",
+        "mode": "observe",
+        "queue_capacity": 128,
+        "queue_dropped": "0",
+        "ring_dropped": "0",
+        "schema_version": 1,
+        "scope": "/warden.slice/warden-test.slice",
+        "sequence": "30",
+        "stats_dropped": "0",
+        "type": "stats"
+      },
+      "restored_echoes": 2,
+      "outside_echoes": 1,
+      "shutdown_present": true,
+      "truncated_tail_bytes": 0
+    },
+    {
+      "signal": "kill",
+      "returncode": -9,
+      "new_link_ids": [
+        5,
+        6
+      ],
+      "new_program_ids": [
+        214,
+        215
+      ],
+      "owned_links_absent": true,
+      "owned_programs_absent": true,
+      "global_link_baseline_equal": true,
+      "systemd_program_ids_before": [
+        209,
+        208
+      ],
+      "systemd_program_ids_after": [
+        227,
+        226
+      ],
+      "baseline_attach_attributes_equal": true,
+      "mode_zero_and_deny_empty": true,
+      "events": [
+        {
+          "cgroup_id": "3984",
+          "connection_result": "unknown",
+          "decision": "allow",
+          "destination_ip": "127.0.0.1",
+          "destination_port": 58927,
+          "elapsed_ns": "1542396000",
+          "family": 4,
+          "instance_id": "800-1792729260003984000",
+          "kernel_timestamp_ns": "28114074000",
+          "mode": "observe",
+          "observation": "connect_attempt",
+          "pid": 813,
+          "policy_id": 0,
+          "protocol": "tcp",
+          "schema_version": 1,
+          "scope": "/warden.slice/warden-test.slice",
+          "sequence": "13",
+          "tid": 814,
+          "type": "event"
+        },
+        {
+          "cgroup_id": "4032",
+          "connection_result": "unknown",
+          "decision": "allow",
+          "destination_ip": "::1",
+          "destination_port": 37191,
+          "elapsed_ns": "2056302000",
+          "family": 6,
+          "instance_id": "800-1792729260003984000",
+          "kernel_timestamp_ns": "28626367000",
+          "mode": "observe",
+          "observation": "connect_attempt",
+          "pid": 819,
+          "policy_id": 0,
+          "protocol": "tcp",
+          "schema_version": 1,
+          "scope": "/warden.slice/warden-test.slice",
+          "sequence": "18",
+          "tid": 828,
+          "type": "event"
+        }
+      ],
+      "last_stats": {
+        "attempted": "2",
+        "decode_errors": "0",
+        "decoded": "2",
+        "denied": "0",
+        "elapsed_ns": "3139205000",
+        "emitted": "2",
+        "final": false,
+        "instance_id": "800-1792729260003984000",
+        "mode": "observe",
+        "queue_capacity": 128,
+        "queue_dropped": "0",
+        "ring_dropped": "0",
+        "schema_version": 1,
+        "scope": "/warden.slice/warden-test.slice",
+        "sequence": "28",
+        "stats_dropped": "0",
+        "type": "stats"
+      },
+      "restored_echoes": 2,
+      "outside_echoes": 1,
+      "shutdown_present": false,
+      "truncated_tail_bytes": 0
+    }
+  ],
+  "drop_applied": false,
+  "bpf_loaded": true,
+  "vm_stop": {
+    "status": "passed",
+    "reason": "service_completed",
+    "qemu_reaped": true,
+    "evidence_synced": true,
+    "escalated": false,
+    "qemu_exit_code": 0
+  },
+  "terminal_writer_uid": 501,
+  "builder_final_state": "Stopped",
+  "owned_test_processes_absent": true,
+  "preexisting_vms_untouched": true,
+  "initial_failure": {
+    "status": "failed",
+    "reason": "full before/after BPF object equality timed out after SIGTERM; no after snapshot collected",
+    "evidence_retained": true,
+    "retry_change": "require owned link/program disappearance; compare baseline attach attributes except systemd program id; retain both raw tables"
+  },
+  "unverified": [
+    "x86_64",
+    "production service",
+    "arbitrary Linux distributions",
+    "cloud/Kubernetes",
+    "load and long running behavior",
+    "enforcement/drop behavior in this scenario"
+  ],
+  "enterprise_ready": false,
+  "committed": false,
+  "pushed": false,
+  "local_checks": {
+    "repository_check_script": "passed",
+    "python_discovered": 221,
+    "python_skipped": 1,
+    "targeted_observe_tests": 11,
+    "clippy": "passed",
+    "nix_all_system_evaluation": "passed; not x86_64 runtime proof"
+  },
+  "post_vm_host_only_change": "Reject comma/newline in bundle paths before QEMU drive argument construction; positive evidence rechecked and negative unit tests passed; guest payload unchanged.",
+  "current_prepared_host_runner": "/nix/store/plyz7b8d36mr0a4bzwc2b0219kqhxws4-arena-warden-observe"
+}
