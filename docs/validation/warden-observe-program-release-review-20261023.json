@@ -82,5 +82,25 @@
     "nix_check": "all systems evaluated; no runtime claim",
     "vm_started": false,
     "bpf_loaded": false
+  },
+  "followup_stats_review": {
+    "reviewed_commit": "8898a8d373043d78d067266ec6136c4d7d0f551d",
+    "pre_fix_regressions": [
+      "Invalid or missing periodic counters accepted",
+      "Repeated final stats or event after final stats accepted"
+    ],
+    "fix": [
+      "All stats require attempted/emitted/decoded string counters in the scenario range 0..2, nondecreasing",
+      "All stats require a boolean final flag",
+      "Exactly one final stats immediately before shutdown for SIGTERM"
+    ],
+    "targeted_tests": 21,
+    "targeted_result": "passed",
+    "repository_checks": "passed",
+    "python_discovered": 231,
+    "python_skipped": 1,
+    "nix_check": "all systems evaluated; no runtime claim",
+    "vm_started": false,
+    "bpf_loaded": false
   }
 }

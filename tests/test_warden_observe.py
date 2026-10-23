@@ -145,6 +145,47 @@ class ObserveContract(unittest.TestCase):
                 c=fixture(how);c['records'][2]['elapsed_ns']=invalid
                 with self.assertRaises(ValueError):host.verify_case(c)
 
+    def test_every_periodic_stats_counter_is_valid(self):
+        for how in ['term','kill']:
+            for key in ['attempted','emitted','decoded']:
+                for value in [None,True,2,'','-1','2.0','²','3']:
+                    c=fixture(how)
+                    periodic=copy.deepcopy(c['records'][-2 if how=='term' else -1])
+                    periodic['final']=False
+                    if value is None:periodic.pop(key)
+                    else:periodic[key]=value
+                    c['records'].insert(2,periodic)
+                    for index,row in enumerate(c['records']):row.update(sequence=str(index),elapsed_ns=str(index))
+                    with self.assertRaises(ValueError):host.verify_case(c)
+
+    def test_periodic_stats_progress_and_flags(self):
+        for how in ['term','kill']:
+            c=fixture(how)
+            periodic=copy.deepcopy(c['records'][-2 if how=='term' else -1]);periodic['final']=False
+            rows=[]
+            for count in ['0','1','2']:
+                row=copy.deepcopy(periodic);row.update(attempted=count,emitted=count,decoded=count);rows.append(row)
+            c['records'][2:2]=rows
+            for index,row in enumerate(c['records']):row.update(sequence=str(index),elapsed_ns=str(index))
+            host.verify_case(c)
+            for key in ['attempted','emitted','decoded']:
+                invalid=copy.deepcopy(c);invalid['records'][4][key]='0'
+                with self.assertRaises(ValueError):host.verify_case(invalid)
+            for flag in [None,1,'false']:
+                invalid=copy.deepcopy(c);invalid['records'][2]['final']=flag
+                with self.assertRaises(ValueError):host.verify_case(invalid)
+
+    def test_term_final_stats_is_unique_and_immediately_before_shutdown(self):
+        for layout in ['duplicate','event_after','periodic_after']:
+            c=fixture();final=copy.deepcopy(c['records'][-2])
+            if layout=='duplicate':c['records'].insert(-2,final)
+            elif layout=='event_after':c['records'].insert(3,c['records'].pop(-2))
+            else:
+                periodic=copy.deepcopy(final);periodic['final']=False
+                c['records'][-2:-2]=[final,periodic]
+            for index,row in enumerate(c['records']):row.update(sequence=str(index),elapsed_ns=str(index))
+            with self.assertRaises(ValueError):host.verify_case(c)
+
     def test_kill_never_claims_graceful_final(self):
         c=fixture('kill');c['records'][-1]['final']=True
         with self.assertRaises(ValueError):host.verify_case(c)

@@ -125,10 +125,20 @@ def verify_case(case):
     stats = [r for r in records if r['type'] == 'stats']
     require(stats and stats[-1].get('attempted') == '2' and stats[-1].get('emitted') == '2'
             and stats[-1].get('decoded') == '2', 'final observed counts differ')
+    previous_counts = {key: 0 for key in ['attempted','emitted','decoded']}
     for row in stats:
+        require(type(row.get('final')) is bool, 'invalid stats final flag')
+        for key in previous_counts:
+            value = row.get(key)
+            require(isinstance(value, str) and value in ['0','1','2'], 'invalid periodic counter')
+            count = int(value)
+            require(count >= previous_counts[key], 'stats counter moved backwards')
+            previous_counts[key] = count
         require(all(row.get(key) == '0' for key in ['denied','ring_dropped','decode_errors','queue_dropped','stats_dropped']), 'denial or missing events')
     final = [r for r in records if r['type'] == 'shutdown']
     if how == 'term':
+        final_stats = [row for row in stats if row['final']]
+        require(len(final_stats) == 1 and records[-2] is final_stats[0], 'final stats must occur once immediately before shutdown')
         require(stats[-1].get('final') is True and len(final) == 1 and records[-1] == final[0]
                 and final[0].get('success') is True and final[0].get('ready') is False
                 and final[0].get('attachment_state') == 'owned_links_released'
