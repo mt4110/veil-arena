@@ -154,3 +154,16 @@ stats間の逆行を拒否します。正当な途中の0→1→2は許可しま
 SIGTERMの最終statsは1件のみで、shutdown直前に置くことを必須にしました。
 最終statsの重複、後続イベント、途中statsの欠落・型不正・範囲外・逆行を回帰で拒否します。
 追加VM起動・BPFロードは行っていません。
+
+### 追加再レビュー：Map・実行成果物の対応付け
+
+MODEと拒否MapのIDは異なる正整数を要求し、両方が所有する各programの `map_ids` に
+含まれることをguest／hostで照合します。無関係なMapのゼロ値・空dumpでは合格にしません。
+
+bundleの封印対象 `inputs.json` にCLI・BPFの絶対Nix storeパスを記録し、guestの設定パス、
+各caseの実行argvのCLI／BPFパス、hashを確認する成果物を対応付けます。
+Map参照の欠落・型不正・別IDと、別CLI／BPFへの差し替えを合成証拠の回帰で拒否しました。
+
+旧bundleにはこのパスメタデータがなく、旧実VM証拠には必要なglobal program参照情報も
+不足しています。旧bundle・実fixture・証拠へ値を補わず、現在の条件では証拠不足として拒否します。
+新しいguest／bundle定義の実ビルド・実VM検証は未実施です。追加VM起動・BPFロードは行っていません。

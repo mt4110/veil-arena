@@ -129,10 +129,29 @@ def programs_released(before, live, after, owned):
             and wanted.issubset(tables[1]) and not wanted.intersection(tables[2]))
 
 
+def maps_bound(maps, programs, owned):
+    """Both observed policy maps must be referenced by each owned live program."""
+    if not isinstance(maps, dict) or not isinstance(programs, list):
+        return False
+    ids = [maps.get('mode_id'), maps.get('deny_id')]
+    if any(type(value) is not int or value <= 0 for value in ids) or ids[0] == ids[1]:
+        return False
+    for program_id in owned:
+        rows = [row for row in programs if isinstance(row, dict) and row.get('id') == program_id]
+        if len(rows) != 1:
+            return False
+        referenced = rows[0].get('map_ids')
+        if (not isinstance(referenced, list) or any(type(value) is not int or value <= 0 for value in referenced)
+                or len(set(referenced)) != len(referenced) or not set(ids).issubset(referenced)):
+            return False
+    return len(owned) == 2 and len(set(owned)) == 2
+
+
 def mode_maps(new_links):
+    programs = [one(bpf('prog', 'show', 'id', link['prog_id'])) for link in new_links]
     ids = set()
-    for link in new_links:
-        ids.update(one(bpf('prog', 'show', 'id', link['prog_id']))['map_ids'])
+    for program in programs:
+        ids.update(program['map_ids'])
     maps = [one(bpf('map', 'show', 'id', number)) for number in ids]
     mode = [m for m in maps if m['name'] == 'MODE']
     deny = [m for m in maps if m['name'].startswith('DENY_DESTINAT')]
@@ -141,7 +160,9 @@ def mode_maps(new_links):
     empty = bpf('map', 'dump', 'id', deny[0]['id'])
     assert len(raw) == 1 and raw[0]['key'] == ['0x00'] * 4 and raw[0]['value'] == ['0x00'] * 4, raw
     assert empty == [], empty
-    return {'mode': raw, 'deny': empty, 'mode_id': mode[0]['id'], 'deny_id': deny[0]['id']}
+    result = {'mode': raw, 'deny': empty, 'mode_id': mode[0]['id'], 'deny_id': deny[0]['id']}
+    assert maps_bound(result, programs, [link['prog_id'] for link in new_links]), 'unbound policy maps'
+    return result
 
 
 def test(binary, obj, out):
@@ -152,6 +173,7 @@ def test(binary, obj, out):
     result = {'schema': 'arena-warden-observe-v1', 'status': 'running',
               'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
               'kernel': os.uname().release, 'cases': [], 'drop_applied': False,
+              'runtime_cli_path':str(binary), 'bpf_path':str(obj),
               'runtime_cli_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),
               'bpf_sha256':hashlib.sha256(obj.read_bytes()).hexdigest()}
     serial = 0

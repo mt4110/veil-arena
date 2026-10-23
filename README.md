@@ -94,3 +94,6 @@ DROPは適用せず、policy試験とは別のbundle・runnerを使います。
 旧実VM記録はglobal program一覧を採取しておらず、program本体のアンロードは未確認です。
 現在の判定ではその前・中・後の一覧を必須としますが、修正後の実VM試験は未実施です。
 [再レビュー補足記録](docs/validation/warden-observe-program-release-review-20261023.json)を参照してください。
+
+現在は封印済みCLI／BPFパスと、両programが参照するMap IDの対応も必須です。
+旧bundle・実VM証拠にはこれらの新しい必須情報が不足しており、現行条件での受け入れは未検証です。

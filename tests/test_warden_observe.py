@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Negative contracts: fixtures are not runtime proof."""
 import copy
+import hashlib
 import json
 import os
 import subprocess
@@ -30,12 +31,38 @@ def fixture(how='term'):
     maps={'mode':[{'key':['0x00']*4,'value':['0x00']*4}],'deny':[],'mode_id':100,'deny_id':101}
     return {'signal':how,'returncode':0 if how=='term' else -9,'argv':['cli','connect','--object','bpf','--log-format','json','--interval-ms','100'],
             'links_before':[],'links_after':[],'attached_before':[],'attached_after':[],
-            'programs_before':[], 'programs_live':[{'id':10},{'id':11}], 'programs_after':[],
+            'programs_before':[], 'programs_live':[{'id':10,'map_ids':[100,101]},{'id':11,'map_ids':[100,101]}], 'programs_after':[],
             'links_live':[{'id':1,'prog_id':10,'attach_type':'cgroup_inet4_connect'},{'id':2,'prog_id':11,'attach_type':'cgroup_inet6_connect'}],
             'attached_live':[{'id':10},{'id':11}], 'maps':maps,'maps_before_stop':copy.deepcopy(maps),
             'clients':clients,'restored_clients':copy.deepcopy(clients),
             'outside_client':dict(clients[0],scope='/system.slice/client.service'),
             'signal_sent_ns':1,'stopped_ns':2,'records':records}
+
+
+def export_fixture(root, mutate=lambda result:None):
+    """Synthetic exported evidence only; no VM/BPF execution."""
+    (root/'observe').mkdir()
+    meta={'runtime_cli_sha256':'a'*64,'files':{'veil-warden-ebpf':'b'*64},
+          'runtime_cli_path':'/nix/store/'+'a'*32+'-fixture/bin/veil-warden',
+          'bpf_path':'/nix/store/'+'b'*32+'-fixture/veil-warden-ebpf'}
+    cases=[fixture('term'),fixture('kill')]
+    for c in cases:c['argv'][0]=meta['runtime_cli_path'];c['argv'][3]=meta['bpf_path']
+    result={'schema':'arena-warden-observe-v1','status':'passed','cleanup_complete':True,
+            'drop_applied':False,'boot_id':'a'*8+'-'+('b'*4+'-')*3+'c'*12,
+            'runtime_cli_sha256':meta['runtime_cli_sha256'],'bpf_sha256':meta['files']['veil-warden-ebpf'],
+            'runtime_cli_path':meta['runtime_cli_path'],'bpf_path':meta['bpf_path'],
+            'baseline_clients':copy.deepcopy(cases[0]['clients']),'cases':cases,'receiver_errors':[[],[]]}
+    mutate(result)
+    (root/'observe/result.json').write_text(json.dumps(result))
+    for c in cases:
+        (root/'observe'/ (c['signal']+'.jsonl')).write_text(''.join(json.dumps(r)+'\n' for r in c['records']))
+        (root/'observe'/ (c['signal']+'.stderr')).write_text('')
+    names=['result.json','term.jsonl','term.stderr','kill.jsonl','kill.stderr']
+    terminal={'schema':'arena-warden-observe-terminal-v1','service_result':'success',
+              'proof_directory_present':True,'writer_uid':os.getuid(),'output_owner_uid':os.getuid(),
+              'files':{name:hashlib.sha256((root/'observe'/name).read_bytes()).hexdigest() for name in names}}
+    (root/'terminal.json').write_text(json.dumps(terminal));(root/'service-result.txt').write_text('success\n')
+    return meta
 
 
 class ObserveContract(unittest.TestCase):
@@ -51,6 +78,43 @@ class ObserveContract(unittest.TestCase):
             owned=next(x for x in invalid['attached_live'] if x['id'] not in {r['id'] for r in invalid['attached_before']})
             invalid['attached_after'].append(owned)
             with self.assertRaises(ValueError):host.verify_case(invalid)
+
+    def test_map_ids_must_belong_to_both_owned_programs(self):
+        for how in ['term','kill']:
+            for key,value in [('mode_id',999),('deny_id',999),('mode_id',True),('deny_id',100)]:
+                c=fixture(how)
+                for name in ['maps','maps_before_stop']:c[name][key]=value
+                with self.assertRaises(ValueError):host.verify_case(c)
+            for index in [0,1]:
+                c=fixture(how);c['programs_live'][index]['map_ids']=[100]
+                with self.assertRaises(ValueError):host.verify_case(c)
+
+    def test_executed_argv_must_match_sealed_paths(self):
+        root=Path(tempfile.mkdtemp());meta=export_fixture(root)
+        with patch.object(host,'verify_stop'):host.verify(root,meta)
+        for case_index in [0,1]:
+            for arg_index in [0,3]:
+                root=Path(tempfile.mkdtemp())
+                def mutate(result):result['cases'][case_index]['argv'][arg_index]='/wrong/artifact'
+                meta=export_fixture(root,mutate)
+                with patch.object(host,'verify_stop'):
+                    with self.assertRaises(ValueError):host.verify(root,meta)
+
+    def test_missing_or_malformed_program_map_references(self):
+        for reference in [None,True,[],[100,True],[100,101,101]]:
+            c=fixture();c['programs_live'][0]['map_ids']=reference
+            with self.assertRaisesRegex(ValueError,'policy maps not bound'):host.verify_case(c)
+            self.assertFalse(guest.maps_bound(c['maps'],c['programs_live'],[10,11]))
+        c=fixture();self.assertTrue(guest.maps_bound(c['maps'],c['programs_live'],[10,11]))
+
+    def test_artifact_metadata_and_configured_paths_are_required(self):
+        for field in ['runtime_cli_path','bpf_path']:
+            root=Path(tempfile.mkdtemp());meta=export_fixture(root,lambda result:result.update({field:'/wrong/artifact'}))
+            with patch.object(host,'verify_stop'):
+                with self.assertRaisesRegex(ValueError,'configured artifact paths differ'):host.verify(root,meta)
+            for value in [None,'/tmp/artifact',True]:
+                invalid=dict(meta);invalid[field]=value
+                with self.assertRaisesRegex(ValueError,'sealed runtime artifact paths'):host.require_artifact_paths(invalid)
 
     def test_both_signal_contracts(self):
         for how in ['term','kill']:host.verify_case(fixture(how))
@@ -85,7 +149,7 @@ class ObserveContract(unittest.TestCase):
         for how in ['term','kill']:
             c=fixture(how)
             c['programs_before']=[{'id':99,'name':'unrelated'}]
-            c['programs_live']=[{'id':99},{'id':10},{'id':11}]
+            c['programs_live']=[{'id':99},{'id':10,'map_ids':[100,101]},{'id':11,'map_ids':[100,101]}]
             c['programs_after']=[{'id':99},{'id':10}]
             with self.assertRaises(ValueError):host.verify_case(c)
             self.assertFalse(guest.programs_released(c['programs_before'],c['programs_live'],c['programs_after'],[10,11]))

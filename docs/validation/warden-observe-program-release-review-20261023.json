@@ -102,5 +102,28 @@
     "nix_check": "all systems evaluated; no runtime claim",
     "vm_started": false,
     "bpf_loaded": false
+  },
+  "followup_artifact_map_binding_review": {
+    "reviewed_commit": "b8da4155ff99825c283b100bde8b91ea35e9002a",
+    "pre_fix_regressions": [
+      "Unrelated mode/deny IDs accepted",
+      "Executed argv paths could differ from hashed artifacts"
+    ],
+    "fix": [
+      "Distinct positive mode/deny IDs must appear in each owned live program map_ids",
+      "Sealed bundle metadata records Nix store CLI/BPF paths; configured and executed paths must match"
+    ],
+    "targeted_tests": 25,
+    "targeted_result": "passed",
+    "repository_checks": "passed",
+    "python_discovered": 235,
+    "python_skipped": 1,
+    "nix_syntax_parse": "passed",
+    "nix_check": "all systems evaluated; no build/runtime claim",
+    "new_bundle_built": false,
+    "vm_started": false,
+    "bpf_loaded": false,
+    "historical_bundle_limitation": "Missing sealed runtime paths; current preflight rejects it",
+    "historical_runtime_evidence_limitation": "Missing global program/map references and configured paths; no values added to preserved evidence"
   }
 }

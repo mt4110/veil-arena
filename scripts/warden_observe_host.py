@@ -28,6 +28,13 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def require_artifact_paths(meta):
+    for key, suffix in [('runtime_cli_path','bin/veil-warden'),('bpf_path','veil-warden-ebpf')]:
+        value = meta.get(key)
+        require(isinstance(value, str) and re.fullmatch('/nix/store/[0-9a-z]{32}-[^/\n]+/' + suffix, value),
+                'sealed runtime artifact paths required')
+
+
 def check_bundle(bundle):
     require(not any(c in str(bundle) for c in ',\n'), 'safe bundle path required')
     hashes = sealed_bundle(bundle)
@@ -35,6 +42,7 @@ def check_bundle(bundle):
     require(meta.get('scenario') == SCENARIO and meta.get('guest_system') == 'aarch64-linux', 'observe-only bundle required')
     for digest in [meta.get('runtime_cli_sha256'), meta.get('files', {}).get('veil-warden-ebpf')]:
         require(isinstance(digest, str) and re.fullmatch('[0-9a-f]{64}', digest), 'missing runtime hashes')
+    require_artifact_paths(meta)
     return hashes, meta
 
 
@@ -73,7 +81,7 @@ def verify_case(case):
             and argv[2] == '--object' and argv[4:] == ['--log-format', 'json', '--interval-ms', '100'], 'observe argv differs')
     for key in ['links_before','links_live','links_after','attached_before','attached_live','attached_after']:
         require(isinstance(case.get(key), list), 'missing link proof')
-    from warden_observe_guest import signatures, same_links, programs_released
+    from warden_observe_guest import signatures, same_links, programs_released, maps_bound
     require(signatures(case['attached_before']) == signatures(case['attached_after']), 'baseline cgroup semantics differ')
     old = {row['id'] for row in case['links_before']}
     new = [row for row in case['links_live'] if row['id'] not in old]
@@ -91,6 +99,7 @@ def verify_case(case):
         require(isinstance(maps, dict) and maps.get('deny') == [] and isinstance(maps.get('mode'), list)
                 and len(maps['mode']) == 1 and isinstance(maps['mode'][0], dict) and maps['mode'][0].get('key') == ['0x00'] * 4
                 and maps['mode'][0].get('value') == ['0x00'] * 4, 'mode is not observe or deny map populated')
+        require(maps_bound(maps, case['programs_live'], [r['prog_id'] for r in new]), 'policy maps not bound to owned programs')
     require(case['maps'] == case['maps_before_stop'], 'mode/map identity changed')
     clients = case.get('clients'); restored = case.get('restored_clients')
     require(isinstance(clients, list) and isinstance(restored, list) and len(clients) == len(restored) == 2, 'both families required')
@@ -164,6 +173,9 @@ def verify(root, meta):
     require(result.get('schema') == 'arena-warden-observe-v1' and result.get('status') == 'passed'
             and result.get('cleanup_complete') is True and result.get('drop_applied') is False, 'guest incomplete')
     require(isinstance(result.get('boot_id'), str) and re.fullmatch('[0-9a-f-]{36}', result['boot_id']), 'boot identity absent')
+    require_artifact_paths(meta)
+    require(result.get('runtime_cli_path') == meta['runtime_cli_path']
+            and result.get('bpf_path') == meta['bpf_path'], 'configured artifact paths differ')
     require(result.get('runtime_cli_sha256') == meta['runtime_cli_sha256']
             and result.get('bpf_sha256') == meta['files']['veil-warden-ebpf'], 'runtime artifacts differ')
     require(len(result.get('baseline_clients', [])) == 2, 'baseline absent')
@@ -171,6 +183,9 @@ def verify(root, meta):
     require({c['family'] for c in result['baseline_clients']} == {2,10}, 'baseline families differ')
     require([c.get('signal') for c in result.get('cases', [])] == ['term','kill'], 'signal cases incomplete')
     for case in result['cases']:
+        argv = case.get('argv')
+        require(isinstance(argv, list) and len(argv) == 8 and argv[0] == meta['runtime_cli_path']
+                and argv[3] == meta['bpf_path'], 'executed artifact paths differ')
         verify_case(case)
         text = read(root / 'observe' / (case['signal'] + '.jsonl'))
         boundary = text.rfind('\n') + 1

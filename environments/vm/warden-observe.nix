@@ -74,6 +74,8 @@ in pkgs.runCommand "arena-warden-observe-bundle" {} (''
   ${pkgs.python314}/bin/python3 - "$out/inputs.json" <<'PYCODE'
   import hashlib,json,pathlib,sys
   meta=json.loads(pathlib.Path('${inputs}/inputs.json').read_text())
+  meta['runtime_cli_path']='${cli}/bin/veil-warden'
+  meta['bpf_path']='${inputs}/veil-warden-ebpf'
   meta['runtime_cli_sha256']=hashlib.sha256(pathlib.Path('${cli}/bin/veil-warden').read_bytes()).hexdigest()
   pathlib.Path(sys.argv[1]).write_text(json.dumps(meta,indent=2)+'\n')
   PYCODE
