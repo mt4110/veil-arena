@@ -141,6 +141,17 @@ class ObserveContract(unittest.TestCase):
             invalid=copy.deepcopy(c);invalid['clients'][0]['attempt_finished_ns']=5
             with self.assertRaises(ValueError):host.verify_case(invalid)
 
+    def test_boot_id_requires_canonical_uuid_layout(self):
+        root=Path(tempfile.mkdtemp());meta=export_fixture(root)
+        with patch.object(host,'verify_stop'):host.verify(root,meta)
+        for value in ['a'*36,'-'*36,'aaaaaaaaa-bbb-bbbb-bbbb-cccccccccccc',
+                      'aaaaaaaa-bbbb-bbbb-bbbb-ccccccccccc',
+                      'AAAAAAAA-BBBB-BBBB-BBBB-CCCCCCCCCCCC',None,True,36]:
+            root=Path(tempfile.mkdtemp())
+            meta=export_fixture(root,lambda result:result.update(boot_id=value))
+            with patch.object(host,'verify_stop'):
+                with self.assertRaisesRegex(ValueError,'boot identity'):host.verify(root,meta)
+
     def test_both_signal_contracts(self):
         for how in ['term','kill']:host.verify_case(fixture(how))
 

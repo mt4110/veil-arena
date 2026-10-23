@@ -178,7 +178,7 @@ def verify(root, meta):
     result = json.loads(read(root / 'observe/result.json'))
     require(result.get('schema') == 'arena-warden-observe-v1' and result.get('status') == 'passed'
             and result.get('cleanup_complete') is True and result.get('drop_applied') is False, 'guest incomplete')
-    require(isinstance(result.get('boot_id'), str) and re.fullmatch('[0-9a-f-]{36}', result['boot_id']), 'boot identity absent')
+    require(isinstance(result.get('boot_id'), str) and re.fullmatch('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', result['boot_id']), 'boot identity absent')
     require_artifact_paths(meta)
     require(result.get('runtime_cli_path') == meta['runtime_cli_path']
             and result.get('bpf_path') == meta['bpf_path'], 'configured artifact paths differ')

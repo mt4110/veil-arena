@@ -146,5 +146,20 @@
     "vm_started": false,
     "bpf_loaded": false,
     "historical_runtime_evidence_limitation": "Client attempt timestamps missing; current restoration criterion unconfirmed; original evidence unchanged"
+  },
+  "followup_boot_id_review": {
+    "reviewed_commit": "ebff733be2b0eba1c21be071623a4391d0f3b678",
+    "pre_fix_regression": "36 lowercase hex characters without hyphens were accepted",
+    "fix": "Require canonical lowercase hexadecimal 8-4-4-4-12 UUID layout, matching existing Warden verifier",
+    "targeted_tests": 29,
+    "targeted_result": "passed",
+    "repository_checks": "passed",
+    "python_discovered": 239,
+    "python_skipped": 1,
+    "nix_check": "all systems evaluated; no runtime claim",
+    "independent_boot_id_comparison_added": false,
+    "new_bundle_built": false,
+    "vm_started": false,
+    "bpf_loaded": false
   }
 }
