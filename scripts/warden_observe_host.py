@@ -73,14 +73,14 @@ def verify_case(case):
             and argv[2] == '--object' and argv[4:] == ['--log-format', 'json', '--interval-ms', '100'], 'observe argv differs')
     for key in ['links_before','links_live','links_after','attached_before','attached_live','attached_after']:
         require(isinstance(case.get(key), list), 'missing link proof')
-    from warden_observe_guest import signatures
+    from warden_observe_guest import signatures, same_links
     require(signatures(case['attached_before']) == signatures(case['attached_after']), 'baseline cgroup semantics differ')
     old = {row['id'] for row in case['links_before']}
     new = [row for row in case['links_live'] if row['id'] not in old]
     require(len(new) == 2 and {row.get('attach_type') for row in new} == {'cgroup_inet4_connect','cgroup_inet6_connect'}, 'both live links required')
     require(not ({r['id'] for r in new} & {r['id'] for r in case['links_after']})
             and not ({r['prog_id'] for r in new} & {r['id'] for r in case['attached_after']}), 'owned links/programs remain attached')
-    require(all(r in case['links_before'] for r in case['links_after']), 'unexpected remaining link')
+    require(same_links(case['links_before'], case['links_after']), 'baseline global links differ')
     prior = {row['id'] for row in case['attached_before']}
     attached = {row['id'] for row in case['attached_live'] if row['id'] not in prior}
     require(attached == {row['prog_id'] for row in new}, 'live cgroup/prog identity differs')

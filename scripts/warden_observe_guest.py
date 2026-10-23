@@ -105,6 +105,12 @@ def signatures(items):
     return sorted(json.dumps({k:v for k,v in row.items() if k != 'id'}, sort_keys=True) for row in items)
 
 
+def same_links(before, after):
+    # Preserve every field, including link/program IDs; only enumeration order may vary.
+    return sorted(json.dumps(row, sort_keys=True) for row in before) == sorted(
+        json.dumps(row, sort_keys=True) for row in after)
+
+
 def mode_maps(new_links):
     ids = set()
     for link in new_links:
@@ -186,6 +192,7 @@ def test(binary, obj, out):
                 save()
                 return (not ({r['id'] for r in new} & {r['id'] for r in case['links_after']})
                     and not ({r['prog_id'] for r in new} & {r['id'] for r in case['attached_after']})
+                    and same_links(before_links, case['links_after'])
                     and signatures(case['attached_after']) == signatures(before_attached))
             wait(detached)
             case['restored_clients'] = [attempt(s) for s in servers]

@@ -35,6 +35,8 @@ attach種別・名前・flags等の一致を要求し、前後の生データを
 
 Warden自身が追加した2つのlink IDとprogram IDは別に追跡し、停止後の消失を必須とします。
 許可するのはOS側IDの変化であり、Wardenの残留を無視しません。
+グローバルlink一覧は列挙順だけを無視し、全フィールド（link／program IDを含む）の前後一致を要求します。
+試験前からあった対象外linkの消失・変更も不合格です。
 予期しない残存リンク・欠落イベント・timeout・receiver異常は不合格です。
 
 bpftoolの単一object／1要素arrayを区別して受け取り、Mapの4バイト値は
@@ -94,3 +96,18 @@ controller終了待ちに失敗した場合は所有controllerの有限停止処
 ```sh
 python3 -B -m unittest discover -s tests -p 'test_warden_observe.py'
 ```
+
+## PR #36レビュー修正の検証境界
+
+既存global linkの消失を見逃す部分集合判定を、全フィールドを保つ集合比較へ修正しました。
+guestの解除待ちとhostの再判定は同じ比較を使います。SIGTERM／SIGKILLそれぞれについて、
+既存linkの一部消失・全消失・追加・program ID変更を拒否し、列挙順の変更は許可する回帰試験を追加しました。
+
+この修正後は追加VM起動・BPFロード・新bundleのbuildを行っていません。
+保存済み成功証拠に対する新host判定の再実行と、ローカル回帰試験で確認しています。
+旧bundleと成功・失敗証拠は変更せず保全しました。新しいguest判定を含むbundleの実VM検証は未実施です。
+
+2026-10-23の修正後ローカル検証では、対象12件、リポジトリ全体の
+`scripts/check.sh`（Rust fmt／Clippy／テスト、Python 222件中1件skip、Nix全system評価）が成功しました。
+保存済みのSIGTERM／SIGKILL成功証拠も新host判定で合格しています。
+Nix評価はLinux実行検証を意味しません。修正前は追加した消失回帰ケースが不合格となり、見逃しを再現しました。

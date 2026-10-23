@@ -61,6 +61,23 @@ class ObserveContract(unittest.TestCase):
         c['links_after']=[c['links_live'][0]]
         with self.assertRaises(ValueError):host.verify_case(c)
 
+    def test_preexisting_global_links_must_all_survive(self):
+        baseline=[{'id':90,'prog_id':900,'type':'tracing'},
+                  {'id':91,'prog_id':901,'type':'tracing'}]
+        for how in ['term','kill']:
+            c=fixture(how)
+            c['links_before']=copy.deepcopy(baseline)
+            c['links_live'].extend(copy.deepcopy(baseline))
+            c['links_after']=list(reversed(copy.deepcopy(baseline)))
+            host.verify_case(c)  # Enumeration order does not change the collection.
+            self.assertTrue(guest.same_links(c['links_before'],c['links_after']))
+            for after in [baseline[:1],[],baseline+[{'id':92,'prog_id':902}],
+                          [dict(baseline[0],prog_id=999),baseline[1]]]:
+                invalid=copy.deepcopy(c)
+                invalid['links_after']=copy.deepcopy(after)
+                self.assertFalse(guest.same_links(invalid['links_before'],invalid['links_after']))
+                with self.assertRaises(ValueError):host.verify_case(invalid)
+
     def test_missing_restoration_and_wrong_scope(self):
         mutations=[lambda c:c.update(links_after=[{'id':9}]),lambda c:c.update(attached_after=[{'id':10}]),
                    lambda c:c['restored_clients'][0].update(errno=110),
