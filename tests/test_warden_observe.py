@@ -152,6 +152,30 @@ class ObserveContract(unittest.TestCase):
         stop.assert_called_once_with(process)
         self.assertEqual(json.loads((root/'summary.json').read_text())['status'],'failed')
 
+    def test_malformed_nested_evidence_finishes_as_failed(self):
+        for field in ['records','maps']:
+            case=fixture()
+            if field=='records':case['records'][0]=[]
+            else:case['maps']['mode'][0]=[]
+            root=Path(tempfile.mkdtemp())/'run'
+            route={'arch':'aarch64','accelerator':'tcg','cpu':'max'}
+            process=Mock();process.wait.return_value=0
+            with patch.object(host,'preflight',return_value=({}, {}, route)),patch.object(host,'execution',return_value=route),patch.object(host,'read',return_value='/nix/store/fixture'),patch.object(host.subprocess,'Popen',return_value=process),patch.object(host,'verify',side_effect=lambda *args:host.verify_case(case)):
+                self.assertEqual(host.workflow(os.getuid(),Path('/bundle'),root),3)
+            summary=json.loads((root/'summary.json').read_text())
+            self.assertEqual(summary['status'],'failed')
+            self.assertTrue(summary['error'])
+
+    def test_non_object_terminal_json_is_failed(self):
+        root=Path(tempfile.mkdtemp())/'run'
+        route={'arch':'aarch64','accelerator':'tcg','cpu':'max'}
+        process=Mock();process.wait.return_value=0
+        def read(path):
+            return '[]' if path.name=='terminal.json' else '/nix/store/fixture'
+        with patch.object(host,'preflight',return_value=({}, {}, route)),patch.object(host,'execution',return_value=route),patch.object(host,'read',side_effect=read),patch.object(host.subprocess,'Popen',return_value=process):
+            self.assertEqual(host.workflow(os.getuid(),Path('/bundle'),root),3)
+        self.assertEqual(json.loads((root/'summary.json').read_text())['status'],'failed')
+
     def test_bundle_path_cannot_inject_qemu_drive_options(self):
         for name in ['/fixture,readonly=off','/fixture\nunsafe']:
             with patch.object(host,'sealed_bundle') as sealed:

@@ -130,3 +130,10 @@ global一覧からの消失を証明しません。旧記録・実fixture・旧b
 追加VM起動・BPFロード・新bundle buildは行っていません。修正後のglobal program採取と
 アンロード判定の実VM検証は未実施です。ローカル回帰で残留の見逃しを再現して修正し、
 旧証拠の不足を拒否することも確認しました。過去のリンク解除・通信継続の観測と、新条件の合格を区別します。
+
+### 追加再レビュー：壊れた証拠の終端状態
+
+JSONとして読めてもrecordやMap要素がobjectでない場合は検証失敗とします。
+残る入れ子型・要素参照の例外もworkflowで失敗として記録し、終了コード3と
+`summary.json` の `status: failed` を返します。VM起動をmockしたhost回帰で、
+不正record／Map要素がtracebackで漏れたり `running` のまま残ったりしないことを確認しました。

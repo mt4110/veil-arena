@@ -50,5 +50,18 @@
     "owner_files_checked": 564,
     "protected_evidence_files_checked": 7,
     "result": "unchanged"
+  },
+  "followup_malformed_evidence_review": {
+    "reviewed_commit": "e4f041859a7db7301e8b19f1d05457f53908abf8",
+    "pre_fix_regression": "AttributeError escaped workflow; reproduced",
+    "fix": "Validate record and mode-entry objects; report remaining AttributeError/IndexError as failed",
+    "targeted_tests": 16,
+    "targeted_result": "passed",
+    "repository_checks": "passed before final additional terminal regression",
+    "final_python_discovered": 226,
+    "final_python_skipped": 1,
+    "final_python_result": "passed",
+    "vm_started": false,
+    "bpf_loaded": false
   }
 }

@@ -89,7 +89,7 @@ def verify_case(case):
     for key in ['maps', 'maps_before_stop']:
         maps = case.get(key, {})
         require(isinstance(maps, dict) and maps.get('deny') == [] and isinstance(maps.get('mode'), list)
-                and len(maps['mode']) == 1 and maps['mode'][0].get('key') == ['0x00'] * 4
+                and len(maps['mode']) == 1 and isinstance(maps['mode'][0], dict) and maps['mode'][0].get('key') == ['0x00'] * 4
                 and maps['mode'][0].get('value') == ['0x00'] * 4, 'mode is not observe or deny map populated')
     require(case['maps'] == case['maps_before_stop'], 'mode/map identity changed')
     clients = case.get('clients'); restored = case.get('restored_clients')
@@ -100,7 +100,8 @@ def verify_case(case):
     require({(c['address'],c['port']) for c in clients} == {(c['address'],c['port']) for c in restored}, 'recovery destination differs')
     client(case.get('outside_client'), inside=False)
     records = case.get('records')
-    require(isinstance(records, list) and len(records) >= 5, 'incomplete JSON lifecycle')
+    require(isinstance(records, list) and len(records) >= 5
+            and all(isinstance(record, dict) for record in records), 'incomplete or malformed JSON lifecycle')
     require(records[0].get('type') == 'startup' and records[0].get('ready') is False, 'startup absent')
     require(records[1].get('type') == 'ready' and records[1].get('ready') is True
             and type(records[1].get('links')) is int and records[1]['links'] == 2, 'ready absent')
@@ -201,7 +202,7 @@ def workflow(uid, bundle, output):
         require(check_bundle(bundle)[0] == expected, 'bundle changed')
         report.update(status='passed',boot_id=result['boot_id'])
         return 0
-    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError, subprocess.SubprocessError) as error:
         report.update(status='failed',error=str(error))
         return 3
     except KeyboardInterrupt:
