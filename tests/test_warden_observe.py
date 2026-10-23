@@ -18,7 +18,8 @@ import warden_observe_terminal as terminal
 
 def fixture(how='term'):
     clients=[{'family':fam,'address':addr,'port':1234+i,'pid':42+i,'tid':142+i,'cgroup_id':100+i,
-              'scope':host.SCOPE+'/client.service','errno':0,'receiver_delta':1}
+              'scope':host.SCOPE+'/client.service','errno':0,'receiver_delta':1,
+              'attempt_started_ns':1,'attempt_finished_ns':2}
              for i,(fam,addr) in enumerate([(2,'127.0.0.1'),(10,'::1')])]
     records=[{'type':'startup','ready':False},{'type':'ready','ready':True,'links':2}]
     for c in clients:
@@ -34,9 +35,9 @@ def fixture(how='term'):
             'programs_before':[], 'programs_live':[{'id':10,'map_ids':[100,101]},{'id':11,'map_ids':[100,101]}], 'programs_after':[],
             'links_live':[{'id':1,'prog_id':10,'attach_type':'cgroup_inet4_connect'},{'id':2,'prog_id':11,'attach_type':'cgroup_inet6_connect'}],
             'attached_live':[{'id':10},{'id':11}], 'maps':maps,'maps_before_stop':copy.deepcopy(maps),
-            'clients':clients,'restored_clients':copy.deepcopy(clients),
+            'clients':clients,'restored_clients':[dict(c,attempt_started_ns=5,attempt_finished_ns=6) for c in clients],
             'outside_client':dict(clients[0],scope='/system.slice/client.service'),
-            'signal_sent_ns':1,'stopped_ns':2,'records':records}
+            'signal_sent_ns':3,'stopped_ns':4,'records':records}
 
 
 def export_fixture(root, mutate=lambda result:None):
@@ -115,6 +116,30 @@ class ObserveContract(unittest.TestCase):
             for value in [None,'/tmp/artifact',True]:
                 invalid=dict(meta);invalid[field]=value
                 with self.assertRaisesRegex(ValueError,'sealed runtime artifact paths'):host.require_artifact_paths(invalid)
+
+    def test_target_cgroup_itself_is_not_outside(self):
+        for how in ['term','kill']:
+            for scope in [host.SCOPE,host.SCOPE+'/client.service']:
+                c=fixture(how);c['outside_client']['scope']=scope
+                with self.assertRaises(ValueError):host.verify_case(c)
+        c=fixture()['clients'][0]
+        host.client(dict(c,scope=host.SCOPE))
+        host.client(dict(c,scope=host.SCOPE+'-other/client.service'),inside=False)
+
+    def test_cached_pre_stop_clients_cannot_prove_restoration(self):
+        for how in ['term','kill']:
+            c=fixture(how);c['restored_clients']=copy.deepcopy(c['clients'])
+            with self.assertRaises(ValueError):host.verify_case(c)
+
+    def test_client_attempt_timing_boundaries(self):
+        for how in ['term','kill']:
+            c=fixture(how);host.verify_case(c)
+            for start,end in [(None,6),(True,6),(5,None),(6,5),(4,6),(3,6)]:
+                invalid=copy.deepcopy(c)
+                invalid['restored_clients'][0].update(attempt_started_ns=start,attempt_finished_ns=end)
+                with self.assertRaises(ValueError):host.verify_case(invalid)
+            invalid=copy.deepcopy(c);invalid['clients'][0]['attempt_finished_ns']=5
+            with self.assertRaises(ValueError):host.verify_case(invalid)
 
     def test_both_signal_contracts(self):
         for how in ['term','kill']:host.verify_case(fixture(how))

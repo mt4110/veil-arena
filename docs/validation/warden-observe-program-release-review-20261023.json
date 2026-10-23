@@ -125,5 +125,26 @@
     "bpf_loaded": false,
     "historical_bundle_limitation": "Missing sealed runtime paths; current preflight rejects it",
     "historical_runtime_evidence_limitation": "Missing global program/map references and configured paths; no values added to preserved evidence"
+  },
+  "followup_scope_recovery_timing_review": {
+    "reviewed_commit": "cd5df94bb93d3202cd4f2ec79664f119d8d6d1b0",
+    "pre_fix_regressions": [
+      "Target cgroup accepted as outside",
+      "Copied pre-stop clients accepted as restoration"
+    ],
+    "fix": [
+      "Target cgroup and descendants are inside; similarly named sibling remains outside",
+      "Client records require monotonic attempt start/end; restoration starts after stopped_ns; live attempts finish before signal"
+    ],
+    "targeted_tests": 28,
+    "targeted_result": "passed",
+    "repository_checks": "passed",
+    "python_discovered": 238,
+    "python_skipped": 1,
+    "nix_check": "all systems evaluated; no runtime claim",
+    "new_bundle_built": false,
+    "vm_started": false,
+    "bpf_loaded": false,
+    "historical_runtime_evidence_limitation": "Client attempt timestamps missing; current restoration criterion unconfirmed; original evidence unchanged"
   }
 }

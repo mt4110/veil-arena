@@ -55,8 +55,10 @@ def client(value, inside=True):
     require(value['port'] <= 65535 and value['pid'] != value['tid'], 'invalid threaded client')
     require(type(value.get('family')) is int and value['family'] in [2, 10], 'invalid family')
     require(value.get('address') == ('127.0.0.1' if value['family'] == 2 else '::1'), 'non-loopback client')
+    require(type(value.get('attempt_started_ns')) is int and type(value.get('attempt_finished_ns')) is int
+            and 0 < value['attempt_started_ns'] <= value['attempt_finished_ns'], 'client attempt timing absent')
     require(isinstance(value.get('scope'), str)
-            and value['scope'].startswith(SCOPE + '/') == inside, 'client cgroup differs')
+            and (value['scope'] == SCOPE or value['scope'].startswith(SCOPE + '/')) == inside, 'client cgroup differs')
 
 
 def match_event(c, e):
@@ -156,6 +158,10 @@ def verify_case(case):
         require(not final and not any(r.get('final') is True for r in stats), 'SIGKILL cannot produce graceful completion')
     require(type(case.get('signal_sent_ns')) is int and type(case.get('stopped_ns')) is int
             and 0 < case['signal_sent_ns'] <= case['stopped_ns'], 'stop timing absent')
+    require(all(c['attempt_finished_ns'] <= case['signal_sent_ns'] for c in clients + [case['outside_client']]),
+            'live client attempt not before stop signal')
+    require(all(c['attempt_started_ns'] > case['stopped_ns'] for c in restored),
+            'restoration attempt not after monitor stopped')
 
 
 def verify(root, meta):

@@ -15,7 +15,7 @@ import traceback
 
 SCOPE = '/sys/fs/cgroup/warden.slice/warden-test.slice'
 CLIENT = r'''
-import json,os,socket,sys,threading
+import json,os,socket,sys,threading,time
 from pathlib import Path
 scope=Path('/proc/self/cgroup').read_text().strip().split(':',2)[2]
 r={'pid':os.getpid(),'scope':scope,'cgroup_id':os.stat('/sys/fs/cgroup'+scope).st_ino,
@@ -24,9 +24,11 @@ def work():
  r['tid']=threading.get_native_id()
  with socket.socket(r['family']) as s:
   s.settimeout(3)
+  r['attempt_started_ns']=time.monotonic_ns()
   try:
    s.connect((r['address'],r['port']));s.sendall(b'arena-observe');assert s.recv(64)==b'arena-observe';r['errno']=0
   except OSError as e:r['errno']=e.errno
+  finally:r['attempt_finished_ns']=time.monotonic_ns()
 thread=threading.Thread(target=work);thread.start();thread.join()
 print(json.dumps(r),flush=True)
 '''
