@@ -123,6 +123,28 @@ class ObserveContract(unittest.TestCase):
             c=fixture();mutate(c)
             with self.assertRaises(ValueError):host.verify_case(c)
 
+    def test_startup_and_ready_cannot_repeat(self):
+        for how in ['term','kill']:
+            for kind in ['startup','ready']:
+                for position in range(2,len(fixture(how)['records'])):
+                    c=fixture(how)
+                    duplicate=copy.deepcopy(c['records'][0 if kind=='startup' else 1])
+                    c['records'].insert(position,duplicate)
+                    for index,row in enumerate(c['records']):
+                        row.update(sequence=str(index),elapsed_ns=str(index))
+                    with self.assertRaises(ValueError):host.verify_case(c)
+
+    def test_elapsed_clock_is_nondecreasing(self):
+        for how in ['term','kill']:
+            c=fixture(how)
+            for row in c['records']:row['elapsed_ns']='7'
+            host.verify_case(c)  # Equal timestamps are valid.
+            c['records'][2]['elapsed_ns']='6'
+            with self.assertRaises(ValueError):host.verify_case(c)
+            for invalid in ['', '-1', '1.0', True, '²']:
+                c=fixture(how);c['records'][2]['elapsed_ns']=invalid
+                with self.assertRaises(ValueError):host.verify_case(c)
+
     def test_kill_never_claims_graceful_final(self):
         c=fixture('kill');c['records'][-1]['final']=True
         with self.assertRaises(ValueError):host.verify_case(c)

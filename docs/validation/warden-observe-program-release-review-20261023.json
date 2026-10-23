@@ -63,5 +63,24 @@
     "final_python_result": "passed",
     "vm_started": false,
     "bpf_loaded": false
+  },
+  "followup_lifecycle_clock_review": {
+    "reviewed_commit": "4c3b13a17717ee3791c6013258006080c7d64b67",
+    "pre_fix_regressions": [
+      "Repeated startup/ready accepted",
+      "Decreasing elapsed_ns accepted"
+    ],
+    "fix": [
+      "Only the initial startup/ready pair is allowed",
+      "ASCII nonnegative elapsed_ns must be nondecreasing; ties accepted"
+    ],
+    "targeted_tests": 18,
+    "targeted_result": "passed",
+    "repository_checks": "passed",
+    "python_discovered": 228,
+    "python_skipped": 1,
+    "nix_check": "all systems evaluated; no runtime claim",
+    "vm_started": false,
+    "bpf_loaded": false
   }
 }

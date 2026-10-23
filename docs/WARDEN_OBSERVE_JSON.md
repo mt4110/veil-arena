@@ -137,3 +137,11 @@ JSONとして読めてもrecordやMap要素がobjectでない場合は検証失�
 残る入れ子型・要素参照の例外もworkflowで失敗として記録し、終了コード3と
 `summary.json` の `status: failed` を返します。VM起動をmockしたhost回帰で、
 不正record／Map要素がtracebackで漏れたり `running` のまま残ったりしないことを確認しました。
+
+### 追加再レビュー：ライフサイクルと経過時刻
+
+startup／readyは先頭の各1件のみを許可し、その後の再出現を拒否します。
+`elapsed_ns` はASCIIの非負整数文字列として読み、レコード順に非減少であることを要求します。
+同時刻は許可し、逆行は拒否します。SIGTERM／SIGKILLの両方で、途中の複数位置へ
+startup／readyを挿入するケース、時刻逆行、同時刻、不正な時刻表現を回帰試験で確認しました。
+この修正もhost判定のローカル検証のみで、追加VM起動・BPFロードは行っていません。

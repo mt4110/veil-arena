@@ -107,11 +107,17 @@ def verify_case(case):
             and type(records[1].get('links')) is int and records[1]['links'] == 2, 'ready absent')
     instance = records[0].get('instance_id')
     require(isinstance(instance, str) and instance, 'instance absent')
+    previous_elapsed = 0
     for index, record in enumerate(records):
         require(type(record.get('schema_version')) is int and record['schema_version'] == 1
                 and record.get('instance_id') == instance and record.get('mode') == 'observe'
                 and record.get('scope') == SCOPE and record.get('sequence') == str(index), 'JSON envelope differs')
-        require(isinstance(record.get('elapsed_ns'), str) and record['elapsed_ns'].isdigit(), 'monotonic clock absent')
+        require(index < 2 or record.get('type') not in ['startup','ready'], 'repeated lifecycle record')
+        require(isinstance(record.get('elapsed_ns'), str)
+                and re.fullmatch('[0-9]+', record['elapsed_ns']), 'monotonic clock absent')
+        elapsed = int(record['elapsed_ns'])
+        require(elapsed >= previous_elapsed, 'elapsed clock moved backwards')
+        previous_elapsed = elapsed
         require(record.get('type') in ['startup','ready','event','stats','shutdown']
                 and not any(key in record for key in ['argv','environ','payload','comm']), 'unexpected or sensitive record')
     events = [r for r in records if r['type'] == 'event']
