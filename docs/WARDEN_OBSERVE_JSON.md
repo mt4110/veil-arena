@@ -34,6 +34,9 @@ systemdが管理する `sd_fw_ingress`／`sd_fw_egress` のprogram IDは、一�
 attach種別・名前・flags等の一致を要求し、前後の生データを残します。
 
 Warden自身が追加した2つのlink IDとprogram IDは別に追跡し、停止後の消失を必須とします。
+programは対象cgroupのattach一覧だけでなく、稼働前・稼働中・停止後のグローバル
+`bpftool -j prog show` で確認します。所有IDが稼働前にはなく、稼働中にはあり、停止後にはないことを要求します。
+pinや別プロセスの参照でprogram本体が残る場合も不合格です。一覧の欠落は空一覧へ補いません。
 許可するのはOS側IDの変化であり、Wardenの残留を無視しません。
 グローバルlink一覧は列挙順だけを無視し、全フィールド（link／program IDを含む）の前後一致を要求します。
 試験前からあった対象外linkの消失・変更も不合格です。
@@ -111,3 +114,19 @@ guestの解除待ちとhostの再判定は同じ比較を使います。SIGTERM�
 `scripts/check.sh`（Rust fmt／Clippy／テスト、Python 222件中1件skip、Nix全system評価）が成功しました。
 保存済みのSIGTERM／SIGKILL成功証拠も新host判定で合格しています。
 Nix評価はLinux実行検証を意味しません。修正前は追加した消失回帰ケースが不合格となり、見逃しを再現しました。
+
+### 追加再レビュー：global program残留の判定
+
+対象cgroupからのdetachだけでは、program本体のアンロードを証明できませんでした。
+guestの終了待ちとhost再判定にglobal programの前・中・後の一覧を必須化し、
+linkと対象cgroupから消えてもglobal一覧に所有IDが残るケースを拒否します。
+
+**過去の実VM記録の制限:**
+[元の検証記録](validation/warden-observe-json-20261023.json)は当時の判定と値を保全しています。
+そこでの `owned_programs_absent: true` は対象cgroupのattach一覧から消えたことだけを意味し、
+global一覧からの消失を証明しません。旧記録・実fixture・旧bundleには必須一覧がなく、
+現在の判定器では合格にできません。[再レビュー補足記録](validation/warden-observe-program-release-review-20261023.json)を併せて参照してください。
+
+追加VM起動・BPFロード・新bundle buildは行っていません。修正後のglobal program採取と
+アンロード判定の実VM検証は未実施です。ローカル回帰で残留の見逃しを再現して修正し、
+旧証拠の不足を拒否することも確認しました。過去のリンク解除・通信継続の観測と、新条件の合格を区別します。

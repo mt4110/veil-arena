@@ -73,7 +73,7 @@ def verify_case(case):
             and argv[2] == '--object' and argv[4:] == ['--log-format', 'json', '--interval-ms', '100'], 'observe argv differs')
     for key in ['links_before','links_live','links_after','attached_before','attached_live','attached_after']:
         require(isinstance(case.get(key), list), 'missing link proof')
-    from warden_observe_guest import signatures, same_links
+    from warden_observe_guest import signatures, same_links, programs_released
     require(signatures(case['attached_before']) == signatures(case['attached_after']), 'baseline cgroup semantics differ')
     old = {row['id'] for row in case['links_before']}
     new = [row for row in case['links_live'] if row['id'] not in old]
@@ -81,6 +81,8 @@ def verify_case(case):
     require(not ({r['id'] for r in new} & {r['id'] for r in case['links_after']})
             and not ({r['prog_id'] for r in new} & {r['id'] for r in case['attached_after']}), 'owned links/programs remain attached')
     require(same_links(case['links_before'], case['links_after']), 'baseline global links differ')
+    require(programs_released(case.get('programs_before'), case.get('programs_live'),
+                case.get('programs_after'), [r['prog_id'] for r in new]), 'global program release proof missing or owned programs remain loaded')
     prior = {row['id'] for row in case['attached_before']}
     attached = {row['id'] for row in case['attached_live'] if row['id'] not in prior}
     require(attached == {row['prog_id'] for row in new}, 'live cgroup/prog identity differs')

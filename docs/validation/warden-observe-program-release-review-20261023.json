@@ -1,0 +1,54 @@
+{
+  "schema": "arena-warden-observe-review-supplement-v1",
+  "date": "2026-10-23",
+  "pr": 36,
+  "reviewed_commit": "90732593870fa57b5d798967bbe1046a43c9899d",
+  "finding": "Target-cgroup detach does not prove globally loaded BPF programs disappeared.",
+  "required_evidence": [
+    "programs_before",
+    "programs_live",
+    "programs_after"
+  ],
+  "checks": [
+    "Two distinct owned program IDs absent before, present live, absent after",
+    "Every global table required with unique positive integer IDs",
+    "Guest bounded detach wait and host recheck use the same program predicate"
+  ],
+  "historical_record": {
+    "path": "docs/validation/warden-observe-json-20261023.json",
+    "sha256": "6a55abbf9a29428ced98a8b515dcfe5cff2e156adaa8ce885228689e832d5892",
+    "unchanged": true,
+    "owned_programs_absent_interpretation": "Detached from target cgroup only; global program unload is unconfirmed",
+    "accepted_by_current_verifier": false,
+    "reason": "Missing global program before/live/after tables"
+  },
+  "historical_fixture": {
+    "path": "tests/fixtures/warden-observe-runtime-20261023.json",
+    "sha256": "f82d835b4325e74cdf7ca5d32c7a8c27fbe35afa05fd1bd0bc9e7f809e90444e",
+    "unchanged": true,
+    "synthetic_program_tables_added": false
+  },
+  "local_validation": {
+    "pre_fix_residual_program_regression": "reproduced false acceptance",
+    "targeted_tests": 14,
+    "targeted_result": "passed",
+    "repository_checks": "passed",
+    "python_discovered": 224,
+    "python_skipped": 1,
+    "nix_check": "all systems evaluated; no runtime claim",
+    "historical_evidence_missing_table_rejection": "passed"
+  },
+  "runtime_validation": {
+    "new_bundle_built": false,
+    "vm_started": false,
+    "bpf_loaded": false,
+    "new_guest_runtime": "not tested",
+    "global_program_unload": "unconfirmed"
+  },
+  "preservation": {
+    "owner_worktrees": 4,
+    "owner_files_checked": 564,
+    "protected_evidence_files_checked": 7,
+    "result": "unchanged"
+  }
+}

@@ -90,3 +90,7 @@ NICなしの隔離VMで、実TCPイベントのJSON照合とSIGTERM／SIGKILL後
 DROPは適用せず、policy試験とは別のbundle・runnerを使います。
 [準備・起動前確認・再実行手順](docs/WARDEN_OBSERVE_JSON.md)と
 [ARM64 VMでの限定検証記録](docs/validation/warden-observe-json-20261023.json)を参照してください。
+
+旧実VM記録はglobal program一覧を採取しておらず、program本体のアンロードは未確認です。
+現在の判定ではその前・中・後の一覧を必須としますが、修正後の実VM試験は未実施です。
+[再レビュー補足記録](docs/validation/warden-observe-program-release-review-20261023.json)を参照してください。

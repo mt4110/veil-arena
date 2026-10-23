@@ -30,6 +30,7 @@ def fixture(how='term'):
     maps={'mode':[{'key':['0x00']*4,'value':['0x00']*4}],'deny':[],'mode_id':100,'deny_id':101}
     return {'signal':how,'returncode':0 if how=='term' else -9,'argv':['cli','connect','--object','bpf','--log-format','json','--interval-ms','100'],
             'links_before':[],'links_after':[],'attached_before':[],'attached_after':[],
+            'programs_before':[], 'programs_live':[{'id':10},{'id':11}], 'programs_after':[],
             'links_live':[{'id':1,'prog_id':10,'attach_type':'cgroup_inet4_connect'},{'id':2,'prog_id':11,'attach_type':'cgroup_inet6_connect'}],
             'attached_live':[{'id':10},{'id':11}], 'maps':maps,'maps_before_stop':copy.deepcopy(maps),
             'clients':clients,'restored_clients':copy.deepcopy(clients),
@@ -41,7 +42,9 @@ class ObserveContract(unittest.TestCase):
     def test_actual_guest_output_regression(self):
         data=json.loads((Path(__file__).parent/'fixtures/warden-observe-runtime-20261023.json').read_text())
         for case in data['cases']:
-            host.verify_case(case)
+            # Preserve actual evidence verbatim; it cannot prove global program release.
+            with self.assertRaisesRegex(ValueError,'global program release proof'):
+                host.verify_case(case)
             self.assertNotEqual(case['attached_before'],case['attached_after'])
             self.assertEqual(case['links_before'],case['links_after'])
             invalid=copy.deepcopy(case)
@@ -77,6 +80,29 @@ class ObserveContract(unittest.TestCase):
                 invalid['links_after']=copy.deepcopy(after)
                 self.assertFalse(guest.same_links(invalid['links_before'],invalid['links_after']))
                 with self.assertRaises(ValueError):host.verify_case(invalid)
+
+    def test_detached_but_globally_loaded_programs_are_rejected(self):
+        for how in ['term','kill']:
+            c=fixture(how)
+            c['programs_before']=[{'id':99,'name':'unrelated'}]
+            c['programs_live']=[{'id':99},{'id':10},{'id':11}]
+            c['programs_after']=[{'id':99},{'id':10}]
+            with self.assertRaises(ValueError):host.verify_case(c)
+            self.assertFalse(guest.programs_released(c['programs_before'],c['programs_live'],c['programs_after'],[10,11]))
+            c['programs_after']=[{'id':99}]
+            host.verify_case(c)
+            self.assertTrue(guest.programs_released(c['programs_before'],c['programs_live'],c['programs_after'],[10,11]))
+
+    def test_global_program_evidence_is_required_and_strict(self):
+        for how in ['term','kill']:
+            for key in ['programs_before','programs_live','programs_after']:
+                for value in [None,False,[{'id':True}],[{'id':10},{'id':10}]]:
+                    c=fixture(how);c[key]=value
+                    with self.assertRaisesRegex(ValueError,'global program release proof'):host.verify_case(c)
+            for key,value in [('programs_before',[{'id':10}]),('programs_live',[{'id':10}]),
+                              ('programs_after',[{'id':11}])]:
+                c=fixture(how);c[key]=value
+                with self.assertRaisesRegex(ValueError,'global program release proof'):host.verify_case(c)
 
     def test_missing_restoration_and_wrong_scope(self):
         mutations=[lambda c:c.update(links_after=[{'id':9}]),lambda c:c.update(attached_after=[{'id':10}]),

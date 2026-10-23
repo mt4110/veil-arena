@@ -111,6 +111,24 @@ def same_links(before, after):
         json.dumps(row, sort_keys=True) for row in after)
 
 
+def programs_released(before, live, after, owned):
+    """Global program evidence, distinct from target-cgroup attachment evidence."""
+    def ids(rows):
+        if not isinstance(rows, list) or any(not isinstance(row, dict)
+                or type(row.get('id')) is not int or row['id'] <= 0 for row in rows):
+            return None
+        values = {row['id'] for row in rows}
+        return values if len(values) == len(rows) else None
+    tables = [ids(rows) for rows in [before, live, after]]
+    if any(value is None for value in tables) or not isinstance(owned, list):
+        return False
+    if len(owned) != 2 or any(type(value) is not int or value <= 0 for value in owned):
+        return False
+    wanted = set(owned)
+    return (len(wanted) == 2 and not wanted.intersection(tables[0])
+            and wanted.issubset(tables[1]) and not wanted.intersection(tables[2]))
+
+
 def mode_maps(new_links):
     ids = set()
     for link in new_links:
@@ -158,10 +176,11 @@ def test(binary, obj, out):
         save()
         for how, signum in [('term', signal.SIGTERM), ('kill', signal.SIGKILL)]:
             before_links, before_attached = bpf('link', 'show'), attachments()
+            before_programs = bpf('prog', 'show')
             argv = [str(binary), 'connect', '--object', str(obj), '--log-format', 'json', '--interval-ms', '100']
             log, errors = out / (how + '.jsonl'), out / (how + '.stderr')
             case = {'signal': how, 'argv': argv, 'links_before': before_links,
-                    'attached_before': before_attached}
+                    'attached_before': before_attached, 'programs_before': before_programs}
             result['cases'].append(case)
             with log.open('x') as stdout, errors.open('x') as stderr:
                 process = subprocess.Popen(argv, stdout=stdout, stderr=stderr)
@@ -172,6 +191,7 @@ def test(binary, obj, out):
                 assert len(new) == 2 and {x['attach_type'] for x in new} == {'cgroup_inet4_connect', 'cgroup_inet6_connect'}, live
                 case['links_live'] = live
                 case['attached_live'] = attachments()
+                case['programs_live'] = bpf('prog', 'show')
                 case['maps'] = mode_maps(new)
                 case['clients'] = [attempt(s) for s in servers]
                 case['outside_client'] = attempt(servers[0], inside=False)
@@ -188,11 +208,14 @@ def test(binary, obj, out):
             assert how == 'kill' or not case['truncated_tail'], 'incomplete graceful log record'
             def detached():
                 case['links_after'], case['attached_after'] = bpf('link', 'show'), attachments()
-                # Capture both tables on every observation, even when one differs.
+                case['programs_after'] = bpf('prog', 'show')
+                # Capture every table on every observation, even when one differs.
                 save()
                 return (not ({r['id'] for r in new} & {r['id'] for r in case['links_after']})
                     and not ({r['prog_id'] for r in new} & {r['id'] for r in case['attached_after']})
                     and same_links(before_links, case['links_after'])
+                    and programs_released(before_programs, case['programs_live'],
+                        case['programs_after'], [r['prog_id'] for r in new])
                     and signatures(case['attached_after']) == signatures(before_attached))
             wait(detached)
             case['restored_clients'] = [attempt(s) for s in servers]
