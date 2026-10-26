@@ -102,10 +102,10 @@ F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVM�
 | TODO | 状態・着手条件 |
 | --- | --- |
 | Linux x86_64の新規F2・F4統合受け入れ（追加検証） | [hp-ubuntuで成功](HP_UBUNTU_VALIDATION.md)（2026-10-26、固定source `4b22910`）。F2単独は新規4 VM、続く別の統合試験はF2 4 VM＋F3 2 VMで成功・回収。pi-nodeの当時の4 CPU不足は履歴として保持。2 VM checkpointは下記の別記録 |
-| Macの新規F2・F3統合受け入れ（追加検証） | 2026-10-21の現行main preflightもRAM不足で終了3・新規VM 0台。直前観測24,178 MiB、必要24,576 MiB。3 bundleのhash照合は成功。[記録](validation/f4-mac-main-preflight-20261021.json)。旧runnerは2 moduleがmainと異なるため次回準備・照合する。余力がある時点で再開し、他プロセス停止や条件緩和はしない |
+| Macの新規F2・F3統合受け入れ（追加検証） | [2026-10-26の現行mainで成功](MAC_TWO_VM_VALIDATION.md)（新規6 VM、利用可能34,687 MiB）。所有者の承認で通常Colimaを一時停止し、既存cacheから固定guestを準備、準備用builderも止めて実行。期限・資源・期待値は変更せず、通常Colimaは復帰。2026-10-21のRAM不足による終了3・新規VM 0台は[履歴](validation/f4-mac-main-preflight-20261021.json)として保持 |
 | Linux x86_64/KVMの標準F1通信 | [修正後ソースで成功](F1_LINUX_STANDARD_VALIDATION.md)。新規2 VMでPod・Service DNS・TCP/UDP・同期・回収・再成功。起動ソースのNix収録とServiceAccount成立順序を修正し、同一ソースのMacでも再成功。取り込み・対象CIは別途確認。以前の失敗証拠も保持 |
 | Macの標準1 VM受け入れ | [成功](validation/f4-standard-one-vm-mac-20261021.json)。現行runnerで通信2回・Keeper正常2回・新checkpoint bundleの4 runを実行。全8 VMが異なるboot ID、同期・正常回収。旧guest・証拠は保持 |
-| 2 VM側のcheckpoint受け入れ（追加検証） | [Linuxでserver側checkpoint中断・期限検出・正常復帰が成功](F2_LIFECYCLE.md)（2026-10-26、4クラスタ・8 VM）。Mac実起動・agent側停止注入は未検証。既存証拠を保持し、標準1 VMとは別に記録 |
+| 2 VM側のcheckpoint受け入れ（追加検証） | [Linuxでserver側checkpoint中断・期限検出・正常復帰が成功](F2_LIFECYCLE.md)（2026-10-26、4クラスタ・8 VM）。[Mac実起動も成功](MAC_TWO_VM_VALIDATION.md)（2026-10-26、新規8 VM）。agent側停止注入は未検証。既存証拠を保持し、標準1 VMとは別に記録 |
 | 本人操作確認 | 既存pi-nodeで本人の4 run実行が成功。一括終了0・異なる4 boot ID・中断/期限検出後の正常復帰・証拠同期・全所有QEMU回収を[確認](validation/f4-owner-lifecycle-20261021.json)。Mac側と2 VM側へは一般化しない |
 
 既存キャッシュ・証拠・diskは保持する。新規ハードウェアがないことを理由に未検証を合格扱いにせず、
@@ -116,6 +116,6 @@ F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVM�
 標準1 VMの完成判断は維持する。Linux x86_64/KVMでは固定入力のF2→F3統合と、
 server側checkpoint中断・期限検出・両VM回収・新規正常クラスタへの復帰まで確認した。
 今回の実装・記録のレビュー、取り込み、マージ後main CIの成功を今回の終了条件とする。
-Macの現行2 VM統合/lifecycle、agent側停止注入、過去netns期限超過の原因調査は追加TODOとして保持し、
+Macの現行2 VM統合/lifecycleも[追加検証成功](MAC_TWO_VM_VALIDATION.md)。agent側停止注入、panic/電源断、過去netns期限超過の原因調査は追加TODOとして保持し、
 この区切りの必須作業へ繰り上げない。他のVeilの試験で必要になった時に再開を判断する。
 任意の製品・CNI・障害への対応を保証せず、物理環境・第三者試用・追加公開は別判断とする。

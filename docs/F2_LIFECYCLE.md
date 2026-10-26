@@ -77,5 +77,5 @@ arena_exit=$?
 printf '終了コード: %s\n証拠: %s/summary.json\n' "$arena_exit" "$arena_out"
 ```
 
-Macでの2 VM lifecycle実起動と現行F2/F3統合受け入れは未検証のまま。
+2026-10-26、[Macの現行2 VM lifecycleとF2/F3統合受け入れも成功](MAC_TWO_VM_VALIDATION.md)。lifecycleは新規8 VM、watchdog観測後2117 ms。
 この試験はserver runnerの停止と両VM回収に限定し、agent停止側・VM panic・物理ホスト停止は別の範囲。

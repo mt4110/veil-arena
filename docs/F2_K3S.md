@@ -34,7 +34,7 @@ JSON集計・API証拠にはtoken・kubeconfig・Secretを取得しない。
 
 [2 VM lifecycle](F2_LIFECYCLE.md)は、serverのNode Ready後・Pod適用前で中断とwatchdogを注入する。
 中断→正常→期限検出→正常の4クラスタ・8 VMで600秒を共有し、空き258 GiBを要求する。
-Linux x86_64/KVMで両VMの証拠同期・回収と正常復帰を確認済み。Macとagent側の停止注入は未検証。
+Linux x86_64/KVMで両VMの証拠同期・回収と正常復帰を確認済み。[Macでも成功](MAC_TWO_VM_VALIDATION.md)。agent側の停止注入は未検証。
 
 ## 準備と実行
 
