@@ -24,7 +24,7 @@ IPv4/IPv6の拒否・解除・SIGTERM/SIGKILL後の復帰、証拠同期・QEMU�
 
 他のVeilの開発へ戻る際は、[貼り付け用の引継ぎプロンプト](docs/VEIL_HANDOFF.md)を利用してください。1 VM標準での区切り、実行入口、確認済みの範囲、責務の境界、保持する追加検証TODOをまとめています。
 
-Linux x86_64/KVMの追加検証は、[hp-ubuntuの確認済み構成と運用](docs/HP_UBUNTU_VALIDATION.md)に記録しています。固定入力の新規F2→F3統合受け入れが成功しました。続く[2 VM lifecycle](docs/F2_LIFECYCLE.md)では、Linuxのserver側checkpoint中断・期限検出・両VM回収・正常復帰も確認しました。最低スペック測定、Mac側やagent側停止注入の保証とは分けています。
+Linux x86_64/KVMの追加検証は、[hp-ubuntuの確認済み構成と運用](docs/HP_UBUNTU_VALIDATION.md)に記録しています。固定入力の新規F2→F3統合受け入れが成功しました。続く[2 VM lifecycle](docs/F2_LIFECYCLE.md)では、Linuxのserver側checkpoint中断・期限検出・両VM回収・正常復帰も確認しました。Macでも[現行2 VM統合・lifecycleの最終追加検証](docs/MAC_TWO_VM_VALIDATION.md)が成功しました（2026-10-26、新規14 VM）。最低スペック測定やagent側停止注入の保証とは分けています。
 
 ```sh
 bash scripts/blackhole-workflow.sh --project ../veil-blackhole
@@ -40,7 +40,7 @@ bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 
 v0.3.0のソース版を公開しました。1 VM標準のK3s通信・Keeper接続・中断／期限検出後の復帰までを確認し、機能開発を一区切りにしました。
 [正式リリースノート](https://github.com/mt4110/veil-arena/releases/tag/v0.3.0)を参照してください。[公開準備記録](docs/V0_3_0_READINESS.md)と[当時のノート案](docs/releases/v0.3.0-draft.md)は履歴として保持し、実VMの証拠と版上げ後のチェックを区別します。
-Linuxの追加受け入れは上記の固定条件で成功しました。Macの現行2 VM統合・lifecycleとagent側停止注入は追加検証TODOとして保持します。過去のLinux x86_64／KVMの期限超過も原因未確定であり、今回のK3s成功をその解消の証拠にはしません。
+Linuxの追加受け入れは上記の固定条件で成功しました。Macの現行2 VM統合・lifecycleも上記の固定条件で成功しました。agent側停止注入・panic/電源断は追加検証TODOとして保持します。過去のLinux x86_64／KVMの期限超過も原因未確定であり、今回のK3s成功をその解消の証拠にはしません。
 
 ホスト上のオフラインrunnerはOS sandboxではありません。Nixの開発環境と、外部NICを持たないLinux VMを用意しました。macOS ARM64のNix上のオフライン実行に加え、Linux x86_64／KVMのゲストで「正常版の成功 → 不具合版の検出 → 元コードで再成功」を確認済みです。ゲストの試験サービス終了後、ホストのRustコントローラーが結果をfsyncし、所有するQEMUを停止します。
 
@@ -84,4 +84,4 @@ Rust・スクリプト・文書は[MIT](LICENSE)、`reference/*.c` の参照eBPF
 
 追加検証のF2・F3統合受け入れ入口と対応ホスト・判定方法は [F4手順](docs/F4_ACCEPTANCE.md) を参照してください。F4全体の完了条件とは分けて扱います。
 
-既存環境の1 VMで行うcheckpoint中断・watchdog期限検出・正常復帰は [F4 lifecycle手順](docs/F4_LIFECYCLE.md) を参照してください。Linuxの後続成功と、Macなどの未検証TODOは完成計画で区別します。
+既存環境の1 VMで行うcheckpoint中断・watchdog期限検出・正常復帰は [F4 lifecycle手順](docs/F4_LIFECYCLE.md) を参照してください。Mac/Linuxの後続成功と、残る未検証TODOは完成計画で区別します。

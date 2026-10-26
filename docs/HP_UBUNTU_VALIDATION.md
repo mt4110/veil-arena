@@ -100,7 +100,7 @@ runごとにK3s DB・証明書・join token・書込みdiskを分離する。証
 容量整理は対象と復元方法を示して別途承認を得る。生disk/serial/kubeconfig/tokenを公開記録へ含めない。
 
 後続の未コミット実装で、[Linuxの2 VM checkpoint中断/期限検出/復帰](F2_LIFECYCLE.md)も成功した。上記固定sourceの統合結果とは別のsource hash・証拠として記録する。
-Macの現行F2/F3統合新規受け入れ・2 VM lifecycle、agent側停止注入は追加検証TODOとして保持する。
+後続の[Macの現行F2/F3統合新規受け入れ・2 VM lifecycleも成功](MAC_TWO_VM_VALIDATION.md)。agent側停止注入は追加検証TODOとして保持する。
 過去のpi-node資源不足は当時の事実で、過去のLinux netns期限超過の根本原因も未確定のまま。
 この試験は固定KeeperのAppArmor exec smokeであり、Keeper全機能・Pod配備・独自BPF LSM・本番保護を保証しない。
 標準1 VMの完成条件、物理環境の別管理、第三者試用・追加リリースの保留は変更しない。

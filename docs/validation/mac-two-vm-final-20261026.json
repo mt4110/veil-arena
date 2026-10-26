@@ -1,0 +1,654 @@
+{
+  "schema_version": 1,
+  "date_jst": "2026-10-26",
+  "host": "aarch64-darwin",
+  "source_commit": "2ce0bc877f9e574380b0ada66d8a6f71555eee1a",
+  "source_sha256": {
+    "environments/vm/k3s.nix": "6bee05bee3195707b15d596a1dc4f14a5e9e3ec5543e6d2112b9db9579566ac1",
+    "scripts/k3s_f2_host.py": "754522fb673233ae18b3689e68a37f6441bea75ddd14bdbc9028f60bcc0e778b",
+    "scripts/k3s_f2_guest.py": "1e7547689864f9928971c1c4a8a1869b276d009ced967369fbce5732e510ee9b",
+    "scripts/k3s_f2_checkpoint.py": "1a823b454d3c7fed9b7dda998e089229af6513050c089a9d2eaf02695e429048",
+    "scripts/k3s_checkpoint.py": "a87d1531b5cc5bee35a1fa61d61c2290cc777a15b064077a159558c32ba82954",
+    "scripts/k3s_f3_host.py": "992da2fda3d11ea2edab1396b147f550bec3e4a693018a72d93fa2ddeaf2886e",
+    "scripts/k3s_f3_guest.py": "be13718df7a39635a69294e6c8a4df5a9cb3c5d7cbd8e3d680c6245d69ffe603",
+    "scripts/k3s_f4_host.py": "6805ad484b0932e00d8b4279c785ec7f480f21feea320548767912e7814e282a"
+  },
+  "status": "passed",
+  "independent_verification": "passed",
+  "accelerator": "tcg",
+  "cpu": "max",
+  "host_memory_gib": 64,
+  "preflight_available_memory_mib": 34687,
+  "preflight_free_disk_gib": 543.63,
+  "fixed_resources_deadlines_expectations_changed": false,
+  "integrated": {
+    "exit_code": 0,
+    "new_vms": 6,
+    "f2_new_clusters": 2,
+    "f3_new_vms": 2,
+    "component_deadline_seconds": 600
+  },
+  "lifecycle": {
+    "exit_code": 0,
+    "new_clusters": 4,
+    "new_vms": 8,
+    "actions": [
+      "cancel",
+      null,
+      "timeout",
+      null
+    ],
+    "shared_deadline_seconds": 600,
+    "controller_exits": [
+      {
+        "server": 3,
+        "agent": 3
+      },
+      {
+        "server": 0,
+        "agent": 0
+      },
+      {
+        "server": 3,
+        "agent": 3
+      },
+      {
+        "server": 0,
+        "agent": 0
+      }
+    ],
+    "fixture_verified": [
+      true,
+      null,
+      true,
+      null
+    ]
+  },
+  "bundles": {
+    "server": {
+      "input": {
+        "airgap_sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5",
+        "apparmor_parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+        "common_guest_sha256": "b0a6ff10ac7fd4d6ed855a82bf4bc1f44ad0a21b46602f5f27f19140a946af31",
+        "compat_aa_exec": "/nix/store/gjfmhii7xa59vq7ga974gp44sj4gpgz8-apparmor-bin-utils-5.0.2/bin/aa-exec",
+        "compat_elf": {
+          "false": {
+            "destination": "/usr/bin/false",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/false"
+          },
+          "true": {
+            "destination": "/usr/bin/true",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/true"
+          }
+        },
+        "compat_python": "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+        "f2_checkpoint_sha256": "1a823b454d3c7fed9b7dda998e089229af6513050c089a9d2eaf02695e429048",
+        "f2_observer_sha256": "a87d1531b5cc5bee35a1fa61d61c2290cc777a15b064077a159558c32ba82954",
+        "fixture_command": [
+          "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+          "/nix/store/xiziw66q3yqi6d0h5n282mfd8hycb96x-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+        ],
+        "fixture_config_digest": "sha256:6071b76b174e1ba98352cba1f83ebaa7f9b6f091d95fcfab0d3407d4e6df14fd",
+        "fixture_script_sha256": "bdd7f087ca54f43387bae86120f9164866a0a64df83dca4aabac668cab2948f1",
+        "guest_runner_sha256": "1e7547689864f9928971c1c4a8a1869b276d009ced967369fbce5732e510ee9b",
+        "hostUid": 501,
+        "imageName": "docker.io/veil-arena/fixture:f2-bdd7f087ca54f433",
+        "keeper_child_gid": 1000,
+        "keeper_child_uid": 501,
+        "limits": {
+          "host_watchdog_seconds": 660,
+          "io_probe_seconds": 5,
+          "memory_mib": 16384,
+          "node_ready_seconds": 300,
+          "pod_ready_seconds": 120,
+          "vcpus": 4,
+          "workflow_seconds": 600,
+          "writable_run_disk_virtual_gib": 32
+        },
+        "manifest_sha256": "fa9d0d4418541e1e3281ff574c08c8842b3b504ecb220b120dff6f94720ee282",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "role": "server",
+        "scenario": "k3s-f2",
+        "schema_version": 1,
+        "system": "aarch64-linux",
+        "versions": {
+          "apparmor": "5.0.2",
+          "cargo_binary": "1.98.0",
+          "containerd": "2.3.4-k3s1.36",
+          "coreutils": "9.11",
+          "flannel": "v0.28.4",
+          "k3s": "1.36.4+k3s1",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "qemu": "11.1.1",
+          "rust": "1.98.1"
+        }
+      },
+      "bundle_sha256": "17d00971305e37d4b7b195a293ad1c99523c034dee5cf018940e0d937e4e578a"
+    },
+    "agent": {
+      "input": {
+        "airgap_sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5",
+        "apparmor_parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+        "common_guest_sha256": "b0a6ff10ac7fd4d6ed855a82bf4bc1f44ad0a21b46602f5f27f19140a946af31",
+        "compat_aa_exec": "/nix/store/gjfmhii7xa59vq7ga974gp44sj4gpgz8-apparmor-bin-utils-5.0.2/bin/aa-exec",
+        "compat_elf": {
+          "false": {
+            "destination": "/usr/bin/false",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/false"
+          },
+          "true": {
+            "destination": "/usr/bin/true",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/true"
+          }
+        },
+        "compat_python": "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+        "f2_checkpoint_sha256": "1a823b454d3c7fed9b7dda998e089229af6513050c089a9d2eaf02695e429048",
+        "f2_observer_sha256": "a87d1531b5cc5bee35a1fa61d61c2290cc777a15b064077a159558c32ba82954",
+        "fixture_command": [
+          "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+          "/nix/store/xiziw66q3yqi6d0h5n282mfd8hycb96x-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+        ],
+        "fixture_config_digest": "sha256:6071b76b174e1ba98352cba1f83ebaa7f9b6f091d95fcfab0d3407d4e6df14fd",
+        "fixture_script_sha256": "bdd7f087ca54f43387bae86120f9164866a0a64df83dca4aabac668cab2948f1",
+        "guest_runner_sha256": "1e7547689864f9928971c1c4a8a1869b276d009ced967369fbce5732e510ee9b",
+        "hostUid": 501,
+        "imageName": "docker.io/veil-arena/fixture:f2-bdd7f087ca54f433",
+        "keeper_child_gid": 1000,
+        "keeper_child_uid": 501,
+        "limits": {
+          "host_watchdog_seconds": 660,
+          "io_probe_seconds": 5,
+          "memory_mib": 4096,
+          "node_ready_seconds": 300,
+          "pod_ready_seconds": 120,
+          "vcpus": 2,
+          "workflow_seconds": 600,
+          "writable_run_disk_virtual_gib": 32
+        },
+        "manifest_sha256": "fa9d0d4418541e1e3281ff574c08c8842b3b504ecb220b120dff6f94720ee282",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "role": "agent",
+        "scenario": "k3s-f2",
+        "schema_version": 1,
+        "system": "aarch64-linux",
+        "versions": {
+          "apparmor": "5.0.2",
+          "cargo_binary": "1.98.0",
+          "containerd": "2.3.4-k3s1.36",
+          "coreutils": "9.11",
+          "flannel": "v0.28.4",
+          "k3s": "1.36.4+k3s1",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "qemu": "11.1.1",
+          "rust": "1.98.1"
+        }
+      },
+      "bundle_sha256": "dc48ccc17a4b1a5c8113078c23a2857370d243e73c6bceb644004acabe3b6920"
+    },
+    "keeper": {
+      "input": {
+        "airgap_sha256": "9d3c4c2197bcf857ca17633aa393bad683cc982ddd408620f93036a3cca953b5",
+        "apparmor_parser": "/nix/store/nn1pc7rbrqf8v5kldxqkvdf2dgv481lx-apparmor-parser-5.0.2/bin/apparmor_parser",
+        "common_guest_sha256": "b0a6ff10ac7fd4d6ed855a82bf4bc1f44ad0a21b46602f5f27f19140a946af31",
+        "compat_aa_exec": "/nix/store/gjfmhii7xa59vq7ga974gp44sj4gpgz8-apparmor-bin-utils-5.0.2/bin/aa-exec",
+        "compat_elf": {
+          "false": {
+            "destination": "/usr/bin/false",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/false"
+          },
+          "true": {
+            "destination": "/usr/bin/true",
+            "sha256": "51d5c8c23e319ba4f3ed2576e1e7efea931e6a8c0d1c5cf3e0015bcab575a32c",
+            "source": "/nix/store/dq1apsyiah48nmc4n45dpwc33k887hdn-coreutils-9.11/bin/true"
+          }
+        },
+        "compat_python": "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+        "fixture_command": [
+          "/nix/store/81ag9nxz1flw3xjkv1vvqg8y2ipx2ins-python3-3.14.7/bin/python3",
+          "/nix/store/nws4d5in8a6kcf7m0d7rk74jhcd4n5g5-arena-k3s-fixture.py/bin/arena-k3s-fixture.py"
+        ],
+        "fixture_config_digest": "sha256:47fbfc81878fbe1039b4424ded8777b328056ab6969992e63d02027921688761",
+        "fixture_script_sha256": "f00f14b3e67877feea1aaa05f6f27ec2f4a218d51858f3e334fa91d857a94c23",
+        "guest_runner_sha256": "be13718df7a39635a69294e6c8a4df5a9cb3c5d7cbd8e3d680c6245d69ffe603",
+        "hostUid": 501,
+        "imageName": "docker.io/veil-arena/fixture:f1-f00f14b3e67877fe",
+        "keeper": {
+          "child_gid": 1000,
+          "child_uid": 501,
+          "command_timeout_seconds": 20,
+          "input_sha256": {
+            "experiments/apparmor/m0-exec-check.profile": "e56379b741145cf8caa07f2e2bff9e47a8dbd00f2c781e95af1af53e006d3cc6",
+            "tools/m0_exec_check.py": "108372f8dbe35f354c2fae7dc8708353a02324e186ae611b59afc639ef760eed"
+          },
+          "profile_name": "veil_keeper_m0_exec_check_20261016"
+        },
+        "keeper_child_gid": 1000,
+        "keeper_child_uid": 501,
+        "lifecycle_checkpoint_sha256": "a87d1531b5cc5bee35a1fa61d61c2290cc777a15b064077a159558c32ba82954",
+        "limits": {
+          "host_watchdog_seconds": 660,
+          "io_probe_seconds": 5,
+          "meaning": "User-approved resource revision 2026-10-20; original deadlines and expectations retained; no automatic retry/extension",
+          "memory_mib": 16384,
+          "node_ready_seconds": 300,
+          "pod_ready_seconds": 120,
+          "vcpus": 4,
+          "workflow_seconds": 600,
+          "writable_run_disk_virtual_gib": 32
+        },
+        "manifest_sha256": "684cf62213f146eef692e5849123e9a7455a56d14320124445e210e10dd79d20",
+        "nixpkgs_revision": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "role": "server",
+        "scenario": "k3s-f3",
+        "schema_version": 1,
+        "system": "aarch64-linux",
+        "versions": {
+          "apparmor": "5.0.2",
+          "cargo_binary": "1.98.0",
+          "containerd": "2.3.4-k3s1.36",
+          "coreutils": "9.11",
+          "flannel": "v0.28.4",
+          "k3s": "1.36.4+k3s1",
+          "kernel": "6.12.112",
+          "python": "3.14.7",
+          "qemu": "11.1.1",
+          "rust": "1.98.1"
+        }
+      },
+      "bundle_sha256": "3bcd441c774324b0185308804a5e8782d10e0f0e2847dea777246d40cfeb5239"
+    }
+  },
+  "unique_boot_ids": [
+    "833ec6fb-3e8a-49b9-98e1-9df1393c5846",
+    "b9304767-c9c6-43c2-9165-ea90a77cc6b8",
+    "701f1d57-847e-48c6-8b98-e6a32e302ca0",
+    "0ffc202b-39d5-4603-902f-90ddbb3ecc8e",
+    "4e973ec5-6b70-4f96-9749-924a9793012a",
+    "6c0249d3-7fa0-4794-8f01-be0770a64876",
+    "a6d30132-0c45-4200-a594-1ef4aad41a25",
+    "66369ec9-a094-476b-98b3-9de3a7f8cd29",
+    "0332e119-8fc2-4826-a607-e7ee2e78c133",
+    "edf70c27-245b-435f-a3a1-2c0229f58efc",
+    "f0ead434-5a00-4fd3-bf59-1f8da0a919a8",
+    "777992d9-cab8-41be-b1e7-cc59837b3f91",
+    "6344c0c2-7404-45c6-89a2-e27788dc73d9",
+    "fbbb99b4-b9f4-4ef5-ab48-c74f05199862"
+  ],
+  "rows": [
+    {
+      "run": "integrated/f2/fresh-1/agent",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 28818,
+        "duration_ms": 143787,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 28821,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "integrated/f2/fresh-1/server",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 28789,
+        "duration_ms": 144639,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 28792,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "integrated/f2/fresh-2/agent",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 29350,
+        "duration_ms": 145058,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 29368,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "integrated/f2/fresh-2/server",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 29336,
+        "duration_ms": 145639,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 29339,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "integrated/f3/fresh-1",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 29983,
+        "duration_ms": 55642,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 29986,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "integrated/f3/fresh-2",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 30211,
+        "duration_ms": 57557,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 30214,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-1/agent",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 30640,
+        "duration_ms": 80098,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 3,
+        "qemu_exit_code": 0,
+        "qemu_pid": 30643,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "cancelled",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "environment_error",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-1/server",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 30616,
+        "duration_ms": 81007,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 3,
+        "qemu_exit_code": 0,
+        "qemu_pid": 30619,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "cancelled",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "environment_error",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-2/agent",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 30979,
+        "duration_ms": 149151,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 30982,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-2/server",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 30968,
+        "duration_ms": 149703,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 30971,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-3/agent",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 31501,
+        "duration_ms": 80216,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 3,
+        "qemu_exit_code": 0,
+        "qemu_pid": 31504,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "cancelled",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "environment_error",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-3/server",
+      "stop": {
+        "checkpoint_elapsed_ms": 2117,
+        "checkpoint_seen": true,
+        "controller_pid": 31494,
+        "duration_ms": 81111,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 3,
+        "qemu_exit_code": 0,
+        "qemu_pid": 31497,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "watchdog",
+        "schema_version": 2,
+        "startup_timeout_ms": 120000,
+        "status": "environment_error",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": 2000,
+        "watchdog_fixture": true
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-4/agent",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 31909,
+        "duration_ms": 147932,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 31912,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    },
+    {
+      "run": "lifecycle/fresh-4/server",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 31898,
+        "duration_ms": 148638,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 31901,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": true
+    }
+  ],
+  "host_network": {
+    "links_unchanged": true,
+    "routes_unchanged": true
+  },
+  "input_seals_unchanged": true,
+  "raw_evidence": "/Users/takemuramasaki/_workspace/veil-arena/artifacts/mac-two-vm-final-20261026-a01",
+  "preparation": {
+    "existing_cache_reused": true,
+    "guest_build_offline": true,
+    "old_ssd_unavailable_on_mac": true,
+    "build_profile_stopped_before_tests": true
+  },
+  "unverified": [
+    "agent-target runner stop injection",
+    "kernel panic/host power-off",
+    "historical Linux netns timeout root cause"
+  ],
+  "commit_push_pr_performed": false
+}
