@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date_jst": "2026-10-26",
+  "version": "0.4.0",
+  "base_commit": "3e254bea1a2c50a5323069cb926b115af35e606a",
+  "status": "local_checks_passed",
+  "source_sha256": {
+    "Cargo.toml": "8a935f11c84caf8a4df9e4f0b42006d6187da6773e7995108d9ce889d72020bf",
+    "Cargo.lock": "6bf18ca2782a3d3e577bab08d8c252b6ab7431bc1a7bd5b683ef41b3d92a75d1",
+    "tools/vm-controller/Cargo.toml": "0aa8c6c430289284547e377fc6f631ccac796670943536db81899c1eb382ab37",
+    "tools/vm-controller/Cargo.lock": "712a467a23d5df7599c821da1e58a5e30517a4585b0268c5dcbd1fcff3e8ccc7",
+    "flake.nix": "5be88f5f1f6b37c3131304ffddd6372f5a0c744ada4fa8ad25133271aa5d89cc"
+  },
+  "checks": {
+    "scripts_check_sh": "passed",
+    "mac_nix_arena_package": "passed",
+    "mac_nix_vm_controller_package": "passed",
+    "both_lockfile_dependency_graphs_unchanged_except_self_version": true,
+    "mac_runtime_evidence_source_hashes_unchanged": true,
+    "local_document_links": "passed"
+  },
+  "runtime_evidence": [
+    "mac-two-vm-final-20261026.json",
+    "hp-ubuntu-f4-20261026.json",
+    "f2-lifecycle-hp-ubuntu-20261026.json",
+    "warden-main-20261022.json",
+    "warden-nonloading-20261023.json"
+  ],
+  "scope": "Version alignment and source release preparation; no new guest runtime acceptance claimed",
+  "github_pr_ci": "Checked after commit against exact head",
+  "merged_main_ci": "Checked separately before signed tag",
+  "distribution": "source only; no manual binary assets",
+  "remaining_todos": [
+    "agent-target runner stop",
+    "kernel panic/host power-off",
+    "historical Linux netns timeout root cause"
+  ]
+}
