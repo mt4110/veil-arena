@@ -38,7 +38,9 @@ bash scripts/blackhole-workflow.sh --project ../veil-blackhole
 
 初期MVP（M0〜M2）の受け入れ検証を完了しました。[マイルストーン](docs/MILESTONES.md)と[公開用の検証集計](docs/validation/v0.1.0.json)に、条件・対応範囲・未検証事項をまとめています。
 
-v0.3.0のソース版を公開しました。1 VM標準のK3s通信・Keeper接続・中断／期限検出後の復帰までを確認し、機能開発を一区切りにしました。
+v0.4.0では、1 VM標準に加え、Mac／Linuxの2 VM統合・server側checkpoint中断／期限検出後の復帰、Wardenの隔離試験入口をまとめています。[v0.4.0リリース情報](https://github.com/mt4110/veil-arena/releases/tag/v0.4.0)と[リリースノート](docs/releases/v0.4.0.md)、[公開確認手順](docs/V0_4_0_READINESS.md)を参照してください。追加の必須機能を増やさず、他のVeilの開発を支える検証基盤として区切ります。
+
+v0.3.0は、1 VM標準の到達点として公開済みです。
 [正式リリースノート](https://github.com/mt4110/veil-arena/releases/tag/v0.3.0)を参照してください。[公開準備記録](docs/V0_3_0_READINESS.md)と[当時のノート案](docs/releases/v0.3.0-draft.md)は履歴として保持し、実VMの証拠と版上げ後のチェックを区別します。
 Linuxの追加受け入れは上記の固定条件で成功しました。Macの現行2 VM統合・lifecycleも上記の固定条件で成功しました。agent側停止注入・panic/電源断は追加検証TODOとして保持します。過去のLinux x86_64／KVMの期限超過も原因未確定であり、今回のK3s成功をその解消の証拠にはしません。
 
