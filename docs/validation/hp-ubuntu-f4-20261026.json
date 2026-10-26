@@ -1,0 +1,446 @@
+{
+  "schema_version": 1,
+  "date_jst": "2026-10-26",
+  "host": "hp-ubuntu",
+  "source_commit": "4b2291052c22f518aab04797e0070d67c98b94c4",
+  "scenario": "k3s-f4",
+  "scope": "additional F2 then F3 acceptance; one-VM standard unchanged",
+  "status": "passed",
+  "exit_code": 0,
+  "independent_raw_verifier": "passed",
+  "execution": {
+    "arch": "x86_64",
+    "accelerator": "kvm",
+    "cpu": "host"
+  },
+  "uid": 1000,
+  "host_preflight": {
+    "cpu_count": 8,
+    "available_memory_mib": 61486,
+    "free_disk_gib": 342.96
+  },
+  "new_f2_clusters": 2,
+  "new_f2_vms": 4,
+  "new_f3_vms": 2,
+  "unique_boot_ids": 6,
+  "max_simultaneous_vms": 2,
+  "component_workflow_seconds": 600,
+  "resource_deadline_expectations_changed": false,
+  "rows": [
+    {
+      "component": "f2",
+      "fresh": 1,
+      "role": "server",
+      "boot_id": "14532733-f3c6-4935-a36f-04714684c486",
+      "status": "passed",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 70032,
+        "duration_ms": 114243,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 70033,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": {
+        "qemu_pid": true,
+        "controller_pid": true
+      }
+    },
+    {
+      "component": "f2",
+      "fresh": 1,
+      "role": "agent",
+      "boot_id": "620d6308-156a-469a-b205-9945eefd6805",
+      "status": "passed",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 70061,
+        "duration_ms": 113137,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 70062,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": {
+        "qemu_pid": true,
+        "controller_pid": true
+      }
+    },
+    {
+      "component": "f2",
+      "fresh": 2,
+      "role": "server",
+      "boot_id": "032180b8-d5e6-4732-a68f-3aa65eb2b8ad",
+      "status": "passed",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 70282,
+        "duration_ms": 108156,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 70283,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": {
+        "qemu_pid": true,
+        "controller_pid": true
+      }
+    },
+    {
+      "component": "f2",
+      "fresh": 2,
+      "role": "agent",
+      "boot_id": "288bfd5e-6dcc-4f69-b71f-f03a10c5c238",
+      "status": "passed",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 70322,
+        "duration_ms": 110042,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 70323,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": {
+        "qemu_pid": true,
+        "controller_pid": true
+      }
+    },
+    {
+      "component": "f3",
+      "fresh": 1,
+      "role": "keeper",
+      "boot_id": "282c1082-f74a-4d41-93e6-f6da026dd86c",
+      "status": "passed",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 70566,
+        "duration_ms": 32113,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 70567,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": {
+        "qemu_pid": true,
+        "controller_pid": true
+      },
+      "keeper": {
+        "status": "passed",
+        "exit_code": 0,
+        "inventory_restored": true,
+        "owned_profile_removed": true,
+        "steps": {
+          "baseline_before": {
+            "checker_returncode": 0,
+            "label": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "negative_control": {
+            "checker_returncode": 1,
+            "label": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": false,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "confined": {
+            "checker_returncode": 0,
+            "label": "veil_keeper_m0_exec_check_20261016 (enforce)",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "errno": 13,
+                "kind": "exec_error",
+                "passed": true
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "baseline_after": {
+            "checker_returncode": 0,
+            "label": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "component": "f3",
+      "fresh": 2,
+      "role": "keeper",
+      "boot_id": "13179d83-c7be-4235-b421-ec73661ab340",
+      "status": "passed",
+      "stop": {
+        "checkpoint_elapsed_ms": null,
+        "checkpoint_seen": false,
+        "controller_pid": 70677,
+        "duration_ms": 32103,
+        "escalated": false,
+        "evidence_synced": true,
+        "evidence_synced_before_stop": true,
+        "lifecycle_exit_code": 0,
+        "qemu_exit_code": 0,
+        "qemu_pid": 70678,
+        "qemu_reaped": true,
+        "qemu_signal": null,
+        "reason": "service_completed",
+        "schema_version": 2,
+        "startup_timeout_ms": 660000,
+        "status": "passed",
+        "sync_error": null,
+        "timeout_after_checkpoint_ms": null,
+        "watchdog_fixture": false
+      },
+      "owned_pids_absent": {
+        "qemu_pid": true,
+        "controller_pid": true
+      },
+      "keeper": {
+        "status": "passed",
+        "exit_code": 0,
+        "inventory_restored": true,
+        "owned_profile_removed": true,
+        "steps": {
+          "baseline_before": {
+            "checker_returncode": 0,
+            "label": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "negative_control": {
+            "checker_returncode": 1,
+            "label": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": false,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "confined": {
+            "checker_returncode": 0,
+            "label": "veil_keeper_m0_exec_check_20261016 (enforce)",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "errno": 13,
+                "kind": "exec_error",
+                "passed": true
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          },
+          "baseline_after": {
+            "checker_returncode": 0,
+            "label": "unconfined",
+            "cases": [
+              {
+                "command": "/usr/bin/true",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 0
+              },
+              {
+                "command": "/usr/bin/false",
+                "kind": "exited",
+                "passed": true,
+                "returncode": 1
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "bundles": {
+    "server": {
+      "path": "/nix/store/8lhm0vckbp79hws6aw22ws4xn6wfs0ia-arena-k3s-f2-server-bundle",
+      "bundle_sha256": "47afced8a12776f5946784a86668e5e445ee9aab47afca87a32612c6598aa886"
+    },
+    "agent": {
+      "path": "/nix/store/ca61yagzij2vwxdr1g8b2bw35dyhvdcd-arena-k3s-f2-agent-bundle",
+      "bundle_sha256": "7f20d459863d588acd3605554ba3ec7fa3198bbae724b3f93f2b1352fae7dd9b"
+    },
+    "keeper": {
+      "path": "/nix/store/h9fv4qsmaxsw94l21aphakgbvk8d39hh-arena-k3s-f3-keeper-bundle",
+      "bundle_sha256": "fc9db3b543d4918cf8c33b7fae9cd0951b48bc28aa9786715975de35d0e5e7f1"
+    }
+  },
+  "inputs_unchanged": true,
+  "host_links_unchanged": true,
+  "host_main_routes_unchanged": true,
+  "source_sha256": {
+    "flake.nix": "2805f399cad3a20839394828be947caea44c0692bee25d2358182932197d16a8",
+    "flake.lock": "f7c1fdb4c746bd2314b4f394483589a2b359e647c12c345379d4069b0a5a4f3f",
+    "environments/vm/k3s.nix": "6d466cff42b1ed10765265eda8cd7cba0204221047bf78addc4dadf2ddc23299",
+    "scripts/k3s_bundle.py": "616442e216fb807199f4491aa7c9b344a6f2be98adb02ecadf8e5e5dfb7dd727",
+    "scripts/k3s_execution.py": "089c146749a9d873dbb4235ce05cf1316f33bfd54bf7a6341b50355b373d8c19",
+    "scripts/k3s_host.py": "571f11565c90974b2e79af65b1a87c1e600f5234a539f7cb9d7ced89cda16583",
+    "scripts/k3s_f2_host.py": "ed19e0a8d1b4d586853dad3043790149efbff952d1cf11ee56d684cc69e39243",
+    "scripts/k3s_f2_guest.py": "b49eb173e0fbc337847db057733233778c7e4c4519d3314ce909ce075abf469b",
+    "scripts/k3s_f3_host.py": "992da2fda3d11ea2edab1396b147f550bec3e4a693018a72d93fa2ddeaf2886e",
+    "scripts/k3s_f3_guest.py": "be13718df7a39635a69294e6c8a4df5a9cb3c5d7cbd8e3d680c6245d69ffe603",
+    "scripts/k3s_f4_host.py": "6805ad484b0932e00d8b4279c785ec7f480f21feea320548767912e7814e282a",
+    "scripts/keeper_trial.py": "66cbd3bf0622e9cb575239221adb5c41bd6678a691ba719f36a5c6e1bde99ab7",
+    "scripts/keeper_inputs.py": "5d88fe741ce20ca1c8d4382625d8aa4e008fb6f6d5562c5e7f1f28956b2a65f7"
+  },
+  "raw_evidence": "/home/take/veil-arena-lab/runs/f4-integrated-20261026-a01",
+  "free_disk_gib_after": 337.92,
+  "pr_push_performed": false,
+  "remaining": [
+    "Mac current F2/F3 integrated fresh acceptance",
+    "two-VM checkpoint cancellation/timeout/recovery",
+    "historical Linux netns timeout root cause unknown"
+  ],
+  "not_claimed": [
+    "minimum hardware requirements",
+    "other OS/CNI qualification",
+    "Keeper station-api/SQLite/BPF-LSM/Pod deployment/production protection",
+    "physical network acceptance"
+  ],
+  "host_configuration": {
+    "cpu_model": "Intel Core i7-9700",
+    "logical_cpus": 8,
+    "installed_ram_gb": 64,
+    "os": "Ubuntu 26.04.1 LTS",
+    "host_kernel": "7.0.0-38-generic",
+    "root_lv_gib": 400,
+    "nix_version": "2.33.1",
+    "mode": "native QEMU/KVM; ordinary UID 1000"
+  },
+  "standalone_f2_evidence": "hp-ubuntu:/home/take/veil-arena-lab/runs/f2-acceptance-20261026-a01/",
+  "preparation_regression": {
+    "k3s": 85,
+    "keeper": 15,
+    "meaning": "preceding preparation tests; distinct from current VM acceptance"
+  },
+  "local_selected_evidence": "artifacts/hp-ubuntu-f4-integrated-20261026-a01; excludes disks, serial, kubeconfig and join tokens"
+}

@@ -38,7 +38,7 @@ F1は、F0の互換入口を含め、Mac ARM64／TCGの新規2 VMで[受け入�
 F2もMac ARM64／TCGの新規2クラスタで[受け入れ完了](K3S_F2_VALIDATION.md)。
 F3の固定Keeper exec smokeも、Mac ARM64／TCGの新規2 VMで[受け入れ完了](KEEPER_F3_VALIDATION.md)。
 F4のF2・F3統合入口を[専用手順](F4_ACCEPTANCE.md)へ追加。
-Linux x86_64／KVMのF3は新規2 VMで[成功](F4_ENTRY_VALIDATION.md)。統合新規受け入れはホスト資源不足で残件。
+Linux x86_64／KVMのF3は新規2 VMで[成功](F4_ENTRY_VALIDATION.md)。当時の統合資源不足は履歴として保持し、2026-10-26に[hp-ubuntuの新規F2→F3統合受け入れ](HP_UBUNTU_VALIDATION.md)も成功した。
 2026-10-21にMacの標準1 VMは現行runnerで通信2回・Keeper正常2回・checkpoint 4 runが[成功](validation/f4-standard-one-vm-mac-20261021.json)。Linux本人4 runの成功と分けて記録する。旧F4の2 VM・統合受け入れは未検証の追加検証として保持する。
 F0は [検証契約](F0_CONTRACT.md) と [入力固定表](contracts/f0-inputs.json) を作成・静的確認した状態。
 F0時点は定義評価まで。F1でARM64 packageのbuild・archive取得・実VM起動を確認した。
@@ -101,12 +101,21 @@ F2の専用入口・運用契約は [F2_K3S.md](F2_K3S.md)。Linux x86_64／KVM�
 
 | TODO | 状態・着手条件 |
 | --- | --- |
-| Linux x86_64の新規F2・F4統合受け入れ（追加検証） | 資源不足で未完了。pi-nodeは4 CPU、既存F2条件は6 CPU以上。条件を緩めず、満たす実行経路が得られた時点で再開 |
+| Linux x86_64の新規F2・F4統合受け入れ（追加検証） | [hp-ubuntuで成功](HP_UBUNTU_VALIDATION.md)（2026-10-26、固定source `4b22910`）。F2単独は新規4 VM、続く別の統合試験はF2 4 VM＋F3 2 VMで成功・回収。pi-nodeの当時の4 CPU不足は履歴として保持。2 VM checkpointは下記の別記録 |
 | Macの新規F2・F3統合受け入れ（追加検証） | 2026-10-21の現行main preflightもRAM不足で終了3・新規VM 0台。直前観測24,178 MiB、必要24,576 MiB。3 bundleのhash照合は成功。[記録](validation/f4-mac-main-preflight-20261021.json)。旧runnerは2 moduleがmainと異なるため次回準備・照合する。余力がある時点で再開し、他プロセス停止や条件緩和はしない |
 | Linux x86_64/KVMの標準F1通信 | [修正後ソースで成功](F1_LINUX_STANDARD_VALIDATION.md)。新規2 VMでPod・Service DNS・TCP/UDP・同期・回収・再成功。起動ソースのNix収録とServiceAccount成立順序を修正し、同一ソースのMacでも再成功。取り込み・対象CIは別途確認。以前の失敗証拠も保持 |
 | Macの標準1 VM受け入れ | [成功](validation/f4-standard-one-vm-mac-20261021.json)。現行runnerで通信2回・Keeper正常2回・新checkpoint bundleの4 runを実行。全8 VMが異なるboot ID、同期・正常回収。旧guest・証拠は保持 |
-| 2 VM側のcheckpoint受け入れ（追加検証） | 未完了。既存実装・証拠を保持し、標準1 VMの成功とは別に記録 |
+| 2 VM側のcheckpoint受け入れ（追加検証） | [Linuxでserver側checkpoint中断・期限検出・正常復帰が成功](F2_LIFECYCLE.md)（2026-10-26、4クラスタ・8 VM）。Mac実起動・agent側停止注入は未検証。既存証拠を保持し、標準1 VMとは別に記録 |
 | 本人操作確認 | 既存pi-nodeで本人の4 run実行が成功。一括終了0・異なる4 boot ID・中断/期限検出後の正常復帰・証拠同期・全所有QEMU回収を[確認](validation/f4-owner-lifecycle-20261021.json)。Mac側と2 VM側へは一般化しない |
 
 既存キャッシュ・証拠・diskは保持する。新規ハードウェアがないことを理由に未検証を合格扱いにせず、
 条件が揃うまで上記TODOを残す。対象外の物理環境・第三者試用・署名タグ・公開は再開しない。
+
+## 今回の区切り（2026-10-26）
+
+標準1 VMの完成判断は維持する。Linux x86_64/KVMでは固定入力のF2→F3統合と、
+server側checkpoint中断・期限検出・両VM回収・新規正常クラスタへの復帰まで確認した。
+今回の実装・記録のレビュー、取り込み、マージ後main CIの成功を今回の終了条件とする。
+Macの現行2 VM統合/lifecycle、agent側停止注入、過去netns期限超過の原因調査は追加TODOとして保持し、
+この区切りの必須作業へ繰り上げない。他のVeilの試験で必要になった時に再開を判断する。
+任意の製品・CNI・障害への対応を保証せず、物理環境・第三者試用・追加公開は別判断とする。

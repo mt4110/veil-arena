@@ -52,7 +52,7 @@ ColimaのVZ設定は[公式設定資料](https://colima.run/docs/configuration/)
 
 F2の2 VM・別ノードPod・Service/DNS・Flannel/VXLAN・限定NetworkPolicyと解除を保持する。
 旧 `arena-k3s-f4` はF2とF3を統合する追加検証入口として維持し、6 CPU・24 GiB条件を変更しない。
-Linux資源不足、Mac統合事前停止、2 VM checkpointの未検証は残す。
+当時のLinux資源不足の記録は保持し、[hp-ubuntuでの統合成功](HP_UBUNTU_VALIDATION.md)を別記録にする。[Linuxの2 VM checkpoint](F2_LIFECYCLE.md)はserver側の中断・期限検出・正常復帰が成功。Mac統合事前停止、Macの2 VM lifecycleとagent側停止注入の未検証は残す。
 kind/kubeadm別実装、複数CNI、IPv6、HA、物理環境は標準完成へ追加しない。
 
 ## Macの今回の到達点

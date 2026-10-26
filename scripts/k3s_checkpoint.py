@@ -42,6 +42,11 @@ def stop_at_checkpoint(out, result):
     profiles = inventory()
     if target(profiles):
         raise ValueError("Keeper target profile exists before checkpoint")
+    observe_stop(out, result, CHECKPOINT, {"profiles": profiles, "keeper_not_started": True})
+
+
+def observe_stop(out, result, checkpoint, fields):
+    """Stop only this owned runner; publish proof only after procfs confirms T."""
     parent = os.getpid()
     observer = os.fork()
     if observer == 0:
@@ -58,11 +63,11 @@ def stop_at_checkpoint(out, result):
                 time.sleep(.01)
             else:
                 raise ValueError("runner did not enter stopped state")
-            publish(out / "checkpoint-state.json", {"schema_version": 1, "checkpoint": CHECKPOINT,
+            publish(out / "checkpoint-state.json", {"schema_version": 1, "checkpoint": checkpoint,
                     "boot_id": result["boot_id"], "runner_pid": parent, "observer_pid": os.getpid(),
-                    "proc_status": status, "profiles": profiles, "keeper_not_started": True})
+                    "proc_status": status, **fields})
             publish(out / "watchdog-ready.json", {"schema_version": 1, "scenario": "guest-runner-stopped",
-                    "checkpoint": CHECKPOINT, "boot_id": result["boot_id"], "batch_pid": parent,
+                    "checkpoint": checkpoint, "boot_id": result["boot_id"], "batch_pid": parent,
                     "observer_pid": os.getpid(), "state": "T", "signal": int(signal.SIGSTOP)})
             code = 0
         except (OSError, ValueError) as error:
