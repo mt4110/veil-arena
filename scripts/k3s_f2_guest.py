@@ -260,6 +260,8 @@ def run(inputs, manifest_path, out=Path("/out"), control=Path("/control")):
                 raise Failure(stage, "agent runtime/image not ready")
             (out / "fixture-image-state.json").write_text(json.dumps({k: image.get(k) for k in ["id", "repoTags", "repoDigests"]}) + "\n")
             mark(stage, image_config_digest=image["id"])
+            from k3s_f2_checkpoint import agent_ready
+            agent_ready(out, result)
             while not (control / "finish").exists():
                 if time.monotonic() >= deadline:
                     raise Failure(stage, "server/host finish not received", 4)
@@ -273,6 +275,9 @@ def run(inputs, manifest_path, out=Path("/out"), control=Path("/control")):
                         or info.get("containerRuntimeVersion") != "containerd://" + inputs["versions"]["containerd"]):
                     raise Failure(stage, "node version mismatch", 1)
             mark(stage, names=sorted(NODES))
+            from k3s_f2_checkpoint import configuration, checkpoint as stop_fixture
+            if configuration(out) is not None:
+                stop_fixture(out, control, result, inputs, min(end, deadline), save)
             stage = "pods"
             end = min(deadline, time.monotonic()+120)
             manifest = json.loads(manifest_path.read_text())

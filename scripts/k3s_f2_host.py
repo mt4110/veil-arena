@@ -180,7 +180,7 @@ def collect(children):
 
 def workflow(uid, bundles, mode, root):
     os.umask(0o077)
-    if mode not in {"daily","acceptance"} or os.getuid() != uid or uid == 0:
+    if mode not in {"daily","acceptance","lifecycle"} or os.getuid() != uid or uid == 0:
         raise ValueError("mode/ordinary host UID invalid")
     inputs, seals = {},{}
     for role,path in bundles.items():
@@ -195,7 +195,11 @@ def workflow(uid, bundles, mode, root):
         raise ValueError("node fixture identities differ")
     if (os.cpu_count() or 0)<6 or available_memory_mib()<24576:
         raise ValueError("requires 6 host CPUs and 24 GiB available/inactive RAM")
-    count=2 if mode=="acceptance" else 1
+    actions = ["cancel", None, "timeout", None] if mode == "lifecycle" else [None] * (2 if mode == "acceptance" else 1)
+    if mode == "lifecycle":
+        import k3s_f2_checkpoint as checkpoint
+        for row in inputs.values(): checkpoint.capability(row)
+    count=len(actions)
     if shutil.disk_usage(root.parent).free<(count*64+2)*1024**3:
         raise ValueError("insufficient disk for retained fresh clusters")
     if any(c in str(root)+''.join(map(str,bundles.values())) for c in [",","\n"]):
@@ -217,7 +221,7 @@ def workflow(uid, bundles, mode, root):
     ids=set()
     stage="cluster_setup"
     try:
-        for index in range(count):
+        for index, action in enumerate(actions):
             stage="cluster_setup"
             run=root/f"fresh-{index+1}"
             run.mkdir(mode=0o700)
@@ -229,6 +233,9 @@ def workflow(uid, bundles, mode, root):
             item={"output":str(run),"status":"environment_error","nodes":{},"network":"private UNIX stream; no host bridge/NAT/port"}
             summary["runs"].append(item)
             children={}
+            cancel_sent = False
+            fixture_seen = False
+            if mode == "lifecycle": item["fixture"] = action
             stage="node_startup"
             try:
                 for role,bundle in bundles.items():
@@ -238,11 +245,13 @@ def workflow(uid, bundles, mode, root):
                         raise ValueError("immutable node inputs changed")
                     out=run/role;out.mkdir(mode=0o700)
                     subprocess.run(["qemu-img","create","-f","qcow2","-F","qcow2","-b",str((bundle/"run-base.qcow2").resolve()),str(out/"run.qcow2")],check=True,timeout=10,stdout=subprocess.DEVNULL)
+                    if action and role == "server":
+                        (out / "lifecycle-control.json").write_text(json.dumps(dict(checkpoint.CAPABILITY, action=action))+'\n')
                     args=qemu_args(arch,bundle,out,control,socket,role,inputs[role])
                     (out/"qemu-argv.json").write_text(json.dumps(args,indent=2)+'\n')
                     (out/"vm-manifest.json").write_text(json.dumps({"scenario":"k3s-f2","role":role,"accelerator":selected["accelerator"],"owner_uid":uid,"owner_pid":os.getpid(),"inputs":inputs[role],"boot_inputs":seals[role]["files"],"bundle_sha256":sha(bundle/"bundle.json")},indent=2)+'\n')
                     check_abort("node_startup")
-                    children[role]=subprocess.Popen(["timeout","--signal=TERM","--kill-after=5","670","veil-arena-vm-controller",str(out),*args],stdin=subprocess.DEVNULL,start_new_session=True)
+                    children[role]=subprocess.Popen(["timeout","--signal=TERM","--kill-after=5","670","veil-arena-vm-controller",*(["--watchdog-fixture"] if action == "timeout" and role == "server" else []),str(out),*args],stdin=subprocess.DEVNULL,start_new_session=True)
                     if role=="server":
                         stage="lan_startup"
                         end=min(deadline,time.monotonic()+5)
@@ -255,6 +264,23 @@ def workflow(uid, bundles, mode, root):
                 stage="running"
                 while any(c.poll() is None for c in children.values()):
                     check_abort("running")
+                    if action:
+                        peer_boot = checkpoint.peer(run, inputs)
+                        if peer_boot and not (control / "peer-ready.json").exists():
+                            from k3s_checkpoint import publish
+                            publish(control / "peer-ready.json", {"schema_version": 1, "boot_id": peer_boot})
+                        if not fixture_seen and (run / "server/watchdog-ready.json").exists():
+                            checkpoint.proof(run, inputs)
+                            fixture_seen = True
+                            if action == "cancel":
+                                children["server"].send_signal(signal.SIGTERM)
+                                cancel_sent = True
+                        if children["server"].poll() is not None:
+                            break  # finally collects the still-owned peer before verification.
+                        if children["agent"].poll() is not None:
+                            raise ValueError("peer exited before the stopped-server fixture")
+                        time.sleep(.05)
+                        continue
                     if children["server"].poll() is not None and not (control/"finish").exists():
                         (control/"finish").write_text("server controller completed\n")
                     for role, child in children.items():
@@ -267,12 +293,13 @@ def workflow(uid, bundles, mode, root):
                     time.sleep(.1)
                 stage="verification"
                 check_abort("verification")
-                boot_ids=verify_cluster(run,inputs)
-                check_abort("verification")
-                if ids.intersection(boot_ids.values()):
-                    raise ValueError("fresh cluster reused boot identity")
-                ids.update(boot_ids.values())
-                item.update(status="passed",boot_ids=boot_ids)
+                if not action:
+                    boot_ids=verify_cluster(run,inputs)
+                    check_abort("verification")
+                    if ids.intersection(boot_ids.values()):
+                        raise ValueError("fresh cluster reused boot identity")
+                    ids.update(boot_ids.values())
+                    item.update(status="passed",boot_ids=boot_ids)
             except GuestFailure as error:
                 record_guest_failure(item, error)
                 raise
@@ -292,7 +319,8 @@ def workflow(uid, bundles, mode, root):
                         stop=json.loads(bounded(run/role/"vm-stop.json"))
                         item["recovery"][role]=stop
                         if (stop.get("qemu_reaped") is not True or stop.get("escalated") is not False
-                                or stop.get("evidence_synced") is not True):
+                                or stop.get("evidence_synced") is not True
+                                or (action and (not checkpoint.recovered(stop) or children[role].returncode != 3))):
                             errors.append(role+": abnormal QEMU/evidence recovery")
                     except (OSError,ValueError,KeyError,TypeError):
                         errors.append(role+": recovery evidence unavailable")
@@ -301,6 +329,24 @@ def workflow(uid, bundles, mode, root):
                     code=3
                     item.update(status="environment_error", exit_code=3, stage="cleanup", detail='; '.join(errors))
                     raise ValueError('; '.join(errors))
+            if action:
+                stage = "fixture_verification"
+                try:
+                    check_abort(stage)
+                    if not fixture_seen:
+                        raise ValueError("server stop was not observed")
+                    boot_ids = checkpoint.verify(run, inputs, action, item["controller_exits"], cancel_sent)
+                    if ids.intersection(boot_ids.values()):
+                        raise ValueError("fresh fixture reused boot identity")
+                    ids.update(boot_ids.values())
+                    item.update(status="passed", exit_code=0, boot_ids=boot_ids, fixture_verified=True,
+                                observed_exit_code=130 if action == "cancel" else 3)
+                except HostAbort as error:
+                    record_host_abort(item, error)
+                    raise
+                except (OSError, ValueError, KeyError, TypeError) as error:
+                    record_host_failure(item, stage, error)
+                    raise
         stage="final_verification"
         for role,bundle in bundles.items():
             check_abort("final_verification")
@@ -330,7 +376,7 @@ def workflow(uid, bundles, mode, root):
 if __name__=="__main__":
     try:
         if len(sys.argv)!=6:
-            raise ValueError("usage: arena-k3s-f2 SERVER_BUNDLE AGENT_BUNDLE daily|acceptance NEW_OUTPUT")
+            raise ValueError("usage: arena-k3s-f2 SERVER_BUNDLE AGENT_BUNDLE daily|acceptance|lifecycle NEW_OUTPUT")
         sys.exit(workflow(int(sys.argv[1]),dict(zip(ROLES,map(lambda p:Path(p).absolute(),sys.argv[2:4]),strict=True)),sys.argv[4],Path(sys.argv[5]).absolute()))
     except (OSError,ValueError,KeyError,TypeError) as error:
         print("k3s-f2 preflight: "+str(error),file=sys.stderr);sys.exit(3)

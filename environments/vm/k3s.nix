@@ -21,11 +21,12 @@ let
     mkdir -p $out
     cp ${../../scripts/k3s_guest.py} $out/k3s_guest.py
     cp ${../../scripts/k3s_f2_guest.py} $out/k3s_f2_guest.py
+    cp ${../../scripts/k3s_f2_checkpoint.py} $out/k3s_f2_checkpoint.py
+    cp ${../../scripts/k3s_checkpoint.py} $out/k3s_checkpoint.py
+    cp ${../../scripts/k3s_bundle.py} $out/k3s_bundle.py
   '' + lib.optionalString f3 ''
     cp ${../../scripts/k3s_f3_guest.py} $out/k3s_f3_guest.py
     cp ${../../scripts/keeper_trial.py} $out/keeper_trial.py
-    cp ${../../scripts/k3s_checkpoint.py} $out/k3s_checkpoint.py
-    cp ${../../scripts/k3s_bundle.py} $out/k3s_bundle.py
   '');
   fixtureScript = if f2 then ../../tests/k3s/f2_fixture.py else ../../tests/k3s/fixture.py;
   fixture = pkgs.writeTextDir "bin/arena-k3s-fixture.py" (builtins.readFile fixtureScript);
@@ -95,6 +96,9 @@ let
     common_guest_sha256 = builtins.hashString "sha256" (builtins.readFile ../../scripts/k3s_guest.py);
     guest_runner_sha256 = builtins.hashString "sha256" (builtins.readFile guestScript);
     manifest_sha256 = builtins.hashString "sha256" (builtins.readFile manifest);
+  } // lib.optionalAttrs f2 {
+    f2_checkpoint_sha256 = builtins.hashFile "sha256" ../../scripts/k3s_f2_checkpoint.py;
+    f2_observer_sha256 = builtins.hashFile "sha256" ../../scripts/k3s_checkpoint.py;
   } // lib.optionalAttrs f3 { lifecycle_checkpoint_sha256 = builtins.hashString "sha256" (builtins.readFile ../../scripts/k3s_checkpoint.py); keeper = {
     inherit (contract.keeper) input_sha256 profile_name child_uid child_gid;
     command_timeout_seconds = contract.keeper.apparmor_lifecycle.command_timeout_seconds;
